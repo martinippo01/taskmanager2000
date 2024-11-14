@@ -42,6 +42,15 @@ stages:
       when: never
     - when: always
 
+.performance-test:
+  stage: test
+  script:
+    - echo "Chequeando perfomance..."
+  rules:
+    - if: $CI_COMMIT_BRANCH == "staging"
+      when: always
+
+
 .build:
   stage: build
   script:
@@ -73,7 +82,6 @@ stages:
 
 .deploy:
   stage: deploy
-  image: bitnami/kubectl:latest
   script:
     - echo "Deploying ${SERVICE_NAME} to Kubernetes cluster"
     - echo "Updating deployment for ${SERVICE_NAME} with image ${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
@@ -110,6 +118,9 @@ scheduler-unit-tests:
   variables:
     SERVICE_NAME: $MICROSERVICE_SCHEDULER
 
+orquestador-performance-tests:
+  extends: .unit-test
+
 # task-service-unit-tests:
 #   extends: .unit-test
 #   variables:
@@ -120,10 +131,23 @@ scheduler-unit-tests:
 #   variables:
 #     SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
 
+
 orquestador-build:
   extends: .build
   variables:
     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
+
+orquestador-correcto:
+  script:
+    - echo "Buildeo correctamente el orchestador!"
+  needs: [orquestador-build]
+  when: "on_success"
+
+orquestador-fail:
+  script:
+    - echo "No buildeo correctamente el orchestador!"
+  needs: [orquestador-build]
+  when: "on_failure"
 
 scheduler-build:
   extends: .build
