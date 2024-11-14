@@ -62,9 +62,7 @@ stages:
     - docker:dind
   script:
     - cd ${SERVICE_NAME}
-    - docker build -t $CI_REGISTRY_IMAGE/${SERVICE_NAME}:${CI_COMMIT_TAG} -f Dockerfile .
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker push $CI_REGISTRY_IMAGE/${SERVICE_NAME}:${CI_COMMIT_TAG}
+    - echo "Helm algo algo que bueno que magico"
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
       when: on_success
@@ -94,10 +92,10 @@ release_approval:
   stage: release_approval
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
-      when: always
+      when: manual
+    - when: never
   script:
     - echo "Release $CI_COMMIT_TAG has been approved for deployment."
-  when: manual
   allow_failure: false
 
 
