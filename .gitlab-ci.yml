@@ -33,10 +33,11 @@ stages:
   script:
     - cd ${SERVICE_NAME}
     - npm install
-    - npm test -- --reporter junit --reporter-options "output=${SERVICE_NAME}/test-results.xml"
+    - npm test -- --json --ci --outputFile=test-results.json --coverage
   artifacts:
-    reports:
-      junit: ${SERVICE_NAME}/test-results.xml
+    paths:
+      - ${SERVICE_NAME}/test-results.json
+    when: always
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Ensure it doesn't run on version tags
       when: never
