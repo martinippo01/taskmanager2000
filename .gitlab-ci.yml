@@ -11,7 +11,7 @@ variables:
   MICROSERVICE_ORQUESTADOR: "orquestador"
   MICROSERVICE_SCHEDULER: "scheduler"
   MICROSERVICE_TASK_SERVICE: "task_service"
-  MICROSERVICE_WORKFLOW_MANAGER: "workflow_manager"
+  MICROSERVICE_WORKFLOW_MANAGER: "wf_manager"
   # Agregamos los jobs acá???
 
 stages:
