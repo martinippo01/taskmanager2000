@@ -107,10 +107,10 @@ orquestador-unit-tests:
   variables:
     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
 
-# scheduler-unit-tests:
-#   extends: .unit-test
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_SCHEDULER
+scheduler-unit-tests:
+  extends: .unit-test
+  variables:
+    SERVICE_NAME: $MICROSERVICE_SCHEDULER
 
 # task-service-unit-tests:
 #   extends: .unit-test
