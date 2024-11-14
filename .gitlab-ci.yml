@@ -12,7 +12,8 @@ variables:
   MICROSERVICE_SCHEDULER: "scheduler"
   MICROSERVICE_TASK_SERVICE: "task_service"
   MICROSERVICE_WORKFLOW_MANAGER: "wf_manager"
-  CACHE_KEY: "cache-$(cat ${MICROSERVICE_ORQUESTADOR}/package-lock.json ${MICROSERVICE_SCHEDULER}/package-lock.json ${MICROSERVICE_TASK_SERVICE}/package-lock.json ${MICROSERVICE_WORKFLOW_MANAGER}/package-lock.json | md5sum | awk '{ print $1 }')"
+  MICROSERVICES: "${MICROSERVICE_ORQUESTADOR} ${MICROSERVICE_SCHEDULER} ${MICROSERVICE_TASK_SERVICE} ${MICROSERVICE_WORKFLOW_MANAGER}"
+  CACHE_KEY: "cache-$(for service in ${MICROSERVICES}; do cat $service/package-lock.json; done | md5sum | awk '{ print $1 }')"
   # Agregamos los jobs acá???
 
 stages:
@@ -29,17 +30,22 @@ cache-job:
   cache:
     key: ${CACHE_KEY}
     paths:
-      - ${MICROSERVICE_ORQUESTADOR}/node_modules/
-      - ${MICROSERVICE_SCHEDULER}/node_modules/
-      - ${MICROSERVICE_TASK_SERVICE}/node_modules/
-      - ${MICROSERVICE_WORKFLOW_MANAGER}/node_modules/
+      - ./*/.npm/
+      - ./*/node_modules/
     policy: pull-push
+  script:
+    - for service in ${MICROSERVICES}; do
+        cd $service;
+        npm ci --cache .npm --prefer-offline;
+        cd ..;
+      done
 
 
 .node-job:
   cache:
     key: ${CACHE_KEY}
     paths:
+      - ${SERVICE_NAME}/.npm/
       - ${SERVICE_NAME}/node_modules/
     policy: pull
 
