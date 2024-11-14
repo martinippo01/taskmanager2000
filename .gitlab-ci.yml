@@ -1,23 +1,204 @@
-build-job:
+# Imagen de base para todos los jobs
+image: node:23.1.0
+
+# Manifiestos provistos por gitlab que extienden los stages del actual
+# include:
+
+
+# Variables globales de entorno
+variables:
+  SEARCH_MAX_DEPTH: 17 # No tengo idea de qué es esto
+  MICROSERVICE_ORQUESTADOR: "orquestador"
+  MICROSERVICE_SCHEDULER: "scheduler"
+  MICROSERVICE_TASK_SERVICE: "task_service"
+  MICROSERVICE_WORKFLOW_MANAGER: "workflow_manager"
+  # Agregamos los jobs acá???
+
+stages:
+  - test
+  - build
+  - release_approval
+  - release
+  - deploy
+
+# Esto es para cache, se pone extends después
+#.maven-job:
+#  cache:
+#    key: ${CI_COMMIT_REF_SLUG}
+#    paths:
+#      - .m2/repository
+
+.unit-test:
+  stage: test
+  script:
+    - cd ${SERVICE_NAME}
+    - npm install
+    - npm test -- --reporter junit --reporter-options "output=${SERVICE_NAME}/test-results.xml"
+  artifacts:
+    reports:
+      junit: ${SERVICE_NAME}/test-results.xml
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Ensure it doesn't run on version tags
+      when: never
+    - when: always
+
+.build:
   stage: build
   script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
+    - cd ${SERVICE_NAME}
+    - npm install
+    - npm run build  # This assumes a "build" script is defined in package.json
+  artifacts:
+    paths:
+      - ${SERVICE_NAME}/dist/  # Adjust based on your build output directory
+    expire_in: 30 days
+  rules:
+    - when: always
 
-test-job1:
-  stage: test
+.release:
+  stage: release
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - echo "This job tests something"
+    - cd ${SERVICE_NAME}
+    - docker build -t $CI_REGISTRY_IMAGE/${SERVICE_NAME}:${CI_COMMIT_TAG} -f Dockerfile .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE/${SERVICE_NAME}:${CI_COMMIT_TAG}
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+      when: on_success
+  needs:
+    - job: release_approval
+      optional: false
 
-test-job2:
-  stage: test
-  script:
-    - echo "This job tests something, but takes more time than test-job1."
-    - echo "After the echo commands complete, it runs the sleep command for 2 seconds"
-    - echo "which simulates a test that runs 2 seconds longer than test-job1"
-    - sleep 2
 
-deploy-prod:
+.deploy:
   stage: deploy
+  image: bitnami/kubectl:latest
   script:
-    - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
-  environment: production
+    - echo "Deploying ${SERVICE_NAME} to Kubernetes cluster"
+    - echo "Updating deployment for ${SERVICE_NAME} with image ${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
+    - echo "kubectl set image deployment/${SERVICE_NAME} ${SERVICE_NAME}=${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
+    - echo "kubectl rollout status deployment/${SERVICE_NAME}"
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+      when: on_success
+  needs:
+    - job: release_approval
+      optional: false
+
+
+# Job de aprobación manual de release
+release_approval:
+  stage: release_approval
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+      when: always
+  script:
+    - echo "Release $CI_COMMIT_TAG has been approved for deployment."
+  when: manual
+  allow_failure: false
+
+
+# Jobs específicos de cada microservicio
+orquestador-unit-tests:
+  extends: .unit-test
+  variables:
+    SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
+
+scheduler-unit-tests:
+  extends: .unit-test
+  variables:
+    SERVICE_NAME: $MICROSERVICE_SCHEDULER
+
+task-service-unit-tests:
+  extends: .unit-test
+  variables:
+    SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
+
+workflow-manager-unit-tests:
+  extends: .unit-test
+  variables:
+    SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
+
+orquestador-build:
+  extends: .build
+  variables:
+    SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
+
+scheduler-build:
+  extends: .build
+  variables:
+    SERVICE_NAME: $MICROSERVICE_SCHEDULER
+
+task-service-build:
+  extends: .build
+  variables:
+    SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
+
+workflow-manager-build:
+  extends: .build
+  variables:
+    SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
+
+orquestador-release:
+  extends: .release
+  variables:
+    SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
+
+scheduler-release:
+  extends: .release
+  variables:
+    SERVICE_NAME: $MICROSERVICE_SCHEDULER
+
+task-service-release:
+  extends: .release
+  variables:
+    SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
+
+workflow-manager-release:
+  extends: .release
+  variables:
+    SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
+
+orquestador-deploy:
+  extends: .deploy
+  variables:
+    SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
+  needs:
+    - job: release_approval
+      optional: false
+    - job: orquestador-release
+      optional: false
+
+scheduler-deploy:
+  extends: .deploy
+  variables:
+    SERVICE_NAME: $MICROSERVICE_SCHEDULER
+  needs:
+    - job: release_approval
+      optional: false
+    - job: scheduler-release
+      optional: false
+
+task-service-deploy:
+  extends: .deploy
+  variables:
+    SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
+  needs:
+    - job: release_approval
+      optional: false
+    - job: task-service-release
+      optional: false
+
+workflow-manager-deploy:
+  extends: .deploy
+  variables:
+    SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
+  needs:
+    - job: release_approval
+      optional: false
+    - job: workflow-manager-release
+      optional: false
+
