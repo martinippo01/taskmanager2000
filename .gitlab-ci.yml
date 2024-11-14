@@ -47,10 +47,10 @@ stages:
   script:
     - cd ${SERVICE_NAME}
     - npm install
-    - npm run build  # This assumes a "build" script is defined in package.json
+    - npm run build
   artifacts:
     paths:
-      - ${SERVICE_NAME}/dist/  # Adjust based on your build output directory
+      - ${SERVICE_NAME}/dist/ 
     expire_in: 30 days
   rules:
     - when: always
