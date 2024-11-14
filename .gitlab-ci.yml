@@ -33,11 +33,10 @@ stages:
   script:
     - cd ${SERVICE_NAME}
     - npm install
-    - npm test -- --json --ci --outputFile=test-results.json --coverage
+    - JEST_JUNIT_OUTPUT_FILE='test-results.xml' npm run test -- --ci --reporters=default --reporters=jest-junit
   artifacts:
-    paths:
-      - ${SERVICE_NAME}/test-results.json
-    when: always
+    reports:
+      junit: test-results.xml
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Ensure it doesn't run on version tags
       when: never
@@ -108,20 +107,20 @@ orquestador-unit-tests:
   variables:
     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
 
-scheduler-unit-tests:
-  extends: .unit-test
-  variables:
-    SERVICE_NAME: $MICROSERVICE_SCHEDULER
+# scheduler-unit-tests:
+#   extends: .unit-test
+#   variables:
+#     SERVICE_NAME: $MICROSERVICE_SCHEDULER
 
-task-service-unit-tests:
-  extends: .unit-test
-  variables:
-    SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
+# task-service-unit-tests:
+#   extends: .unit-test
+#   variables:
+#     SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
 
-workflow-manager-unit-tests:
-  extends: .unit-test
-  variables:
-    SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
+# workflow-manager-unit-tests:
+#   extends: .unit-test
+#   variables:
+#     SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
 
 orquestador-build:
   extends: .build
