@@ -12,23 +12,40 @@ variables:
   MICROSERVICE_SCHEDULER: "scheduler"
   MICROSERVICE_TASK_SERVICE: "task_service"
   MICROSERVICE_WORKFLOW_MANAGER: "wf_manager"
+  CACHE_KEY: "cache-$(cat ${MICROSERVICE_ORQUESTADOR}/package-lock.json ${MICROSERVICE_SCHEDULER}/package-lock.json ${MICROSERVICE_TASK_SERVICE}/package-lock.json ${MICROSERVICE_WORKFLOW_MANAGER}/package-lock.json | md5sum | awk '{ print $1 }')"
   # Agregamos los jobs acá???
 
 stages:
+  - prepare
   - test
   - build
   - release_approval
   - release
   - deploy
 
-# Esto es para cache, se pone extends después
-#.maven-job:
-#  cache:
-#    key: ${CI_COMMIT_REF_SLUG}
-#    paths:
-#      - .m2/repository
+
+cache-job:
+  stage: prepare
+  cache:
+    key: ${CACHE_KEY}
+    paths:
+      - ${MICROSERVICE_ORQUESTADOR}/node_modules/
+      - ${MICROSERVICE_SCHEDULER}/node_modules/
+      - ${MICROSERVICE_TASK_SERVICE}/node_modules/
+      - ${MICROSERVICE_WORKFLOW_MANAGER}/node_modules/
+    policy: pull-push
+
+
+.node-job:
+  cache:
+    key: ${CACHE_KEY}
+    paths:
+      - ${SERVICE_NAME}/node_modules/
+    policy: pull
+
 
 .unit-test:
+  extends: .node-job
   stage: test
   script:
     - cd ${SERVICE_NAME}
@@ -43,6 +60,7 @@ stages:
     - when: always
 
 .build:
+  extends: .node-job
   stage: build
   script:
     - cd ${SERVICE_NAME}
