@@ -101,7 +101,7 @@ cache-job:
   stage: deploy
   image: bitnami/kubectl:latest
   script:
-    - echo "Deploying ${SERVICE_NAME} to Kubernetes cluster"
+    - echo "Deploy ${SERVICE_NAME} to Kubernetes cluster"
     - echo "Updating deployment for ${SERVICE_NAME} with image ${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
     - echo "kubectl set image deployment/${SERVICE_NAME} ${SERVICE_NAME}=${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
     - echo "kubectl rollout status deployment/${SERVICE_NAME}"
