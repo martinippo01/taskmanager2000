@@ -162,12 +162,14 @@ orquestador-build:
     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
 
 orquestador-correcto:
+  stage: build
   script:
     - echo "Buildeo correctamente el orchestador!"
   needs: [orquestador-build]
   when: "on_success"
 
 orquestador-fail:
+  stage: build
   script:
     - echo "No buildeo correctamente el orchestador!"
   needs: [orquestador-build]
