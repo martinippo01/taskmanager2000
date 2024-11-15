@@ -53,6 +53,7 @@ cache-job:
           cd ..;
         done;
       fi
+    - echo "exit code ${CI_CACHE_EXIT_CODE}"
     - exit $CI_CACHE_EXIT_CODE
 
 
