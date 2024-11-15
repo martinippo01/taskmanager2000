@@ -1,13 +1,15 @@
 # Imagen de base para todos los jobs
 image: node:23.1.0
 
-# Manifiestos provistos por gitlab que extienden los stages del actual
-# include:
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
 
 
 # Variables globales de entorno
 variables:
   SEARCH_MAX_DEPTH: 17 # No tengo idea de qué es esto
+  GITLAB_ADVANCED_SAST_ENABLED: 'true'
   MICROSERVICE_ORQUESTADOR: "orquestador"
   MICROSERVICE_SCHEDULER: "scheduler"
   MICROSERVICE_TASK_SERVICE: "task_service"
