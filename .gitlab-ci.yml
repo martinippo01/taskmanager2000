@@ -39,7 +39,9 @@ cache-job:
     - CI_CACHE_EXIT_CODE=0
     - for service in ${MICROSERVICES}; do
         hash=$(cat $service/package-lock.json | sha256sum | awk '{ print $1 }');
+        echo 'new hash' hash
         if [ -f $service/package-lock.json.sha256sum ]; then
+          echo "$(cat $service/package-lock.json.sha256sum)"
           if [ "$(cat $service/package-lock.json.sha256sum)" != "$hash" ]; then
             CI_CACHE_EXIT_CODE=123;
           fi;
