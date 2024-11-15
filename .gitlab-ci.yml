@@ -157,7 +157,7 @@ scheduler-unit-tests:
     SERVICE_NAME: $MICROSERVICE_SCHEDULER
 
 orquestador-performance-tests:
-  extends: .unit-test
+  extends: .performance-test
 
 # task-service-unit-tests:
 #   extends: .unit-test
