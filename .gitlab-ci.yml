@@ -54,8 +54,6 @@ cache-job:
         done;
       fi
     - exit $CI_CACHE_EXIT_CODE
-  allow_failure:
-    exit_codes: 123
 
 
 .node-job:
