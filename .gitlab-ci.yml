@@ -63,10 +63,6 @@ cache-job:
       - ${SERVICE_NAME}/.npm/
       - ${SERVICE_NAME}/node_modules/
     policy: pull
-  needs:
-    - job: cache-job
-      optional: false
-
 
 .unit-test:
   extends: .node-job
