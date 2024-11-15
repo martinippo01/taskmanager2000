@@ -40,6 +40,7 @@ cache-job:
     - for service in ${MICROSERVICES}; do
         hash=$(cat $service/package-lock.json | sha256sum | awk '{ print $1 }');
         if [ ! -f $service/package-lock.json.sha256sum ] || [ "$(cat $service/package-lock.json.sha256sum)" != "$hash" ]; then
+          echo "Cache miss for $service";
           CI_CACHE_EXIT_CODE=123;
         fi;
         echo $hash > $service/package-lock.json.sha256sum;
@@ -47,6 +48,7 @@ cache-job:
     - if [ $CI_CACHE_EXIT_CODE -ne 0 ]; then
         for service in ${MICROSERVICES}; do
           cd $service;
+          echo "Installing dependencies for $service";
           npm ci --cache .npm --prefer-offline;
           cd ..;
         done;
