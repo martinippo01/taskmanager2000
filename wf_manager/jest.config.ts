@@ -1,7 +1,7 @@
-import baseConfig from "shared/jest.config";
+import baseConfig from 'shared/jest.config'
 
 const config = {
-  ...baseConfig,
-};
+    ...baseConfig
+}
 
-export default config;
+export default config
