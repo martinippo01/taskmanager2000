@@ -1,7 +1,16 @@
 {
   "extends": "shared/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@interfaces/*": ["src/interfaces/*"],
+      "@services/*": ["src/services/*"],
+      "@repositories/*": ["src/repositories/*"],
+      "@domains/*": ["src/domains/*"],
+      "@gateways/*": ["src/gateways/*"],
+      "@exceptions/*": ["src/exceptions/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "tests"]
