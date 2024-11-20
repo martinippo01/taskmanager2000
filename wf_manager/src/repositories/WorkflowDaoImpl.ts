@@ -4,11 +4,11 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 class WorkflowDaoImpl implements WorkflowDao {
-  getWorkflow(name: string): Promise<WorkflowEntity | null> {
+  async getWorkflow(name: string): Promise<WorkflowEntity | null> {
     throw new Error('Method not implemented.');
   }
 
-  getWorkflowById(id: number): Promise<WorkflowEntity | null> {
+  async getWorkflowById(id: number): Promise<WorkflowEntity | null> {
     throw new Error('Method not implemented.');
   }
 
