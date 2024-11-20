@@ -13,7 +13,7 @@ export type Workflow = {
   name: string; // The name of the workflow
   description: string; // The description of the workflow
   inputParams: Record<string, InputParamType>; // The input parameters of the workflow. The key is the name of the parameter and the value is the type of the parameter
-  plan: File; // The plan file of the workflow
+  plan: string; // The path to the plan file of the workflow
 };
 
 export type WorkflowEntity = {
@@ -32,24 +32,4 @@ export type WorkflowExecution = {
   inputParams: Record<string, InputParamType>; // The input parameters of the workflow. The key is the name of the parameter and the value is the type of the parameter
   plan: string; // The path to the plan file of the workflow
   inputArgs: Record<string, InputArgumentType>; // The input arguments of the workflow. The key is the name of the argument and the value is the value of the argument
-};
-
-export type CreateWorkflowRequest = {
-  name: string; // The name of the workflow
-  description: string; // The description of the workflow
-  inputParams: Record<string, string>; // The input parameters of the workflow. The key is the name of the parameter and the value is the type of the parameter
-  plan: File; // The plan file of the workflow
-};
-
-export type DisableWorkflowRequest = {
-  name: string; // The name of the workflow
-};
-
-export type EnableWorkflowRequest = {
-  name: string; // The name of the workflow
-};
-
-export type ExecuteWorkflowRequest = {
-  name: string; // The name of the workflow
-  inputArgs: Record<string, string>; // The input arguments of the workflow. The key is the name of the argument and the value is the value of the argument
 };

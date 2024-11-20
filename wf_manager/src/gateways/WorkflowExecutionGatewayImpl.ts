@@ -1,8 +1,17 @@
-import { WorkflowExecution } from '@interfaces/Workflow.js';
-import WorkflowExecutionGateway from '@interfaces/WorkflowExecutionGateway.js';
+import {
+  WorkflowExecution,
+  InputArgumentType,
+  Workflow,
+} from '@interfaces/types/Workflow';
+import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 class WorkflowExecutionGatewayImpl implements WorkflowExecutionGateway {
-  executeWorkflow(workflow: WorkflowExecution): Promise<boolean> {
+  queueWorkflow(
+    workflow: Workflow,
+    inputArgs: Record<string, InputArgumentType>,
+  ): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
 }

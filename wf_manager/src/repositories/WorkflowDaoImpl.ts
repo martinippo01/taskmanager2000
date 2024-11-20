@@ -1,6 +1,8 @@
-import { Workflow, WorkflowEntity } from '@interfaces/Workflow.js';
-import WorkflowDao from '@interfaces/WorkflowDao.js';
+import { Workflow, WorkflowEntity } from '@interfaces/types/Workflow';
+import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 class WorkflowDaoImpl implements WorkflowDao {
   getWorkflow(name: string): Promise<WorkflowEntity | null> {
     throw new Error('Method not implemented.');

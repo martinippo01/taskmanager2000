@@ -1,6 +1,6 @@
-import { Workflow, WorkflowEntity } from './Workflow.js';
+import { Workflow, WorkflowEntity } from '@interfaces/types/Workflow';
 
-interface WorkflowDao {
+export interface WorkflowDao {
   getWorkflow(name: string): Promise<WorkflowEntity | null>;
   getWorkflowById(id: number): Promise<WorkflowEntity | null>;
   createWorkflow(workflow: Workflow): Promise<WorkflowEntity>;
@@ -8,4 +8,4 @@ interface WorkflowDao {
   disableWorkflow(name: string): Promise<boolean>;
 }
 
-export default WorkflowDao;
+export const WorkflowDao = Symbol('WorkflowDao');
