@@ -1,13 +1,9 @@
-import {
-  WorkflowExecution,
-  InputArgumentType,
-  Workflow,
-} from '@interfaces/types/Workflow';
+import { Workflow, InputArguments } from '@interfaces/types/Workflow';
 
 export interface WorkflowExecutionGateway {
   queueWorkflow(
     workflow: Workflow,
-    inputArgs: Record<string, InputArgumentType>,
+    inputArgs: InputArguments,
   ): Promise<boolean>;
 }
 

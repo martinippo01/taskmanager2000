@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
@@ -12,6 +10,8 @@ import WorkflowInputDomainImpl from '@domains/WorkflowInputDomainImpl';
 import WorkflowPlanDomainImpl from '@domains/WorkflowPlanDomainImpl';
 import WorkflowExecutionGatewayImpl from '@gateways/WorkflowExecutionGatewayImpl';
 import WorkflowDaoImpl from '@repositories/WorkflowDaoImpl';
+import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
+import WorkflowPlanDaoImpl from '@repositories/WorkflowPlanDaoImpl';
 
 @Module({
   imports: [],
@@ -36,6 +36,10 @@ import WorkflowDaoImpl from '@repositories/WorkflowDaoImpl';
     {
       provide: WorkflowDao,
       useClass: WorkflowDaoImpl,
+    },
+    {
+      provide: WorkflowPlanDao,
+      useClass: WorkflowPlanDaoImpl,
     },
   ],
 })

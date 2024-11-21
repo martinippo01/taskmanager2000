@@ -1,16 +1,13 @@
 import { Put, Body, Controller, Post, Param } from '@nestjs/common';
-import { Workflow } from '@interfaces/types/Workflow';
 import {
   ExecuteWorkflowResponseDto,
   ExecuteWorkflowRequestDto,
 } from '@interfaces/types/ExecuteWorkflow';
 import { ToggleWorkflowResponseDto } from '@interfaces/types/ToggleWorkflow';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
-import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
-import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import {
   CreateWorkflowRequestDto,
   CreateWorkflowResponseDto,
@@ -20,7 +17,6 @@ import {
 class WorkflowControllerRestImpl {
   constructor(
     private readonly workflowDomain: WorkflowDomain,
-    private readonly workflowPlanDomain: WorkflowPlanDomain,
     private readonly workflowInputDomain: WorkflowInputDomain,
     private readonly workflowExecutionGateway: WorkflowExecutionGateway,
   ) {}
@@ -29,17 +25,7 @@ class WorkflowControllerRestImpl {
   async createWorkflow(
     @Body() request: CreateWorkflowRequestDto,
   ): Promise<CreateWorkflowResponseDto> {
-    if (!this.workflowPlanDomain.isPlanFormatValid(request.plan)) {
-      throw new InvalidWorkflowPlanException();
-    }
-    const inputParams = this.workflowInputDomain.areInputParamsValid(
-      request.plan,
-      request.inputParams,
-    );
-    const workflow = await this.workflowDomain.createWorkflow({
-      ...request,
-      inputParams,
-    });
+    const workflow = await this.workflowDomain.createWorkflow(request);
     return {
       created: workflow !== null,
     };

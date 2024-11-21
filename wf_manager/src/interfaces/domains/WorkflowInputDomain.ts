@@ -1,18 +1,18 @@
 import {
-  InputArgumentType,
   Workflow,
-  InputParamType,
+  InputArguments,
+  InputParams,
 } from '@interfaces/types/Workflow';
 
 export interface WorkflowInputDomain {
   areInputParamsValid(
     plan: File,
     inputParams: Record<string, string>,
-  ): Record<string, InputParamType>;
+  ): InputParams;
   getInputArgs(
     workflow: Workflow,
     inputArgs: Record<string, string>,
-  ): Record<string, InputArgumentType>;
+  ): InputArguments;
 }
 
 export const WorkflowInputDomain = Symbol('WorkflowInputDomain');

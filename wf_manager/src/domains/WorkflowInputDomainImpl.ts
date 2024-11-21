@@ -1,7 +1,7 @@
 import {
-  InputArgumentType,
   Workflow,
-  InputParamType,
+  InputArguments,
+  InputParams,
 } from '@interfaces/types/Workflow';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { Injectable } from '@nestjs/common';
@@ -11,14 +11,14 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
   areInputParamsValid(
     plan: File,
     inputParams: Record<string, string>,
-  ): Record<string, InputParamType> {
+  ): InputParams {
     throw new Error('Method not implemented.');
   }
 
   getInputArgs(
     workflow: Workflow,
     inputArgs: Record<string, string>,
-  ): Record<string, InputArgumentType> {
+  ): InputArguments {
     throw new Error('Method not implemented.');
   }
 }

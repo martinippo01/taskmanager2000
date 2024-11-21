@@ -2,82 +2,94 @@ import { Workflow } from '@interfaces/types/Workflow.js';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain.js';
 import { Injectable } from '@nestjs/common';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
-import { WorkflowCreation } from '@interfaces/types/CreateWorkflow';
-import { InputParamType } from '@interfaces/types/Workflow'
+import { CreateWorkflowRequestDto } from '@interfaces/types/CreateWorkflow';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
-import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
+import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
+import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
+import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
+import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
 
 @Injectable()
 class WorkflowDomainImpl implements WorkflowDomain {
-  constructor(private workflowDao: WorkflowDao, 
-    private readonly workflowPlanDomain: WorkflowPlanDomain, 
-    private readonly workflowInputDomain: WorkflowInputDomain) {}
+  constructor(
+    private workflowDao: WorkflowDao,
+    private workflowPlanDao: WorkflowPlanDao,
+    private readonly workflowPlanDomain: WorkflowPlanDomain,
+  ) {}
 
-  async createWorkflow(request: WorkflowCreation): Promise<Workflow | null> {
-    const wf = await this.workflowDao.getWorkflow(request.name);
-    // Return null if it already exists
-    if (wf!==null || this.workflowPlanDomain.isPlanFormatValid(wf.plan)) 
-      return null;
-    
-    //TODO: revisar validez de los inputParams
-   
+  async createWorkflow(
+    request: CreateWorkflowRequestDto,
+  ): Promise<Workflow | null> {
+    // Validate the plan format
+    if (!this.workflowPlanDomain.isPlanFormatValid(request.plan)) {
+      throw new InvalidWorkflowPlanException();
+    }
+
+    const { name, description, inputParams } =
+      this.workflowPlanDomain.getPlanProps(request.plan);
+
+    // Validate the workflow does not exist
+    const wf = await this.workflowDao.getWorkflow(name);
+    if (wf !== null) {
+      throw new WorkflowAlreadyExistsException(name);
+    }
+
+    // Persist the plan
+    const planPath = await this.workflowPlanDao.savePlan(request.plan);
+
+    // Persist the new workflow
     const newWorkflow: Workflow = {
-      version: "1", 
-      name: request.name,
-      description: request.description,
-      inputParams: request.inputParams,
-      plan: request.plan,
+      version: 1,
+      name,
+      description,
+      inputParams,
+      plan: planPath,
     };
-
-    this.workflowDao.createWorkflow(newWorkflow);
+    await this.workflowDao.createWorkflow(newWorkflow);
     return newWorkflow;
   }
 
   // esto quizás no debería estar acá
   async doesWorkflowExist(name: string): Promise<boolean> {
-    return await this.workflowDao.getWorkflow(name)!==null; 
+    return (await this.workflowDao.getWorkflow(name)) !== null;
   }
 
   async isWorkflowEnabled(name: string): Promise<boolean> {
-    const wf_entity = await this.workflowDao.getWorkflow(name);
-    if (!wf_entity)
-      return null;
-    return wf_entity.enabled;
+    const wfEntity = await this.workflowDao.getWorkflow(name);
+    if (!wfEntity) {
+      throw new WorkflowNotFoundException(name);
+    }
+    return wfEntity.enabled;
   }
 
   async toggleWorkflow(name: string): Promise<boolean> {
-    const wf_entity = await this.workflowDao.getWorkflow(name);
-     
-    if (!wf_entity)
-      return null;
+    const wfEntity = await this.workflowDao.getWorkflow(name);
 
-    // dependiendo de qué devuelven disable y enable quizás 
-    // convenga borrar el primer return y descomentar el segundo
-    return wf_entity.enabled 
-    ? await this.workflowDao.disableWorkflow(wf_entity.name)
-    : await this.workflowDao.enableWorkflow(wf_entity.name);
+    if (!wfEntity) {
+      throw new WorkflowNotFoundException(name);
+    }
 
-    // return !wf_entity.enabled;
+    if (wfEntity.enabled) {
+      await this.workflowDao.disableWorkflow(wfEntity.name);
+    } else {
+      await this.workflowDao.enableWorkflow(wfEntity.name);
+    }
+
+    return !wfEntity.enabled;
   }
 
   async getWorkflow(name: string): Promise<Workflow | null> {
-    const wf_entity = await this.workflowDao.getWorkflow(name);
-     
-    if (!wf_entity)
-      return null;
+    const wfEntity = await this.workflowDao.getWorkflow(name);
 
-    const inputParams: Record<string, InputParamType> = {};
-    wf_entity.inputParams.forEach(param => {
-      // TODO: conseguimos los params
-      //this.workflowInputDomain.getInputArgs()
-    });
+    if (!wfEntity) return null;
 
-    return { 
-      version: wf_entity.version,
-      name: name,
-      description: wf_entity.description,
-      inputParams: inputParams,
-      plan: wf_entity.plan }
+    return {
+      version: wfEntity.version,
+      name: wfEntity.name,
+      description: wfEntity.description,
+      inputParams: wfEntity.inputParams,
+      plan: wfEntity.plan,
+    };
   }
 }
 
