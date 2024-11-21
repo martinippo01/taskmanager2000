@@ -1,6 +1,6 @@
 import { Workflow } from '@interfaces/types/Workflow.js';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain.js';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
 import { CreateWorkflowRequestDto } from '@interfaces/types/CreateWorkflow';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
@@ -12,8 +12,8 @@ import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
 @Injectable()
 class WorkflowDomainImpl implements WorkflowDomain {
   constructor(
-    private workflowDao: WorkflowDao,
-    private workflowPlanDao: WorkflowPlanDao,
+    private readonly workflowDao: WorkflowDao,
+    private readonly workflowPlanDao: WorkflowPlanDao,
     private readonly workflowPlanDomain: WorkflowPlanDomain,
   ) {}
 
@@ -40,7 +40,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
     // Persist the new workflow
     const newWorkflow: Workflow = {
       version: 1,
-      name,
+      name: name,
       description,
       inputParams,
       plan: planPath,
@@ -50,7 +50,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
   }
 
   // esto quizás no debería estar acá
-  async doesWorkflowExist(name: string): Promise<boolean> {
+  private async doesWorkflowExist(name: string): Promise<boolean> {
     return (await this.workflowDao.getWorkflow(name)) !== null;
   }
 
@@ -69,10 +69,12 @@ class WorkflowDomainImpl implements WorkflowDomain {
       throw new WorkflowNotFoundException(name);
     }
 
-    if (wfEntity.enabled) {
-      await this.workflowDao.disableWorkflow(wfEntity.name);
-    } else {
-      await this.workflowDao.enableWorkflow(wfEntity.name);
+    const response = wfEntity.enabled
+      ? await this.workflowDao.disableWorkflow(name)
+      : await this.workflowDao.enableWorkflow(name);
+
+    if (!response) {
+      throw new InternalServerErrorException('Could not toggle workflow');
     }
 
     return !wfEntity.enabled;
