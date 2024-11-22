@@ -57,7 +57,8 @@ class WorkflowControllerRestImpl {
       workflow,
       request.inputArgs,
     );
-    // 3 - Call gateway
+    // 3 - Call gateway with id and wait for response (TODO)
+    // TODO: Dao to persist the id of waiting executions
     const queued = await this.workflowExecutionGateway.queueWorkflow(
       workflow,
       inputArgs,
