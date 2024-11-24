@@ -1,17 +1,10 @@
-import {
-  Workflow,
-  InputArguments,
-  InputParams,
-} from '@interfaces/types/Workflow';
+import { Workflow } from '@interfaces/types/Workflow';
+import { InputArguments } from '@interfaces/types/WorkflowInput';
 
 export interface WorkflowInputDomain {
-  areInputParamsValid(
-    plan: File,
-    inputParams: Record<string, string>,
-  ): InputParams;
   getInputArgs(
     workflow: Workflow,
-    inputArgs: Record<string, string>,
+    inputArgs: Record<string, string | string[]>,
   ): InputArguments;
 }
 

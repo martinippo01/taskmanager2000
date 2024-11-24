@@ -1,6 +1,7 @@
-import { Workflow, InputArguments } from '@interfaces/types/Workflow';
+import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
 import { Injectable } from '@nestjs/common';
+import { InputArguments } from '@interfaces/types/WorkflowInput';
 
 @Injectable()
 class WorkflowExecutionGatewayImpl implements WorkflowExecutionGateway {

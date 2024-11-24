@@ -1,14 +1,4 @@
-type AtomicInputParamType = 'string' | 'number' | 'boolean';
-type ArrayInputParamType = `${AtomicInputParamType}[]`;
-export type InputParamType = AtomicInputParamType | ArrayInputParamType;
-export type InputParams = Record<string, InputParamType>;
-
-type AtomicInputArgumentType = string | number | boolean;
-type ArrayInputArgumentType = AtomicInputArgumentType[];
-export type InputArgumentType =
-  | AtomicInputArgumentType
-  | ArrayInputArgumentType;
-export type InputArguments = Record<string, InputArgumentType>;
+import { InputArguments, InputParams } from './WorkflowInput';
 
 export type Workflow = {
   version: number; // The version of the workflow
