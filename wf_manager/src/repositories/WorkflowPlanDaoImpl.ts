@@ -1,6 +1,6 @@
 import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
 
-class WorkflowPlanDaoImpl extends WorkflowPlanDao {
+class WorkflowPlanDaoImpl implements WorkflowPlanDao {
   savePlan(plan: File): Promise<string> {
     throw new Error('Method not implemented.');
   }
