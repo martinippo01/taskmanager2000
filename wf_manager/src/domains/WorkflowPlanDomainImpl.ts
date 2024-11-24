@@ -1,10 +1,76 @@
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
+import { InputParams } from '@interfaces/types/Workflow';
 import { Injectable } from '@nestjs/common';
+import YAML from 'yaml';
 
 @Injectable()
 class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
-  isPlanFormatValid(plan: File): boolean {
+  getPlanProperties(plan: File): {
+    name: string;
+    description: string;
+    inputParams: InputParams;
+  } {
     throw new Error('Method not implemented.');
+  }
+
+  async isPlanFormatValid(plan: File): Promise<boolean> {
+    try {
+      const arrayBuffer = await plan.arrayBuffer();
+      const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+      const parsed = YAML.parse(fileContent);
+      // const parsed = JSON.parse(parsedFirst);
+
+      // Validate top-level structure
+      if (!parsed.name || typeof parsed.name !== 'string') return false;
+      if (!parsed.description || typeof parsed.description !== 'string')
+        return false;
+      if (!Array.isArray(parsed.steps)) return false;
+
+      const stepNames = new Set();
+
+      // Validate each step
+      for (const step of parsed.steps) {
+        if (!step.name || typeof step.name !== 'string') return false;
+        if (stepNames.has(step.name)) return false; // Step names must be unique
+        stepNames.add(step.name);
+
+        // TODO: Sacar esta info del Task manager
+        if (
+          !step.task ||
+          !['echo', 'bash', 's3', 'filter', 'manual'].includes(step.task)
+        )
+          return false;
+
+        if (!Array.isArray(step.params)) return false;
+
+        // Validate each parameter in the step
+        for (const param of step.params) {
+          if (!param.name || typeof param.name !== 'string') return false;
+          // TODO: ver si no hay que agregar alguno más
+          if (!['string', 'number', 'boolean'].includes(param.type))
+            return false;
+
+          const from = param.from;
+          const value = param.value;
+          // Ensure `from` and `value` are mutually exclusive
+          if ((from && value) || (!from && !value)) return false;
+          if (from && (typeof from !== 'string' || !stepNames.has(from)))
+            return false;
+          if (value && typeof value !== 'string') return false;
+
+          // Validate `constant` (default is false if not provided)
+          if (
+            param.constant !== undefined &&
+            typeof param.constant !== 'boolean'
+          )
+            return false;
+        }
+      }
+
+      return true;
+    } catch (err) {
+      throw new Error(`Failed to parse plan YAML: ${err.message}`);
+    }
   }
 }
 
