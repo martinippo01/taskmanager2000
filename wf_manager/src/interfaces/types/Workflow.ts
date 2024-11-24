@@ -19,7 +19,6 @@ export type Workflow = {
 };
 
 export type WorkflowEntity = {
-  id: number; // The id of the workflow
   version: number; // The version of the workflow
   name: string; // The name of the workflow
   description: string; // The description of the workflow
