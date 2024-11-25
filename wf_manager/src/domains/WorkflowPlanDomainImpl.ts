@@ -1,6 +1,6 @@
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
-import { InputParams } from '@interfaces/types/Workflow';
 import { Injectable } from '@nestjs/common';
+import { InputParams } from 'shared/lib/WorkflowInput';
 import YAML from 'yaml';
 
 @Injectable()
