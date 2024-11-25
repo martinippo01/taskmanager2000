@@ -1,25 +1,50 @@
-import {
-  Workflow,
-  InputArguments,
-  InputParams,
-} from '@interfaces/types/Workflow';
+import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { Injectable } from '@nestjs/common';
+import InvalidInputArgumentTypeException from '@exceptions/InvalidInputArgumentTypeException';
+import InputArgumentMismatchException from '@exceptions/InputArgumentMismatchException';
+import InputParamUnsetException from '@exceptions/InputParamsUnsetException';
+import {
+  getInputArgumentFromParamType,
+  InputArguments,
+} from 'shared/lib/WorkflowInput';
 
 @Injectable()
 class WorkflowInputDomainImpl implements WorkflowInputDomain {
-  areInputParamsValid(
-    plan: File,
-    inputParams: Record<string, string>,
-  ): InputParams {
-    throw new Error('Method not implemented.');
-  }
-
   getInputArgs(
     workflow: Workflow,
-    inputArgs: Record<string, string>,
+    inputArgs: Record<string, string | string[]>,
   ): InputArguments {
-    throw new Error('Method not implemented.');
+    const inputParams = workflow.inputParams;
+    const inputArguments: InputArguments = {};
+
+    const setInputParams: Set<string> = new Set<string>();
+    const allInputParams: string[] = Object.keys(inputParams);
+
+    for (const [key, value] of Object.entries(inputArgs)) {
+      // Check if the input argument is in the input parameters
+      if (!(key in inputParams)) {
+        throw new InputArgumentMismatchException(key);
+      }
+      // Check if the input argument type matches the input parameter type
+      const inputParamType = inputParams[key];
+      const argument = getInputArgumentFromParamType(value, inputParamType);
+      if (argument === null) {
+        throw new InvalidInputArgumentTypeException(key, inputParamType);
+      }
+      inputArguments[key] = argument;
+      setInputParams.add(key);
+    }
+
+    // Check if all input parameters are set
+    if (setInputParams.size !== allInputParams.length) {
+      const missingInputParams = allInputParams.filter(
+        (param) => !setInputParams.has(param),
+      );
+      throw new InputParamUnsetException(missingInputParams);
+    }
+
+    return inputArguments;
   }
 }
 

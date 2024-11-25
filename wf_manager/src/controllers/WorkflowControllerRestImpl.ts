@@ -55,9 +55,9 @@ class WorkflowControllerRestImpl {
     // 2 - Validate request input args
     const inputArgs = this.workflowInputDomain.getInputArgs(
       workflow,
-      request.inputArgs,
+      request.inputArgs || {},
     );
-    // 3 - Call gateway with id and wait for response (TODO)
+    // 3 - Call gateway with id and wait for response
     const queued = await this.workflowExecutionGateway.queueWorkflow(
       workflow,
       inputArgs,

@@ -1,4 +1,4 @@
-import { InputParams } from '@interfaces/types/Workflow';
+import { InputParams } from 'shared/lib/WorkflowInput';
 
 export interface WorkflowPlanDomain {
   isPlanFormatValid(plan: File): Promise<boolean>;

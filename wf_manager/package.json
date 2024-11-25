@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "author": "",
+  "type": "module",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -27,6 +28,7 @@
     "class-validator": "^0.14.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "shared": "file:../shared",
     "yaml": "^2.6.1"
   },
   "devDependencies": {
@@ -52,13 +54,15 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   },
+  "prettier": "shared/prettier-config.json",
   "jest": {
+    "preset": "shared",
     "moduleFileExtensions": [
       "js",
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": "test",
     "testRegex": ".*\\.test\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

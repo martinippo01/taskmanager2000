@@ -1,4 +1,4 @@
-import { InputParams } from './Workflow';
+import { InputParams } from 'shared/lib/WorkflowInput';
 
 export type CreateWorkflowRequestDto = {
   plan: File; // The plan file of the workflow
