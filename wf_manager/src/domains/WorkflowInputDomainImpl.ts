@@ -2,12 +2,12 @@ import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { Injectable } from '@nestjs/common';
 import InvalidInputArgumentTypeException from '@exceptions/InvalidInputArgumentTypeException';
+import InputArgumentMismatchException from '@exceptions/InputArgumentMismatchException';
+import InputParamUnsetException from '@exceptions/InputParamsUnsetException';
 import {
   getInputArgumentFromParamType,
   InputArguments,
-} from '@interfaces/types/WorkflowInput';
-import InputArgumentMismatchException from '@exceptions/InputArgumentMismatchException';
-import InputParamUnsetException from '@exceptions/InputParamsUnsetException';
+} from 'shared/lib/WorkflowInput';
 
 @Injectable()
 class WorkflowInputDomainImpl implements WorkflowInputDomain {

@@ -1,5 +1,5 @@
 import { Workflow } from '@interfaces/types/Workflow';
-import { InputArguments } from '@interfaces/types/WorkflowInput';
+import { InputArguments } from 'shared/lib/WorkflowInput';
 
 export interface WorkflowExecutionGateway {
   queueWorkflow(

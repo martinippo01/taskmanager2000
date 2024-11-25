@@ -1,4 +1,4 @@
-import { InputArguments, InputParams } from './WorkflowInput';
+import { InputParams, InputArguments } from 'shared/lib/WorkflowInput';
 
 export type Workflow = {
   version: number; // The version of the workflow

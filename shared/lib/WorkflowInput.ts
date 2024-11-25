@@ -1,21 +1,19 @@
-type AtomicInputParamType = 'string' | 'number' | 'boolean';
+type AtomicInputParamType = "string" | "number" | "boolean";
 type ArrayInputParamType = `${AtomicInputParamType}[]`;
-export type InputParamType = AtomicInputParamType | ArrayInputParamType;
+type InputParamType = AtomicInputParamType | ArrayInputParamType;
 export type InputParams = Record<string, InputParamType>;
 
 type AtomicInputArgumentType = string | number | boolean;
 type ArrayInputArgumentType = AtomicInputArgumentType[];
-export type InputArgumentType =
-  | AtomicInputArgumentType
-  | ArrayInputArgumentType;
+type InputArgumentType = AtomicInputArgumentType | ArrayInputArgumentType;
 export type InputArguments = Record<string, InputArgumentType>;
 
 const isParamArray = (
-  paramType: InputParamType,
-): paramType is ArrayInputParamType => paramType.endsWith('[]');
+  paramType: InputParamType
+): paramType is ArrayInputParamType => paramType.endsWith("[]");
 
 const getInputAtomicType = (
-  arrayParamType: ArrayInputParamType,
+  arrayParamType: ArrayInputParamType
 ): AtomicInputParamType => arrayParamType.slice(0, -2) as AtomicInputParamType;
 
 const getArgumentNumber = (argument: string): number | null => {
@@ -27,10 +25,10 @@ const getArgumentNumber = (argument: string): number | null => {
 };
 
 const getArgumentBoolean = (argument: string): boolean | null => {
-  if (argument === 'true') {
+  if (argument === "true") {
     return true;
   }
-  if (argument === 'false') {
+  if (argument === "false") {
     return false;
   }
   return null;
@@ -38,15 +36,15 @@ const getArgumentBoolean = (argument: string): boolean | null => {
 
 export const getInputArgumentFromParamType = (
   argument: string | string[],
-  paramType: InputParamType,
+  paramType: InputParamType
 ): InputArgumentType | null => {
   const getAtomicArgumentParser = (atomicParamType: AtomicInputParamType) => {
     switch (atomicParamType) {
-      case 'string':
+      case "string":
         return (arg: string) => arg;
-      case 'number':
+      case "number":
         return getArgumentNumber;
-      case 'boolean':
+      case "boolean":
         return getArgumentBoolean;
       default:
         return null;
