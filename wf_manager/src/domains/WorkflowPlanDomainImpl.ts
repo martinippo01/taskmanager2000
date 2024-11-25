@@ -5,12 +5,23 @@ import YAML from 'yaml';
 
 @Injectable()
 class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
-  getPlanProperties(plan: File): {
-    name: string;
-    description: string;
-    inputParams: InputParams;
-  } {
-    throw new Error('Method not implemented.');
+  async getPlanProperties(
+    plan: File,
+  ): Promise<{ name: string; description: string; inputParams: InputParams }> {
+    const arrayBuffer = await plan.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+    const parsed = YAML.parse(fileContent);
+    const name = parsed.name;
+    const description = parsed.description;
+    const inputParams = {};
+
+    for (const step of parsed.steps) {
+      for (const param of step.params) {
+        inputParams[param.name] = param.type;
+      }
+    }
+
+    return { name, description, inputParams };
   }
 
   async isPlanFormatValid(plan: File): Promise<boolean> {
