@@ -1,5 +1,6 @@
 import { Kafka, logLevel, Producer } from "kafkajs";
 import { InputArguments, InputParams } from "./WorkflowInput";
+import { randomBytes } from "crypto";
 
 export type WorkflowExecutionRequest = {
   executionId: string;
@@ -46,18 +47,24 @@ export class WorkflowExecutionRequestProducer {
     this.isConnected = false;
   }
 
-  async send(key: string, request: WorkflowExecutionRequest): Promise<void> {
+  async send(
+    key: string,
+    request: Omit<WorkflowExecutionRequest, "executionId">
+  ): Promise<string> {
     if (!this.isConnected) {
       throw new Error("Producer is not connected");
     }
+    const executionId = randomBytes(20).toString("hex");
+    const value = { ...request, executionId };
     await this.producer.send({
       topic,
       messages: [
         {
           key,
-          value: JSON.stringify(request),
+          value: JSON.stringify(value),
         },
       ],
     });
+    return executionId;
   }
 }

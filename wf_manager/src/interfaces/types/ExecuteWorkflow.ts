@@ -56,4 +56,5 @@ export class ExecuteWorkflowRequestDto {
 
 export type ExecuteWorkflowResponseDto = {
   queued: boolean; // Indicates the workflow was queued to execute
+  executionId: string; // The execution ID of the workflow
 };

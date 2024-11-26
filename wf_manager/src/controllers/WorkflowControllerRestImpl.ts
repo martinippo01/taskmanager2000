@@ -58,12 +58,13 @@ class WorkflowControllerRestImpl {
       request.inputArgs || {},
     );
     // 3 - Call gateway with id and wait for response
-    const queued = await this.workflowExecutionGateway.queueWorkflow(
+    const executionId = await this.workflowExecutionGateway.queueWorkflow(
       workflow,
       inputArgs,
     );
     return {
-      queued,
+      queued: !!executionId && executionId.length > 0,
+      executionId,
     };
   }
 }
