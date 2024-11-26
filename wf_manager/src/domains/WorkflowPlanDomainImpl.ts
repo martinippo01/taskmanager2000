@@ -29,6 +29,7 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
       const arrayBuffer = await plan.arrayBuffer();
       const fileContent = Buffer.from(arrayBuffer).toString('utf8');
       const parsed = parse(fileContent);
+      if (!parsed || typeof parsed !== 'object') return false;
       // const parsed = JSON.parse(parsedFirst);
 
       // Validate top-level structure
@@ -38,6 +39,7 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
       if (!Array.isArray(parsed.steps)) return false;
 
       const stepNames = new Set();
+      const paramNames = new Set();
 
       // Validate each step
       for (const step of parsed.steps) {
@@ -52,11 +54,19 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
         )
           return false;
 
-        if (!Array.isArray(step.params)) return false;
+        if (!Array.isArray(step.params) || step.params.length === 0)
+          return false;
 
         // Validate each parameter in the step
         for (const param of step.params) {
-          if (!param.name || typeof param.name !== 'string') return false;
+          if (
+            !param.name ||
+            typeof param.name !== 'string' ||
+            paramNames.has(param.name)
+          )
+            return false;
+          paramNames.add(param.name);
+
           // TODO: ver si no hay que agregar alguno más
           if (!['string', 'number', 'boolean'].includes(param.type))
             return false;
