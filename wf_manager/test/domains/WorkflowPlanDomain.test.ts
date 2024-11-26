@@ -1,5 +1,5 @@
-import WorkflowPlanDomainImpl from '../src/domains/WorkflowPlanDomainImpl';
-import { WorkflowPlanDomain } from '../src/interfaces/domains/WorkflowPlanDomain';
+import WorkflowPlanDomainImpl from '../../src/domains/WorkflowPlanDomainImpl';
+import { WorkflowPlanDomain } from '../../src/interfaces/domains/WorkflowPlanDomain';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('PlanDomain', () => {
