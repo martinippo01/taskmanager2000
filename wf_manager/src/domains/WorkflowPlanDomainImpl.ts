@@ -1,7 +1,7 @@
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import { Injectable } from '@nestjs/common';
 import { InputParams } from 'shared/lib/WorkflowInput';
-import YAML from 'yaml';
+import { parse } from 'yaml';
 
 @Injectable()
 class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
@@ -10,7 +10,7 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
   ): Promise<{ name: string; description: string; inputParams: InputParams }> {
     const arrayBuffer = await plan.arrayBuffer();
     const fileContent = Buffer.from(arrayBuffer).toString('utf8');
-    const parsed = YAML.parse(fileContent);
+    const parsed = parse(fileContent);
     const name = parsed.name;
     const description = parsed.description;
     const inputParams = {};
@@ -28,7 +28,7 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
     try {
       const arrayBuffer = await plan.arrayBuffer();
       const fileContent = Buffer.from(arrayBuffer).toString('utf8');
-      const parsed = YAML.parse(fileContent);
+      const parsed = parse(fileContent);
       // const parsed = JSON.parse(parsedFirst);
 
       // Validate top-level structure
