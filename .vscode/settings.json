@@ -12,8 +12,7 @@
     "**/.hg": true,
     "**/CVS": true,
     "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "wf_manager/src/exceptions": true
+    "**/Thumbs.db": true
   },
   "hide-files.files": []
 }

@@ -12,15 +12,15 @@ abstract class WorkflowException extends HttpException {
     this._statusCode = statusCode;
   }
 
-  get name(): string {
+  getName(): string {
     return this._name;
   }
 
-  get message(): string {
+  getMessage(): string {
     return this._message;
   }
 
-  get statusCode(): number {
+  getStatusCode(): number {
     return this._statusCode;
   }
 }
