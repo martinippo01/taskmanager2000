@@ -7,14 +7,12 @@ import { parse } from 'yaml';
 
 @Injectable()
 class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
-  async getPlanProperties(plan: File): Promise<{
+  async getPlanProperties(fileContent: string): Promise<{
     name: string;
     description: string;
     inputParams: InputParams;
     version: string;
   }> {
-    const arrayBuffer = await plan.arrayBuffer();
-    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
     const parsed = parse(fileContent);
     const inputParams = {};
 
@@ -32,14 +30,12 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
     };
   }
 
-  async getPlanFromYaml(plan: File): Promise<Plan> {
+  async getPlanFromYaml(fileContent: string): Promise<Plan> {
     const throw_excep = () => {
       throw new InvalidWorkflowPlanException();
     };
 
     try {
-      const arrayBuffer = await plan.arrayBuffer();
-      const fileContent = Buffer.from(arrayBuffer).toString('utf8');
       const parsed = parse(fileContent);
       if (!parsed || typeof parsed !== 'object') throw_excep();
       // const parsed = JSON.parse(parsedFirst);

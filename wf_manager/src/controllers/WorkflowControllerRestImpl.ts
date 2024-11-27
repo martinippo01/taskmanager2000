@@ -6,6 +6,10 @@ import {
   Param,
   Query,
   Logger,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ExecuteWorkflowResponseDto,
@@ -16,11 +20,8 @@ import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
-import {
-  CreateWorkflowRequestDto,
-  CreateWorkflowResponseDto,
-} from '@interfaces/types/CreateWorkflow';
-import { query } from 'express';
+import { CreateWorkflowResponseDto } from '@interfaces/types/CreateWorkflow';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('workflows')
 class WorkflowControllerRestImpl {
@@ -33,11 +34,26 @@ class WorkflowControllerRestImpl {
   ) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('file'))
   async createWorkflow(
-    @Body() request: CreateWorkflowRequestDto,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'application/yaml',
+        })
+        .addMaxSizeValidator({
+          maxSize: 1024 * 1024, // 1MB
+        })
+        .build({
+          fileIsRequired: true,
+          errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        }),
+    )
+    file: Express.Multer.File,
   ): Promise<CreateWorkflowResponseDto> {
     this.LOGGER.debug(`Creating workflow`);
-    const workflow = await this.workflowDomain.createWorkflow(request);
+    const fileContent = file.buffer.toString('utf8');
+    const workflow = await this.workflowDomain.createWorkflow(fileContent);
     this.LOGGER.log(`Workflow ${workflow ? workflow.name : 'not'} created`);
     return {
       created: workflow !== null,

@@ -6,7 +6,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
-import { CreateWorkflowRequestDto } from '@interfaces/types/CreateWorkflow';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
@@ -20,17 +19,15 @@ class WorkflowDomainImpl implements WorkflowDomain {
     private readonly workflowPlanDomain: WorkflowPlanDomain,
   ) {}
 
-  async createWorkflow(
-    request: CreateWorkflowRequestDto,
-  ): Promise<Workflow | null> {
+  async createWorkflow(fileContent: string): Promise<Workflow | null> {
     this.LOGGER.debug(`Creating workflow`);
     // Validate the plan format
     this.LOGGER.debug('Validating plan format');
-    const wf_plan = await this.workflowPlanDomain.getPlanFromYaml(request.plan);
+    const wf_plan = await this.workflowPlanDomain.getPlanFromYaml(fileContent);
 
     this.LOGGER.debug('Getting plan props');
     const { name, description, inputParams, version } =
-      await this.workflowPlanDomain.getPlanProperties(request.plan);
+      await this.workflowPlanDomain.getPlanProperties(fileContent);
 
     // Validate the workflow does not exist
     this.LOGGER.debug('Validating workflow does not exist');
