@@ -64,7 +64,7 @@ class WorkflowExecutionGatewayImpl
     } catch (error) {
       this.LOGGER.error(`Send error: ${error}`);
       throw new InternalServerErrorException(
-        'Failed to queue workflow for execution',
+        `Failed to queue workflow ${name} for execution`,
       );
     }
   }

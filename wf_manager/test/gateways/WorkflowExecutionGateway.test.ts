@@ -1,8 +1,10 @@
 import WorkflowExecutionGatewayImpl from '@gateways/WorkflowExecutionGatewayImpl';
 import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
+import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { InputArguments } from 'shared/lib/WorkflowInput';
 
 describe('WorkflowExecutionGateway', () => {
   class WorkflowExecutionRequestProducerMock
@@ -53,6 +55,64 @@ describe('WorkflowExecutionGateway', () => {
       await expect(gateway.onModuleInit()).rejects.toThrow(
         InternalServerErrorException,
       );
+    });
+  });
+
+  describe('disconnect', () => {
+    it('should disconnect producer', async () => {
+      const mock = jest.spyOn(producer, 'disconnect');
+      mock.mockImplementation(() => Promise.resolve());
+      await gateway.onModuleDestroy();
+      expect(mock).toHaveBeenCalled();
+    });
+
+    it('should throw an error if failed to disconnect producer', async () => {
+      const mock = jest.spyOn(producer, 'disconnect');
+      mock.mockImplementation(() => Promise.reject(new Error()));
+      await expect(gateway.onModuleDestroy()).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('queueWorkflow', () => {
+    const workflowExample: Workflow = {
+      version: 0,
+      name: 'Test Plan',
+      description: 'A description of the test plan',
+      inputParams: {
+        param1: 'string',
+        param2: 'number',
+        param3: 'boolean',
+        param4: 'string[]',
+      },
+      plan: 'test',
+    };
+
+    const inputArgsExample: InputArguments = {
+      param1: 'test',
+      param2: '123',
+      param3: 'true',
+      param4: ['a', 'b', 'c'],
+    };
+
+    it('should queue workflow for execution', async () => {
+      const mock = jest.spyOn(producer, 'send');
+      mock.mockImplementation(() => Promise.resolve('executionId'));
+      const result = await gateway.queueWorkflow(
+        workflowExample,
+        inputArgsExample,
+      );
+      expect(result).toEqual('executionId');
+      expect(mock).toHaveBeenCalled();
+    });
+
+    it('should throw an error if failed to queue workflow for execution', async () => {
+      const mock = jest.spyOn(producer, 'send');
+      mock.mockImplementation(() => Promise.reject(new Error()));
+      await expect(
+        gateway.queueWorkflow(workflowExample, inputArgsExample),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 });
