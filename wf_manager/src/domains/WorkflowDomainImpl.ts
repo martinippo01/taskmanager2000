@@ -7,13 +7,13 @@ import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
 import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
-import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
+import { Plan } from 'shared/lib/WorkflowPlan';
+import { version } from 'os';
 
 @Injectable()
 class WorkflowDomainImpl implements WorkflowDomain {
   constructor(
     private readonly workflowDao: WorkflowDao,
-    private readonly workflowPlanDao: WorkflowPlanDao,
     private readonly workflowPlanDomain: WorkflowPlanDomain,
   ) {}
 
@@ -21,57 +21,55 @@ class WorkflowDomainImpl implements WorkflowDomain {
     request: CreateWorkflowRequestDto,
   ): Promise<Workflow | null> {
     // Validate the plan format
-    if (!this.workflowPlanDomain.isPlanFormatValid(request.plan)) {
-      throw new InvalidWorkflowPlanException();
-    }
+    const wf_plan = await this.workflowPlanDomain.getPlanFromYaml(request.plan);
 
-    const { name, description, inputParams } =
-      this.workflowPlanDomain.getPlanProps(request.plan);
+    const { name, description, inputParams, version } =
+      await this.workflowPlanDomain.getPlanProperties(request.plan);
 
     // Validate the workflow does not exist
-    const wf = await this.workflowDao.getWorkflow(name);
-    if (wf !== null) {
+    if (await this.doesWorkflowExist(name, version)) {
       throw new WorkflowAlreadyExistsException(name);
     }
 
-    // Persist the plan
-    const planPath = await this.workflowPlanDao.savePlan(request.plan);
-
-    // Persist the new workflow
-    const newWorkflow: Workflow = {
-      version: 1,
+    const wf = {
+      version: version,
       name: name,
       description,
       inputParams,
-      plan: planPath,
+      plan: wf_plan,
+      enabled: true,
     };
-    await this.workflowDao.createWorkflow(newWorkflow);
-    return newWorkflow;
+
+    await this.workflowDao.createWorkflow(wf);
+    return wf;
   }
 
   // esto quizás no debería estar acá
-  private async doesWorkflowExist(name: string): Promise<boolean> {
-    return (await this.workflowDao.getWorkflow(name)) !== null;
+  private async doesWorkflowExist(
+    name: string,
+    version: string,
+  ): Promise<boolean> {
+    return (await this.workflowDao.getWorkflow(name, version)) !== null;
   }
 
-  async isWorkflowEnabled(name: string): Promise<boolean> {
-    const wfEntity = await this.workflowDao.getWorkflow(name);
+  async isWorkflowEnabled(name: string, version: string): Promise<boolean> {
+    const wfEntity = await this.workflowDao.getWorkflow(name, version);
     if (!wfEntity) {
       throw new WorkflowNotFoundException(name);
     }
     return wfEntity.enabled;
   }
 
-  async toggleWorkflow(name: string): Promise<boolean> {
-    const wfEntity = await this.workflowDao.getWorkflow(name);
+  async toggleWorkflow(name: string, version: string): Promise<boolean> {
+    const wfEntity = await this.workflowDao.getWorkflow(name, version);
 
     if (!wfEntity) {
       throw new WorkflowNotFoundException(name);
     }
 
     const response = wfEntity.enabled
-      ? await this.workflowDao.disableWorkflow(name)
-      : await this.workflowDao.enableWorkflow(name);
+      ? await this.workflowDao.disableWorkflow(name, version)
+      : await this.workflowDao.enableWorkflow(name, version);
 
     if (!response) {
       throw new InternalServerErrorException('Could not toggle workflow');
@@ -80,8 +78,8 @@ class WorkflowDomainImpl implements WorkflowDomain {
     return !wfEntity.enabled;
   }
 
-  async getWorkflow(name: string): Promise<Workflow | null> {
-    const wfEntity = await this.workflowDao.getWorkflow(name);
+  async getWorkflow(name: string, version: string): Promise<Workflow | null> {
+    const wfEntity = await this.workflowDao.getWorkflow(name, version);
 
     if (!wfEntity) return null;
 
@@ -91,6 +89,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
       description: wfEntity.description,
       inputParams: wfEntity.inputParams,
       plan: wfEntity.plan,
+      enabled: wfEntity.enabled,
     };
   }
 }

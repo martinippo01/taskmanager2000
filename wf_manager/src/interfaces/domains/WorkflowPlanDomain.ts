@@ -1,11 +1,13 @@
 import { InputParams } from 'shared/lib/WorkflowInput';
+import { Plan } from 'shared/lib/WorkflowPlan';
 
 export interface WorkflowPlanDomain {
-  isPlanFormatValid(plan: File): Promise<boolean>;
+  getPlanFromYaml(plan: File): Promise<Plan>;
   getPlanProperties(plan: File): Promise<{
     name: string;
     description: string;
     inputParams: InputParams;
+    version: string;
   }>;
 }
 

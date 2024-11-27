@@ -2,7 +2,7 @@ import { InputParams, InputArguments } from 'shared/lib/WorkflowInput';
 import { Plan } from 'shared/lib/WorkflowPlan';
 
 export type Workflow = {
-  version: number; // The version of the workflow
+  version: string; // The version of the workflow
   name: string; // The name of the workflow
   description: string; // The description of the workflow
   inputParams: InputParams; // The input parameters of the workflow. The key is the name of the parameter and the value is the type of the parameter

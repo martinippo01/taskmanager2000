@@ -31,11 +31,12 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Put(':name/status')
+  @Put(':name/version/status')
   async toggleWorkflow(
     @Param('name') name: string,
+    @Param('version') version: string,
   ): Promise<ToggleWorkflowResponseDto> {
-    const enabled = await this.workflowDomain.toggleWorkflow(name);
+    const enabled = await this.workflowDomain.toggleWorkflow(name, version);
     return {
       name,
       enabled,
@@ -45,10 +46,11 @@ class WorkflowControllerRestImpl {
   @Post(':name')
   async executeWorkflow(
     @Param('name') name: string,
+    @Param('version') version: string,
     @Body() request: ExecuteWorkflowRequestDto,
   ): Promise<ExecuteWorkflowResponseDto> {
     // 1 - Get workflow
-    const workflow = await this.workflowDomain.getWorkflow(name);
+    const workflow = await this.workflowDomain.getWorkflow(name, version);
     if (workflow === null) {
       throw new WorkflowNotFoundException(name);
     }
