@@ -11,7 +11,7 @@ describe('WorkflowInputDomain', () => {
   let workflowInputDomain: WorkflowInputDomain;
 
   const getWorkflow = (inputParams: InputParams): Workflow => ({
-    version: 0,
+    version: '0.0',
     name: 'test',
     description: 'test',
     inputParams,

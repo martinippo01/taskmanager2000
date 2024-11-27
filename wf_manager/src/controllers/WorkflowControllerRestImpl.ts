@@ -35,12 +35,13 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Put(':name/status')
+  @Put(':name/:version/status')
   async toggleWorkflow(
     @Param('name') name: string,
+    @Param('version') version: string,
   ): Promise<ToggleWorkflowResponseDto> {
     this.LOGGER.debug(`Toggling workflow ${name}`);
-    const enabled = await this.workflowDomain.toggleWorkflow(name);
+    const enabled = await this.workflowDomain.toggleWorkflow(name, version);
     this.LOGGER.log(`Workflow ${name} is ${enabled ? 'enabled' : 'disabled'}`);
     return {
       name,
@@ -48,14 +49,15 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Post(':name')
+  @Post(':name/:version')
   async executeWorkflow(
     @Param('name') name: string,
+    @Param('version') version: string,
     @Body() request: ExecuteWorkflowRequestDto,
   ): Promise<ExecuteWorkflowResponseDto> {
     // 1 - Get workflow
     this.LOGGER.debug(`Executing workflow ${name}`);
-    const workflow = await this.workflowDomain.getWorkflow(name);
+    const workflow = await this.workflowDomain.getWorkflow(name, version);
     if (workflow === null) {
       throw new WorkflowNotFoundException(name);
     }

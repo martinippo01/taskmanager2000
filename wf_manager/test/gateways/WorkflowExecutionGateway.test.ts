@@ -77,7 +77,7 @@ describe('WorkflowExecutionGateway', () => {
 
   describe('queueWorkflow', () => {
     const workflowExample: Workflow = {
-      version: 0,
+      version: '0.0',
       name: 'Test Plan',
       description: 'A description of the test plan',
       inputParams: {
