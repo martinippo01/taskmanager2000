@@ -20,6 +20,7 @@ import {
   CreateWorkflowRequestDto,
   CreateWorkflowResponseDto,
 } from '@interfaces/types/CreateWorkflow';
+import { query } from 'express';
 
 @Controller('workflows')
 class WorkflowControllerRestImpl {
@@ -44,6 +45,7 @@ class WorkflowControllerRestImpl {
   }
 
   @Put(':name/status')
+  @Put(':name/status')
   async toggleWorkflow(
     @Param('name') name: string,
     @Query('version') version?: string,
@@ -57,6 +59,7 @@ class WorkflowControllerRestImpl {
     };
   }
 
+  @Post(':name')
   @Post(':name')
   async executeWorkflow(
     @Param('name') name: string,

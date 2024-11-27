@@ -1,13 +1,8 @@
 export interface RedisRepository {
-  get(prefix: string, key: string): Promise<string | null>;
-  set(prefix: string, key: string, value: string): Promise<void>;
-  delete(prefix: string, key: string): Promise<void>;
-  setWithExpiry(
-    prefix: string,
-    key: string,
-    value: string,
-    expiry: number,
-  ): Promise<void>;
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string): Promise<void>;
+  delete(key: string): Promise<void>;
+  setWithExpiry(key: string, value: string, expiry: number): Promise<void>;
 }
 
 export const RedisRepository = Symbol('RedisRepository');

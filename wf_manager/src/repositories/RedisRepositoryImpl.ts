@@ -33,24 +33,23 @@ export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
     await this.redisClient.disconnect();
   }
 
-  async get(prefix: string, key: string): Promise<string | null> {
-    return this.redisClient.get(`${prefix}:${key}`);
+  async get(key: string): Promise<string | null> {
+    return this.redisClient.get(key);
   }
 
-  async set(prefix: string, key: string, value: string): Promise<void> {
-    await this.redisClient.set(`${prefix}:${key}`, value);
+  async set(key: string, value: string): Promise<void> {
+    await this.redisClient.set(key, value);
   }
 
-  async delete(prefix: string, key: string): Promise<void> {
-    await this.redisClient.del(`${prefix}:${key}`);
+  async delete(key: string): Promise<void> {
+    await this.redisClient.del(key);
   }
 
   async setWithExpiry(
-    prefix: string,
     key: string,
     value: string,
     expiry: number,
   ): Promise<void> {
-    await this.redisClient.set(`${prefix}:${key}`, value, 'EX', expiry);
+    await this.redisClient.set(key, value, 'EX', expiry);
   }
 }
