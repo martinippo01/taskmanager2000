@@ -31,7 +31,7 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Put(':name/version/status')
+  @Put(':name/:version/status')
   async toggleWorkflow(
     @Param('name') name: string,
     @Param('version') version: string,
@@ -43,7 +43,7 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Post(':name')
+  @Post(':name/:version')
   async executeWorkflow(
     @Param('name') name: string,
     @Param('version') version: string,
