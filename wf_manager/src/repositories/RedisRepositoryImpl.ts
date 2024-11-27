@@ -1,4 +1,4 @@
-import { FactoryProvider } from '@nestjs/common';
+import { FactoryProvider, Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
 
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
@@ -25,9 +25,12 @@ export const redisClientFactory: FactoryProvider<Redis> = {
 @Injectable()
 export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
   constructor(@Inject('RedisClient') private readonly redisClient: Redis) {}
+  private readonly LOGGER = new Logger(RedisRepositoryImpl.name);
 
-  onModuleDestroy(): void {
-    this.redisClient.disconnect();
+  onModuleInit(): void {}
+
+  async onModuleDestroy(): Promise<void> {
+    await this.redisClient.disconnect();
   }
 
   async get(prefix: string, key: string): Promise<string | null> {
