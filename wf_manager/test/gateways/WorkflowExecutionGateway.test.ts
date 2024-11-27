@@ -86,7 +86,8 @@ describe('WorkflowExecutionGateway', () => {
         param3: 'boolean',
         param4: 'string[]',
       },
-      plan: 'test',
+      plan: { steps: [] },
+      enabled: true,
     };
 
     const inputArgsExample: InputArguments = {

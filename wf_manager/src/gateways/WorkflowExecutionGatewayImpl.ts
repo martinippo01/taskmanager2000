@@ -50,7 +50,7 @@ class WorkflowExecutionGatewayImpl
     workflow: Workflow,
     inputArgs: InputArguments,
   ): Promise<string> {
-    const { name, description, inputParams } = workflow;
+    const { name, description, inputParams, plan } = workflow;
     try {
       this.LOGGER.debug(`Sending workflow ${name} to execution`);
       const executionId = await this.producer.send(name, {
@@ -58,7 +58,7 @@ class WorkflowExecutionGatewayImpl
         description,
         inputParams,
         inputArgs,
-        plan: {},
+        plan,
       });
       return executionId;
     } catch (error) {

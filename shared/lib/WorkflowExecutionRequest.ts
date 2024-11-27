@@ -1,6 +1,7 @@
 import { Kafka, logLevel, Producer } from "kafkajs";
 import { InputArguments, InputParams } from "./WorkflowInput";
 import { randomBytes } from "crypto";
+import { Plan } from "./WorkflowPlan";
 
 export type WorkflowExecutionRequest = {
   executionId: string;
@@ -8,7 +9,7 @@ export type WorkflowExecutionRequest = {
   description: string;
   inputParams: InputParams;
   inputArgs: InputArguments;
-  plan: object;
+  plan: Plan;
 };
 
 const username = process.env.KAFKA_USERNAME || "";

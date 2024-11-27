@@ -15,7 +15,8 @@ describe('WorkflowInputDomain', () => {
     name: 'test',
     description: 'test',
     inputParams,
-    plan: 'test',
+    plan: { steps: [] },
+    enabled: true,
   });
 
   beforeEach(async () => {
