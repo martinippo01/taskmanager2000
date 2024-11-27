@@ -10,8 +10,6 @@ import WorkflowInputDomainImpl from '@domains/WorkflowInputDomainImpl';
 import WorkflowPlanDomainImpl from '@domains/WorkflowPlanDomainImpl';
 import WorkflowExecutionGatewayImpl from '@gateways/WorkflowExecutionGatewayImpl';
 import WorkflowDaoImpl from '@repositories/WorkflowDaoImpl';
-import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
-import WorkflowPlanDaoImpl from '@repositories/WorkflowPlanDaoImpl';
 
 @Module({
   imports: [],
@@ -36,10 +34,6 @@ import WorkflowPlanDaoImpl from '@repositories/WorkflowPlanDaoImpl';
     {
       provide: WorkflowDao,
       useClass: WorkflowDaoImpl,
-    },
-    {
-      provide: WorkflowPlanDao,
-      useClass: WorkflowPlanDaoImpl,
     },
   ],
 })
