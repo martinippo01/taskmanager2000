@@ -1,43 +1,49 @@
 import { Workflow } from '@interfaces/types/Workflow.js';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain.js';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
 import { CreateWorkflowRequestDto } from '@interfaces/types/CreateWorkflow';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
 import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
-import { WorkflowPlanDao } from '@interfaces/repositories/WorkflowPlanDao';
 
 @Injectable()
 class WorkflowDomainImpl implements WorkflowDomain {
+  private readonly LOGGER = new Logger(WorkflowDomainImpl.name);
+
   constructor(
     private readonly workflowDao: WorkflowDao,
-    private readonly workflowPlanDao: WorkflowPlanDao,
     private readonly workflowPlanDomain: WorkflowPlanDomain,
   ) {}
 
   async createWorkflow(
     request: CreateWorkflowRequestDto,
   ): Promise<Workflow | null> {
+    this.LOGGER.debug(`Creating workflow`);
     // Validate the plan format
+    this.LOGGER.debug('Validating plan format');
     if (!this.workflowPlanDomain.isPlanFormatValid(request.plan)) {
       throw new InvalidWorkflowPlanException();
     }
 
+    this.LOGGER.debug('Getting plan props');
     const { name, description, inputParams } =
       this.workflowPlanDomain.getPlanProps(request.plan);
 
     // Validate the workflow does not exist
+    this.LOGGER.debug('Validating workflow does not exist');
     const wf = await this.workflowDao.getWorkflow(name);
     if (wf !== null) {
       throw new WorkflowAlreadyExistsException(name);
     }
 
-    // Persist the plan
-    const planPath = await this.workflowPlanDao.savePlan(request.plan);
-
     // Persist the new workflow
+    this.LOGGER.debug('Persisting new workflow');
     const newWorkflow: Workflow = {
       version: 1,
       name: name,
@@ -46,15 +52,12 @@ class WorkflowDomainImpl implements WorkflowDomain {
       plan: planPath,
     };
     await this.workflowDao.createWorkflow(newWorkflow);
+    this.LOGGER.log(`Workflow ${name} created`);
     return newWorkflow;
   }
 
-  // esto quizás no debería estar acá
-  private async doesWorkflowExist(name: string): Promise<boolean> {
-    return (await this.workflowDao.getWorkflow(name)) !== null;
-  }
-
   async isWorkflowEnabled(name: string): Promise<boolean> {
+    this.LOGGER.debug(`Checking if workflow ${name} is enabled`);
     const wfEntity = await this.workflowDao.getWorkflow(name);
     if (!wfEntity) {
       throw new WorkflowNotFoundException(name);
@@ -63,12 +66,14 @@ class WorkflowDomainImpl implements WorkflowDomain {
   }
 
   async toggleWorkflow(name: string): Promise<boolean> {
+    this.LOGGER.debug(`Getting workflow ${name}`);
     const wfEntity = await this.workflowDao.getWorkflow(name);
 
     if (!wfEntity) {
       throw new WorkflowNotFoundException(name);
     }
 
+    this.LOGGER.debug(`Toggling workflow ${name}`);
     const response = wfEntity.enabled
       ? await this.workflowDao.disableWorkflow(name)
       : await this.workflowDao.enableWorkflow(name);
@@ -81,17 +86,8 @@ class WorkflowDomainImpl implements WorkflowDomain {
   }
 
   async getWorkflow(name: string): Promise<Workflow | null> {
-    const wfEntity = await this.workflowDao.getWorkflow(name);
-
-    if (!wfEntity) return null;
-
-    return {
-      version: wfEntity.version,
-      name: wfEntity.name,
-      description: wfEntity.description,
-      inputParams: wfEntity.inputParams,
-      plan: wfEntity.plan,
-    };
+    this.LOGGER.debug(`Getting workflow ${name}`);
+    return await this.workflowDao.getWorkflow(name);
   }
 }
 

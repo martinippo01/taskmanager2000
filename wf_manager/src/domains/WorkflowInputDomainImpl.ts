@@ -1,6 +1,6 @@
 import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import InvalidInputArgumentTypeException from '@exceptions/InvalidInputArgumentTypeException';
 import InputArgumentMismatchException from '@exceptions/InputArgumentMismatchException';
 import InputParamUnsetException from '@exceptions/InputParamsUnsetException';
@@ -11,16 +11,20 @@ import {
 
 @Injectable()
 class WorkflowInputDomainImpl implements WorkflowInputDomain {
+  private readonly LOGGER = new Logger(WorkflowInputDomainImpl.name);
+
   getInputArgs(
     workflow: Workflow,
     inputArgs: Record<string, string | string[]>,
   ): InputArguments {
+    this.LOGGER.debug(`Getting input arguments for workflow ${workflow.name}`);
     const inputParams = workflow.inputParams;
     const inputArguments: InputArguments = {};
 
     const setInputParams: Set<string> = new Set<string>();
     const allInputParams: string[] = Object.keys(inputParams);
 
+    this.LOGGER.debug('Validating input arguments');
     for (const [key, value] of Object.entries(inputArgs)) {
       // Check if the input argument is in the input parameters
       if (!(key in inputParams)) {
@@ -37,6 +41,7 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
     }
 
     // Check if all input parameters are set
+    this.LOGGER.debug('Validating all input parameters are set');
     if (setInputParams.size !== allInputParams.length) {
       const missingInputParams = allInputParams.filter(
         (param) => !setInputParams.has(param),
