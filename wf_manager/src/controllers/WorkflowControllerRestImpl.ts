@@ -45,7 +45,6 @@ class WorkflowControllerRestImpl {
   }
 
   @Put(':name/status')
-  @Put(':name/status')
   async toggleWorkflow(
     @Param('name') name: string,
     @Query('version') version?: string,
@@ -59,7 +58,6 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Post(':name')
   @Post(':name')
   async executeWorkflow(
     @Param('name') name: string,
