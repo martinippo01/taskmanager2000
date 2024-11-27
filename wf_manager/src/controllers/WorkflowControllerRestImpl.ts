@@ -1,4 +1,12 @@
-import { Put, Body, Controller, Post, Param, Logger } from '@nestjs/common';
+import {
+  Put,
+  Body,
+  Controller,
+  Post,
+  Param,
+  Query,
+  Logger,
+} from '@nestjs/common';
 import {
   ExecuteWorkflowResponseDto,
   ExecuteWorkflowRequestDto,
@@ -35,10 +43,10 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Put(':name/:version/status')
+  @Put(':name/status')
   async toggleWorkflow(
     @Param('name') name: string,
-    @Param('version') version: string,
+    @Query('version') version?: string,
   ): Promise<ToggleWorkflowResponseDto> {
     this.LOGGER.debug(`Toggling workflow ${name}`);
     const enabled = await this.workflowDomain.toggleWorkflow(name, version);
@@ -49,11 +57,11 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Post(':name/:version')
+  @Post(':name')
   async executeWorkflow(
     @Param('name') name: string,
-    @Param('version') version: string,
     @Body() request: ExecuteWorkflowRequestDto,
+    @Query('version') version?: string,
   ): Promise<ExecuteWorkflowResponseDto> {
     // 1 - Get workflow
     this.LOGGER.debug(`Executing workflow ${name}`);

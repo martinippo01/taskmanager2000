@@ -9,9 +9,7 @@ import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
 import { CreateWorkflowRequestDto } from '@interfaces/types/CreateWorkflow';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
-import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
-import { Plan } from 'shared/lib/WorkflowPlan';
 
 @Injectable()
 class WorkflowDomainImpl implements WorkflowDomain {
@@ -58,12 +56,12 @@ class WorkflowDomainImpl implements WorkflowDomain {
 
   private async doesWorkflowExist(
     name: string,
-    version: string,
+    version?: string,
   ): Promise<boolean> {
     return (await this.workflowDao.getWorkflow(name, version)) !== null;
   }
 
-  async isWorkflowEnabled(name: string, version: string): Promise<boolean> {
+  async isWorkflowEnabled(name: string, version?: string): Promise<boolean> {
     this.LOGGER.debug(`Checking if workflow ${name} is enabled`);
     const wfEntity = await this.workflowDao.getWorkflow(name, version);
     if (!wfEntity) {
@@ -72,7 +70,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
     return wfEntity.enabled;
   }
 
-  async toggleWorkflow(name: string, version: string): Promise<boolean> {
+  async toggleWorkflow(name: string, version?: string): Promise<boolean> {
     this.LOGGER.debug(`Getting workflow ${name}`);
     const wfEntity = await this.workflowDao.getWorkflow(name, version);
 
@@ -92,7 +90,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
     return !wfEntity.enabled;
   }
 
-  async getWorkflow(name: string, version: string): Promise<Workflow | null> {
+  async getWorkflow(name: string, version?: string): Promise<Workflow | null> {
     this.LOGGER.debug(`Getting workflow ${name}`);
     return await this.workflowDao.getWorkflow(name, version);
   }

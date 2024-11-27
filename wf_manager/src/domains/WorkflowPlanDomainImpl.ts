@@ -50,9 +50,9 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
         throw_excep();
       if (!Array.isArray(parsed.steps)) throw_excep();
 
-      const stepNames = new Set();
-      const paramNames = new Set();
-      const steps = [];
+      const stepNames: Set<string> = new Set();
+      const paramNames: Set<string> = new Set();
+      const steps: Step[] = [];
 
       // Validate each step
       for (const step of parsed.steps) {
@@ -118,7 +118,7 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
         }
 
         current_step.params = params;
-        steps.push(current_step);
+        steps.push(current_step as Step);
       }
 
       return { steps };
