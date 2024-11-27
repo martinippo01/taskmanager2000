@@ -58,6 +58,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
     name: string,
     version?: string,
   ): Promise<boolean> {
+    this.LOGGER.debug(`Checking if workflow ${name} exists`);
     return (await this.workflowDao.getWorkflow(name, version)) !== null;
   }
 

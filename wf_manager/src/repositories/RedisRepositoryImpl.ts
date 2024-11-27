@@ -8,9 +8,16 @@ import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 export const redisClientFactory: FactoryProvider<Redis> = {
   provide: 'RedisClient',
   useFactory: () => {
+    const host = process.env.REDIS_HOST;
+    const port = process.env.REDIS_PORT;
+
+    if (!host || !port) {
+      throw new Error('Redis host and port are required');
+    }
+
     const redisInstance = new Redis({
-      host: process.env.REDIS_HOST,
-      port: +process.env.REDIS_PORT,
+      host,
+      port: parseInt(port),
     });
 
     redisInstance.on('error', (e) => {
