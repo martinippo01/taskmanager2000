@@ -5,10 +5,7 @@ import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
 import { CreateWorkflowRequestDto } from '@interfaces/types/CreateWorkflow';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
-import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
-import { Plan } from 'shared/lib/WorkflowPlan';
-import { version } from 'os';
 
 @Injectable()
 class WorkflowDomainImpl implements WorkflowDomain {

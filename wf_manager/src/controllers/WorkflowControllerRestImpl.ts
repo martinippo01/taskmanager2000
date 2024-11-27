@@ -1,4 +1,4 @@
-import { Put, Body, Controller, Post, Param } from '@nestjs/common';
+import { Put, Body, Controller, Post, Param, Query } from '@nestjs/common';
 import {
   ExecuteWorkflowResponseDto,
   ExecuteWorkflowRequestDto,
@@ -12,6 +12,7 @@ import {
   CreateWorkflowRequestDto,
   CreateWorkflowResponseDto,
 } from '@interfaces/types/CreateWorkflow';
+import { query } from 'express';
 
 @Controller('workflows')
 class WorkflowControllerRestImpl {
@@ -31,11 +32,12 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Put(':name/:version/status')
+  @Put(':name/status')
   async toggleWorkflow(
     @Param('name') name: string,
-    @Param('version') version: string,
+    @Query('version') version: string,
   ): Promise<ToggleWorkflowResponseDto> {
+    if (version === undefined) version = 'latest';
     const enabled = await this.workflowDomain.toggleWorkflow(name, version);
     return {
       name,
@@ -43,13 +45,14 @@ class WorkflowControllerRestImpl {
     };
   }
 
-  @Post(':name/:version')
+  @Post(':name')
   async executeWorkflow(
     @Param('name') name: string,
-    @Param('version') version: string,
+    @Query('version') version: string,
     @Body() request: ExecuteWorkflowRequestDto,
   ): Promise<ExecuteWorkflowResponseDto> {
     // 1 - Get workflow
+    if (version === undefined) version = 'latest';
     const workflow = await this.workflowDomain.getWorkflow(name, version);
     if (workflow === null) {
       throw new WorkflowNotFoundException(name);
