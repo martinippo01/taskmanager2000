@@ -1,25 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowDomainImpl } from '../../src/domains/WorkflowDomainImpl';
-import { WorkflowDao } from '../../src/daos/WorkflowDao';
-import { WorkflowPlanDao } from '../../src/daos/WorkflowPlanDao';
 import { WorkflowPlanDomain } from '../../src/interfaces/domains/WorkflowPlanDomain';
-import {
-  InvalidWorkflowPlanException,
-  WorkflowAlreadyExistsException,
-  WorkflowNotFoundException,
-} from '../src/exceptions';
 import { InternalServerErrorException } from '@nestjs/common';
-import { CreateWorkflowRequestDto } from '../../src/dtos/CreateWorkflowRequestDto';
-import { Workflow } from '../../src/entities/Workflow';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
+import WorkflowDomainImpl from '@domains/WorkflowDomainImpl';
+import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
+import { jest } from '@jest/globals';
+import { Workflow, WorkflowMetadata } from '@interfaces/types/Workflow';
+import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
+import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 
 describe('WorkflowDomainImpl', () => {
-  let workflowDomain: WorkflowDomainImpl;
+  let workflowDomain: WorkflowDomain;
   let workflowDao: jest.Mocked<WorkflowDao>;
-  let workflowPlanDao: jest.Mocked<WorkflowPlanDao>;
   let workflowPlanDomain: jest.Mocked<WorkflowPlanDomain>;
 
   beforeEach(async () => {
+    // Creo que esto está al re pedo, si total después mockeo las cosas en cada método
+    workflowDao = {
+      getWorkflow: jest.fn(),
+      getWorkflowMetadata: jest.fn(),
+      createWorkflow: jest.fn(),
+      disableWorkflow: jest.fn(),
+      enableWorkflow: jest.fn(),
+      getWorkflowPlan: jest.fn(),
+    } as jest.Mocked<WorkflowDao>;
+
+    workflowPlanDomain = {
+      getPlanFromYaml: jest.fn(),
+      getPlanProperties: jest.fn(),
+    } as jest.Mocked<WorkflowPlanDomain>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
@@ -28,177 +38,165 @@ describe('WorkflowDomainImpl', () => {
         },
         {
           provide: WorkflowDao,
-          useValue: {
-            getWorkflow: jest.fn(),
-            createWorkflow: jest.fn(),
-            disableWorkflow: jest.fn(),
-            enableWorkflow: jest.fn(),
-            // Add other methods if WorkflowDao has additional functionality
-            updateWorkflow: jest.fn(),
-          },
-        },
-        {
-          provide: WorkflowPlanDao,
-          useValue: {
-            savePlan: jest.fn(),
-            // Add other methods if WorkflowPlanDao has additional functionality
-            getPlanPath: jest.fn(),
-          },
+          useValue: workflowDao,
         },
         {
           provide: WorkflowPlanDomain,
-          useValue: {
-            isPlanFormatValid: jest.fn(),
-            getPlanProperties: jest.fn(),
-            // Add other methods if WorkflowPlanDomain has additional functionality
-            validateSteps: jest.fn(),
-          },
-        },
-        // Add more providers here
-        {
-          provide: AnotherService,
-          useValue: {
-            someMethod: jest.fn(),
-            anotherMethod: jest.fn(),
-          },
-        },
-        {
-          provide: YetAnotherService,
-          useValue: {
-            yetAnotherMethod: jest.fn(),
-          },
+          useValue: workflowPlanDomain,
         },
       ],
     }).compile();
 
-    workflowDomain = module.get<WorkflowDomainImpl>(WorkflowDomainImpl);
-    workflowDao = module.get<WorkflowDao>(WorkflowDao);
-    workflowPlanDao = module.get<WorkflowPlanDao>(WorkflowPlanDao);
-    workflowPlanDomain = module.get<WorkflowPlanDomain>(WorkflowPlanDomain);
+    workflowDomain = module.get<WorkflowDomain>(WorkflowDomain);
+    workflowDao = module.get<jest.Mocked<WorkflowDao>>(WorkflowDao);
+    workflowPlanDomain =
+      module.get<jest.Mocked<WorkflowPlanDomain>>(WorkflowPlanDomain);
   });
 
   describe('createWorkflow', () => {
     it('should create a workflow successfully', async () => {
-      const mockRequest: CreateWorkflowRequestDto = {
-        plan: {} as any,
-      };
-
-      const mockPlanProperties = {
-        name: 'testWorkflow',
+      const fileContent = 'some yaml content';
+      const wfPlan = { steps: [] }; // Mocked workflow plan
+      const wfProperties = {
+        name: 'TestWorkflow',
         description: 'Test Description',
         inputParams: {},
+        version: '1.0.0',
       };
 
-      workflowPlanDomain.isPlanFormatValid.mockResolvedValueOnce(true);
-      workflowPlanDomain.getPlanProperties.mockResolvedValueOnce(
-        mockPlanProperties,
-      );
-      workflowDao.getWorkflow.mockResolvedValueOnce(null);
-      workflowPlanDao.savePlan.mockResolvedValueOnce('/path/to/plan.yaml');
-      workflowDao.createWorkflow.mockResolvedValueOnce(undefined);
+      workflowPlanDomain.getPlanFromYaml.mockResolvedValue(wfPlan);
+      workflowPlanDomain.getPlanProperties.mockResolvedValue(wfProperties);
+      workflowDao.getWorkflow.mockResolvedValue(null);
+      workflowDao.createWorkflow.mockResolvedValue(true);
 
-      const result = await workflowDomain.createWorkflow(mockRequest);
+      const result = await workflowDomain.createWorkflow(fileContent);
 
-      expect(result).toEqual({
-        version: 1,
-        name: 'testWorkflow',
-        description: 'Test Description',
-        inputParams: {},
-        plan: '/path/to/plan.yaml',
-      });
-
-      expect(workflowPlanDomain.isPlanFormatValid).toHaveBeenCalledWith(
-        mockRequest.plan,
+      expect(workflowPlanDomain.getPlanFromYaml).toHaveBeenCalledWith(
+        fileContent,
       );
       expect(workflowPlanDomain.getPlanProperties).toHaveBeenCalledWith(
-        mockRequest.plan,
+        fileContent,
       );
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('testWorkflow');
-      expect(workflowPlanDao.savePlan).toHaveBeenCalledWith(mockRequest.plan);
+      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
+        'TestWorkflow',
+        '1.0.0',
+      );
       expect(workflowDao.createWorkflow).toHaveBeenCalledWith({
-        version: 1,
-        name: 'testWorkflow',
+        version: '1.0.0',
+        name: 'TestWorkflow',
         description: 'Test Description',
         inputParams: {},
-        plan: '/path/to/plan.yaml',
+        plan: wfPlan,
+        enabled: true,
       });
-    });
-
-    it('should throw InvalidWorkflowPlanException if plan is invalid', async () => {
-      const mockRequest: CreateWorkflowRequestDto = {
-        plan: {} as any,
-      };
-
-      workflowPlanDomain.isPlanFormatValid.mockResolvedValueOnce(false);
-
-      await expect(workflowDomain.createWorkflow(mockRequest)).rejects.toThrow(
-        InvalidWorkflowPlanException,
-      );
-
-      expect(workflowPlanDomain.isPlanFormatValid).toHaveBeenCalledWith(
-        mockRequest.plan,
-      );
-      expect(workflowPlanDomain.getPlanProperties).not.toHaveBeenCalled();
-      expect(workflowDao.getWorkflow).not.toHaveBeenCalled();
-      expect(workflowPlanDao.savePlan).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        version: '1.0.0',
+        name: 'TestWorkflow',
+        description: 'Test Description',
+        inputParams: {},
+        plan: wfPlan,
+        enabled: true,
+      });
     });
 
     it('should throw WorkflowAlreadyExistsException if workflow exists', async () => {
-      const mockRequest: CreateWorkflowRequestDto = {
-        plan: {} as any,
-      };
-
-      workflowPlanDomain.isPlanFormatValid.mockResolvedValueOnce(true);
-      workflowPlanDomain.getPlanProperties.mockResolvedValueOnce({
-        name: 'testWorkflow',
+      const fileContent = 'some yaml content';
+      const wfProperties = {
+        name: 'ExistingWorkflow',
         description: 'Test Description',
         inputParams: {},
-      });
-      workflowDao.getWorkflow.mockResolvedValueOnce({
-        name: 'testWorkflow',
-        version: 1,
-        description: 'Existing Workflow',
-        inputParams: {},
-        plan: '/path/to/plan.yaml',
-      });
+        version: '1.0.0',
+      };
 
-      await expect(workflowDomain.createWorkflow(mockRequest)).rejects.toThrow(
+      workflowPlanDomain.getPlanFromYaml.mockResolvedValue({ steps: [] });
+      workflowPlanDomain.getPlanProperties.mockResolvedValue(wfProperties);
+      workflowDao.getWorkflow.mockResolvedValue({} as Workflow);
+
+      await expect(workflowDomain.createWorkflow(fileContent)).rejects.toThrow(
         WorkflowAlreadyExistsException,
       );
 
-      expect(workflowPlanDomain.isPlanFormatValid).toHaveBeenCalledWith(
-        mockRequest.plan,
+      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
+        'ExistingWorkflow',
+        '1.0.0',
       );
-      expect(workflowPlanDomain.getPlanProperties).toHaveBeenCalledWith(
-        mockRequest.plan,
-      );
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('testWorkflow');
-      expect(workflowPlanDao.savePlan).not.toHaveBeenCalled();
+      expect(workflowDao.createWorkflow).not.toHaveBeenCalled();
     });
   });
 
   describe('isWorkflowEnabled', () => {
-    it('should return true if the workflow is enabled', async () => {
-      workflowDao.getWorkflow.mockResolvedValueOnce({
+    it('should return true if workflow is enabled', async () => {
+      workflowDao.getWorkflow.mockResolvedValue({
         enabled: true,
-      } as any);
+      } as Workflow);
 
-      const result = await workflowDomain.isWorkflowEnabled('testWorkflow');
+      const result = await workflowDomain.isWorkflowEnabled('TestWorkflow');
 
+      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('TestWorkflow');
       expect(result).toBe(true);
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('testWorkflow');
+    });
+
+    it('should return false if workflow is not enabled', async () => {
+      workflowDao.getWorkflow.mockResolvedValue({
+        enabled: false,
+      } as Workflow);
+
+      const result = await workflowDomain.isWorkflowEnabled('TestWorkflow');
+
+      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('TestWorkflow');
+      expect(result).toBe(false);
     });
 
     it('should throw WorkflowNotFoundException if workflow does not exist', async () => {
-      workflowDao.getWorkflow.mockResolvedValueOnce(null);
+      workflowDao.getWorkflow.mockResolvedValue(null);
 
       await expect(
-        workflowDomain.isWorkflowEnabled('testWorkflow'),
+        workflowDomain.isWorkflowEnabled('NonExistentWorkflow'),
       ).rejects.toThrow(WorkflowNotFoundException);
 
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('testWorkflow');
+      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
+        'NonExistentWorkflow',
+      );
     });
   });
 
-  // Add more tests for other methods like toggleWorkflow and getWorkflow
+  describe('toggleWorkflow', () => {
+    it('should disable an enabled workflow', async () => {
+      workflowDao.getWorkflow.mockResolvedValue({
+        name: 'TestWorkflow',
+        enabled: true,
+      } as Workflow);
+      workflowDao.disableWorkflow.mockResolvedValue(true);
+
+      const result = await workflowDomain.toggleWorkflow('TestWorkflow');
+
+      expect(workflowDao.disableWorkflow).toHaveBeenCalledWith('TestWorkflow');
+      expect(result).toBe(false);
+    });
+
+    it('should enable a disabled workflow', async () => {
+      workflowDao.getWorkflow.mockResolvedValue({
+        name: 'TestWorkflow',
+        enabled: false,
+      } as Workflow);
+      workflowDao.enableWorkflow.mockResolvedValue(true);
+
+      const result = await workflowDomain.toggleWorkflow('TestWorkflow');
+
+      expect(workflowDao.enableWorkflow).toHaveBeenCalledWith('TestWorkflow');
+      expect(result).toBe(true);
+    });
+
+    it('should throw WorkflowNotFoundException if workflow does not exist', async () => {
+      workflowDao.getWorkflow.mockResolvedValue(null);
+
+      await expect(
+        workflowDomain.toggleWorkflow('NonExistentWorkflow'),
+      ).rejects.toThrow(WorkflowNotFoundException);
+
+      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
+        'NonExistentWorkflow',
+      );
+    });
+  });
 });
