@@ -1,3 +1,4 @@
+import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import WorkflowPlanDomainImpl from '../../src/domains/WorkflowPlanDomainImpl';
 import { WorkflowPlanDomain } from '../../src/interfaces/domains/WorkflowPlanDomain';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -23,34 +24,35 @@ describe('PlanDomain', () => {
     const mockFile = {
       arrayBuffer: jest.fn().mockResolvedValueOnce(
         `
-        name: Test Plan
-        description: A description of the test plan
-        steps:
-          - name: hola
-            task: echo
-            params:
-              - name: param1
-                type: string
-                value: a_completar_1
-              - name: param2
-                type: number
-                value: a_completar_2
-                constant: true
-          - name: jajaja
-            task: bash
-            params:
-              - name: param3
-                type: boolean
-                from: hola
-              - name: param4
-                type: string[]
-                value: a_completar_3
-    `, // Simulates arrayBuffer content
+          name: Test Plan
+          description: A description of the test plan
+          steps:
+            - name: hola
+              task: echo
+              params:
+                - name: param1
+                  type: string
+                  value: a_completar_1
+                - name: param2
+                  type: number
+                  value: a_completar_2
+                  constant: true
+            - name: jajaja
+              task: bash
+              params:
+                - name: param3
+                  type: boolean
+                  from: hola
+                - name: param4
+                  type: string[]
+                  value: a_completar_3
+        `, // Use Buffer to properly simulate arrayBuffer
       ),
     };
 
-    // Call the method
-    const result = await service.getPlanProperties(mockFile as any);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+    const result = await service.getPlanProperties(fileContent);
 
     // Expected Output
     expect(result).toEqual({
@@ -77,7 +79,9 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.getPlanProperties(mockFile as any);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+    const result = await service.getPlanProperties(fileContent);
 
     expect(result).toEqual({
       name: 'Empty Plan',
@@ -92,7 +96,10 @@ describe('PlanDomain', () => {
       arrayBuffer: jest.fn().mockResolvedValueOnce(`invalid: yaml: content`),
     };
 
-    await expect(service.getPlanProperties(mockFile as any)).rejects.toThrow();
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanProperties(fileContent)).rejects.toThrow();
   });
 
   it('should return true for a valid plan format', async () => {
@@ -112,8 +119,18 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(true);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+    const result = await service.getPlanFromYaml(fileContent);
+    expect(result.steps.at(0)?.name).toBe('step1');
+    expect(result.steps.at(0)?.task).toBe('echo');
+    const param1 = result.steps[0].params[0] as {
+      name: string;
+      type: string;
+      value: string;
+    };
+    expect('value' in param1).toBe(true); // Explicit check for value
+    expect(param1.value).toBe('hello'); // Direct access
   });
 
   it('should return false for a plan missing top-level name or description', async () => {
@@ -132,8 +149,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false for a plan with missing or invalid steps', async () => {
@@ -146,8 +167,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false for a plan with duplicate step names', async () => {
@@ -173,8 +198,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false for a plan with duplicate param names', async () => {
@@ -200,8 +229,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false for an empty plan', async () => {
@@ -209,8 +242,12 @@ describe('PlanDomain', () => {
       arrayBuffer: jest.fn().mockResolvedValueOnce(``),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false for a step without params array', async () => {
@@ -226,8 +263,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false if a parameter references an invalid step in from', async () => {
@@ -247,8 +288,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return true for a valid plan with nested parameters', async () => {
@@ -274,8 +319,29 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(true);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+    const result = await service.getPlanFromYaml(fileContent);
+    expect(result.steps.at(0)?.name).toBe('step1');
+    expect(result.steps.at(0)?.task).toBe('bash');
+    const param1 = result.steps[0].params[0] as {
+      name: string;
+      type: string;
+      value: string;
+    };
+    expect('value' in param1).toBe(true);
+    expect(param1.value).toBe('hello');
+
+    expect(result.steps.at(1)?.name).toBe('step2');
+    expect(result.steps.at(1)?.task).toBe('echo');
+    const param2 = result.steps[1].params[0] as {
+      name: string;
+      type: string;
+      from: string;
+    };
+    expect('from' in param2).toBe(true);
+    expect('value' in param2).toBe(false);
+    expect(param2.from).toBe('step1');
   });
 
   it('should return false for a step with an invalid name', async () => {
@@ -292,8 +358,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should return false for a step without a task', async () => {
@@ -312,8 +382,12 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 
   it('should ignore unknown fields but validate known fields', async () => {
@@ -334,8 +408,18 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(true);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+    const result = await service.getPlanFromYaml(fileContent);
+    expect(result.steps.at(0)?.name).toBe('step1');
+    expect(result.steps.at(0)?.task).toBe('echo');
+    const param1 = result.steps[0].params[0] as {
+      name: string;
+      type: string;
+      value: string;
+    };
+    expect('value' in param1).toBe(true); // Explicit check for value
+    expect(param1.value).toBe('hello'); // Direct access
   });
 
   it('should return false if steps is not an array', async () => {
@@ -349,7 +433,11 @@ describe('PlanDomain', () => {
       ),
     };
 
-    const result = await service.isPlanFormatValid(mockFile as any);
-    expect(result).toBe(false);
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
   });
 });
