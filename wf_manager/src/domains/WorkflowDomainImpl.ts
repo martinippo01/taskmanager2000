@@ -1,6 +1,7 @@
 import { Workflow } from '@interfaces/types/Workflow.js';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain.js';
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -15,7 +16,8 @@ class WorkflowDomainImpl implements WorkflowDomain {
   private readonly LOGGER = new Logger(WorkflowDomainImpl.name);
 
   constructor(
-    private readonly workflowDao: WorkflowDao,
+    @Inject(WorkflowDao) private readonly workflowDao: WorkflowDao,
+    @Inject(WorkflowPlanDomain)
     private readonly workflowPlanDomain: WorkflowPlanDomain,
   ) {}
 

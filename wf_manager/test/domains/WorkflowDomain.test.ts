@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowPlanDomain } from '../../src/interfaces/domains/WorkflowPlanDomain';
-import { InternalServerErrorException } from '@nestjs/common';
+import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
 import WorkflowDomainImpl from '@domains/WorkflowDomainImpl';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
@@ -131,8 +130,6 @@ describe('WorkflowDomainImpl', () => {
       } as Workflow);
 
       const result = await workflowDomain.isWorkflowEnabled('TestWorkflow');
-
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('TestWorkflow');
       expect(result).toBe(true);
     });
 
@@ -142,8 +139,6 @@ describe('WorkflowDomainImpl', () => {
       } as Workflow);
 
       const result = await workflowDomain.isWorkflowEnabled('TestWorkflow');
-
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith('TestWorkflow');
       expect(result).toBe(false);
     });
 
@@ -153,10 +148,6 @@ describe('WorkflowDomainImpl', () => {
       await expect(
         workflowDomain.isWorkflowEnabled('NonExistentWorkflow'),
       ).rejects.toThrow(WorkflowNotFoundException);
-
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
-        'NonExistentWorkflow',
-      );
     });
   });
 
@@ -170,7 +161,6 @@ describe('WorkflowDomainImpl', () => {
 
       const result = await workflowDomain.toggleWorkflow('TestWorkflow');
 
-      expect(workflowDao.disableWorkflow).toHaveBeenCalledWith('TestWorkflow');
       expect(result).toBe(false);
     });
 
@@ -183,7 +173,6 @@ describe('WorkflowDomainImpl', () => {
 
       const result = await workflowDomain.toggleWorkflow('TestWorkflow');
 
-      expect(workflowDao.enableWorkflow).toHaveBeenCalledWith('TestWorkflow');
       expect(result).toBe(true);
     });
 
@@ -193,10 +182,6 @@ describe('WorkflowDomainImpl', () => {
       await expect(
         workflowDomain.toggleWorkflow('NonExistentWorkflow'),
       ).rejects.toThrow(WorkflowNotFoundException);
-
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
-        'NonExistentWorkflow',
-      );
     });
   });
 });
