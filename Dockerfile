@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY shared/package*.json .
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Bundle shared source
 COPY shared/src/ ./src
@@ -28,11 +28,12 @@ ARG microservice
 WORKDIR /usr/src/app
 
 # COPY package.json and package-lock.json
-COPY ${microservice}/package*.json .
-COPY --from=shared /usr/src/app/lib/ ../shared/lib/
+COPY ${microservice}/package*.json ./
+COPY --from=shared /usr/src/app/lib ../shared/lib
+COPY --from=shared /usr/src/app/node_modules ../shared/node_modules
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Bundle app source
 COPY ${microservice}/src/ ./src
