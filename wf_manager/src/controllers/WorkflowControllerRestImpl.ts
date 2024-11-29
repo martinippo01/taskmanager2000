@@ -11,6 +11,7 @@ import {
   ParseFilePipeBuilder,
   HttpStatus,
   Inject,
+  Get,
 } from '@nestjs/common';
 import {
   ExecuteWorkflowResponseDto,
@@ -42,7 +43,7 @@ class WorkflowControllerRestImpl {
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
-          fileType: 'application/yaml',
+          fileType: 'yaml',
         })
         .addMaxSizeValidator({
           maxSize: 1024 * 1024, // 1MB
@@ -108,6 +109,11 @@ class WorkflowControllerRestImpl {
       queued: !!executionId && executionId.length > 0,
       executionId,
     };
+  }
+
+  @Get()
+  healthCheck(): boolean {
+    return true;
   }
 }
 

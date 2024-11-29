@@ -1,5 +1,5 @@
 ### Shared directory ###
-FROM node:latest as shared
+FROM node:latest AS shared
 
 WORKDIR /usr/src/app
 
@@ -21,7 +21,7 @@ RUN tsc
 
 
 ### Microservice directory ###
-FROM node:latest as microservice
+FROM node:latest AS microservice
 ARG microservice
 
 # Create app directory
