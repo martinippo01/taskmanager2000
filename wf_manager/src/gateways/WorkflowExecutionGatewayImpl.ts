@@ -18,10 +18,8 @@ class WorkflowExecutionGatewayImpl
   private readonly producer: WorkflowExecutionRequestProducer;
   private readonly LOGGER = new Logger(WorkflowExecutionGatewayImpl.name);
 
-  constructor(
-    producer: WorkflowExecutionRequestProducer = new WorkflowExecutionRequestProducerImpl(),
-  ) {
-    this.producer = producer;
+  constructor() {
+    this.producer = new WorkflowExecutionRequestProducerImpl();
   }
 
   async onModuleInit() {
@@ -30,7 +28,7 @@ class WorkflowExecutionGatewayImpl
       await this.producer.connect();
     } catch (error) {
       this.LOGGER.error(`Connection error: ${error}`);
-      throw new InternalServerErrorException('Failed to connect to producer');
+      // throw new InternalServerErrorException('Failed to connect to producer');
     }
   }
 

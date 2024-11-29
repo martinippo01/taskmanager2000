@@ -21,7 +21,9 @@ const workflowLatestKey: (name: string) => string = (name: string) =>
 class WorkflowDaoImpl implements WorkflowDao {
   private readonly LOGGER = new Logger(WorkflowDaoImpl.name);
 
-  constructor(private readonly redisRepository: RedisRepository) {}
+  constructor(
+    @Inject(RedisRepository) private readonly redisRepository: RedisRepository,
+  ) {}
 
   async getWorkflowMetadata(
     name: string,

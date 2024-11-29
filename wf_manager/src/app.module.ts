@@ -10,6 +10,11 @@ import WorkflowInputDomainImpl from '@domains/WorkflowInputDomainImpl';
 import WorkflowPlanDomainImpl from '@domains/WorkflowPlanDomainImpl';
 import WorkflowExecutionGatewayImpl from '@gateways/WorkflowExecutionGatewayImpl';
 import WorkflowDaoImpl from '@repositories/WorkflowDaoImpl';
+import {
+  redisClientFactory,
+  RedisRepositoryImpl,
+} from '@repositories/RedisRepositoryImpl';
+import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 
 @Module({
   imports: [],
@@ -35,6 +40,11 @@ import WorkflowDaoImpl from '@repositories/WorkflowDaoImpl';
       provide: WorkflowDao,
       useClass: WorkflowDaoImpl,
     },
+    {
+      provide: RedisRepository,
+      useClass: RedisRepositoryImpl,
+    },
+    redisClientFactory,
   ],
 })
 export class AppModule {}

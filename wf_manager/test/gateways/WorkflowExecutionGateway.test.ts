@@ -24,7 +24,7 @@ describe('WorkflowExecutionGateway', () => {
   }
 
   let gateway: WorkflowExecutionGatewayImpl;
-  let producer: WorkflowExecutionRequestProducerMock;
+  let producer: WorkflowExecutionRequestProducer;
 
   beforeEach(async () => {
     producer = new WorkflowExecutionRequestProducerMock();

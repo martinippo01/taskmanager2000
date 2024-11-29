@@ -10,6 +10,7 @@ import {
   UploadedFile,
   ParseFilePipeBuilder,
   HttpStatus,
+  Inject,
 } from '@nestjs/common';
 import {
   ExecuteWorkflowResponseDto,
@@ -28,8 +29,10 @@ class WorkflowControllerRestImpl {
   private readonly LOGGER = new Logger(WorkflowControllerRestImpl.name);
 
   constructor(
-    private readonly workflowDomain: WorkflowDomain,
+    @Inject(WorkflowDomain) private readonly workflowDomain: WorkflowDomain,
+    @Inject(WorkflowInputDomain)
     private readonly workflowInputDomain: WorkflowInputDomain,
+    @Inject(WorkflowExecutionGateway)
     private readonly workflowExecutionGateway: WorkflowExecutionGateway,
   ) {}
 
