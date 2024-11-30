@@ -1,4 +1,4 @@
-import { WorkflowExecutionRequest } from 'shared/lib/WorkflowExecutionRequest';
+import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
 
 export interface WorkflowExecutionRequestProducer {
   connect(): Promise<void>;

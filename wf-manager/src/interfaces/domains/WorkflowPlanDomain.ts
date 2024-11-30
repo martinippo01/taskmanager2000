@@ -1,5 +1,5 @@
-import { InputParams } from 'shared/lib/WorkflowInput';
-import { Plan } from 'shared/lib/WorkflowPlan';
+import { InputParams } from '@shared/WorkflowInput';
+import { Plan } from '@shared/WorkflowPlan';
 
 export interface WorkflowPlanDomain {
   getPlanFromYaml(fileContent: string): Promise<Plan>;

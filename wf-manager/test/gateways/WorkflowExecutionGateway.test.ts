@@ -4,7 +4,7 @@ import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { InputArguments } from 'shared/lib/WorkflowInput';
+import { InputArguments } from '@shared/WorkflowInput';
 
 describe('WorkflowExecutionGateway', () => {
   class WorkflowExecutionRequestProducerMock

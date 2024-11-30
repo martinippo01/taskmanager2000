@@ -24,7 +24,8 @@
       "@repositories/*": ["src/repositories/*"],
       "@domains/*": ["src/domains/*"],
       "@gateways/*": ["src/gateways/*"],
-      "@exceptions/*": ["src/exceptions/*"]
+      "@exceptions/*": ["src/exceptions/*"],
+      "@shared/*": ["src/shared/*"]
     }
   }
 }

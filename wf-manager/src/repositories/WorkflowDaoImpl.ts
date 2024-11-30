@@ -2,7 +2,7 @@ import { Workflow, WorkflowMetadata } from '@interfaces/types/Workflow';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
-import { Plan } from 'shared/lib/WorkflowPlan';
+import { Plan } from '@shared/WorkflowPlan';
 
 const workflowPlanKey: (name: string, version: string) => string = (
   name: string,
@@ -35,7 +35,7 @@ class WorkflowDaoImpl implements WorkflowDao {
     if (version === 'latest' || version === null || version === undefined) {
       version = await this.getLatestVersion(name);
     }
-    let res = await this.redisRepository.get(
+    const res = await this.redisRepository.get(
       workflowMetadataKey(name, version),
     );
     this.LOGGER.debug(
@@ -49,7 +49,7 @@ class WorkflowDaoImpl implements WorkflowDao {
     if (version === 'latest' || version === null || version === undefined) {
       version = await this.getLatestVersion(name);
     }
-    let res = await this.redisRepository.get(workflowPlanKey(name, version));
+    const res = await this.redisRepository.get(workflowPlanKey(name, version));
     this.LOGGER.debug(`Fetched workflow plan for ${name} version ${version}`);
     return res ? JSON.parse(res) : null;
   }

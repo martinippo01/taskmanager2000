@@ -1,5 +1,5 @@
 import { Workflow, WorkflowMetadata } from '@interfaces/types/Workflow';
-import { Plan } from 'shared/lib/WorkflowPlan';
+import { Plan } from '@shared/WorkflowPlan';
 
 export interface WorkflowDao {
   getWorkflow(name: string, version?: string): Promise<Workflow | null>;

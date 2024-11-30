@@ -1,5 +1,5 @@
 import { Workflow } from '@interfaces/types/Workflow';
-import { InputArguments } from 'shared/lib/WorkflowInput';
+import { InputArguments } from '@shared/WorkflowInput';
 
 export interface WorkflowInputDomain {
   getInputArgs(

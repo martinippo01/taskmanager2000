@@ -7,7 +7,7 @@ import InputParamUnsetException from '@exceptions/InputParamsUnsetException';
 import {
   getInputArgumentFromParamType,
   InputArguments,
-} from 'shared/lib/WorkflowInput';
+} from '@shared/WorkflowInput';
 
 @Injectable()
 class WorkflowInputDomainImpl implements WorkflowInputDomain {

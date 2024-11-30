@@ -1,8 +1,8 @@
 import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanException';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
 import { Injectable } from '@nestjs/common';
-import { InputParams } from 'shared/lib/WorkflowInput';
-import { Param, Plan, Step } from 'shared/lib/WorkflowPlan';
+import { InputParams } from '@shared/WorkflowInput';
+import { Param, Plan, Step } from '@shared/WorkflowPlan';
 import { parse } from 'yaml';
 
 @Injectable()

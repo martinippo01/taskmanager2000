@@ -7,9 +7,9 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { InputArguments } from 'shared/lib/WorkflowInput';
-import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from 'shared/lib/WorkflowExecutionRequest';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
+import { InputArguments } from '@shared/WorkflowInput';
+import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from '@shared/WorkflowExecutionRequest';
 
 @Injectable()
 class WorkflowExecutionGatewayImpl

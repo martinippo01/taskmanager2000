@@ -5,7 +5,7 @@ import InvalidInputArgumentTypeException from '@exceptions/InvalidInputArgumentT
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { Workflow } from '@interfaces/types/Workflow';
 import { Test } from '@nestjs/testing';
-import { InputParams } from 'shared/lib/WorkflowInput';
+import { InputParams } from '@shared/WorkflowInput';
 
 describe('WorkflowInputDomain', () => {
   let workflowInputDomain: WorkflowInputDomain;
