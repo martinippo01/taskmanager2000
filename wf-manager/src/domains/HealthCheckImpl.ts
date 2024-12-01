@@ -4,9 +4,9 @@ import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 import { WorkflowExecutionRequestProducer } from '@shared/WorkflowExecutionRequest';
 
 @Injectable()
-export class HealthCheckService {
+export class HealthCheckDominio {
   private readonly cache: NodeCache;
-  private readonly LOGGER = new Logger(HealthCheckService.name);
+  private readonly LOGGER = new Logger(HealthCheckDominio.name);
 
   constructor(
     @Inject('RedisRepository')
@@ -47,13 +47,10 @@ export class HealthCheckService {
     }
 
     try {
-      if (this.kafkaProducer.getIsConnected()) {
-        this.LOGGER.log('Checking kafka HC, result: Positive!');
-        result.details.kafka = true;
-      } else {
-        this.LOGGER.error(`Checking kafka HC, result: Negative!`);
-        result.details.kafka = false;
-      }
+      await this.kafkaProducer.connect();
+      result.details.kafka = true;
+      await this.kafkaProducer.disconnect();
+      this.LOGGER.log('Checking kafka HC, result: Positive!');
     } catch (error) {
       this.LOGGER.error(`Connection error with Kafka, exception: ${error}`);
       result.status = 'error';

@@ -3,7 +3,7 @@ import WorkflowControllerRestImpl from '@controllers/WorkflowControllerRestImpl'
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
-import { HealthCheckService } from '@domains/HealthCheckImpl';
+import { HealthCheckDominio } from '@domains/HealthCheckImpl';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 import NotAliveException from '@exceptions/NotAliveException';
 
@@ -12,7 +12,7 @@ describe('WorkflowControllerRestImpl', () => {
   let mockWorkflowDomain: Partial<WorkflowDomain>;
   let mockWorkflowInputDomain: Partial<WorkflowInputDomain>;
   let mockWorkflowExecutionGateway: Partial<WorkflowExecutionGateway>;
-  let mockHealthCheckService: Partial<HealthCheckService>;
+  let mockHealthCheckService: Partial<HealthCheckDominio>;
 
   beforeEach(async () => {
     mockWorkflowDomain = {
@@ -39,7 +39,7 @@ describe('WorkflowControllerRestImpl', () => {
           provide: WorkflowExecutionGateway,
           useValue: mockWorkflowExecutionGateway,
         },
-        { provide: HealthCheckService, useValue: mockHealthCheckService },
+        { provide: HealthCheckDominio, useValue: mockHealthCheckService },
       ],
     }).compile();
 
