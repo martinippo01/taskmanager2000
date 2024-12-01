@@ -24,6 +24,8 @@ import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecution
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 import { CreateWorkflowResponseDto } from '@interfaces/types/CreateWorkflow';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { HealthCheckService } from '@domains/HealthCheckImpl';
+import NotAliveException from '@exceptions/NotAliveException';
 
 @Controller('workflows')
 class WorkflowControllerRestImpl {
@@ -35,6 +37,7 @@ class WorkflowControllerRestImpl {
     private readonly workflowInputDomain: WorkflowInputDomain,
     @Inject(WorkflowExecutionGateway)
     private readonly workflowExecutionGateway: WorkflowExecutionGateway,
+    private readonly healthCheckService: HealthCheckService,
   ) {}
 
   @Post()
@@ -74,6 +77,7 @@ class WorkflowControllerRestImpl {
     this.LOGGER.log(`Workflow ${name} is ${enabled ? 'enabled' : 'disabled'}`);
     return {
       name,
+      version,
       enabled,
     };
   }
@@ -112,8 +116,10 @@ class WorkflowControllerRestImpl {
   }
 
   @Get()
-  healthCheck(): boolean {
-    return true;
+  async healthCheck() {
+    const healthStatus = await this.healthCheckService.checkHealth();
+    if (healthStatus.status === 'error') throw new NotAliveException();
+    return healthStatus;
   }
 }
 

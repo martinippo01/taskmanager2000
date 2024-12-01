@@ -32,7 +32,9 @@ function IsInputArgs(validationOptions?: ValidationOptions) {
   };
 }
 
+// TODO: Quizás habría que sacar name, ya lo pasan cuando hacen el post
 export class ExecuteWorkflowRequestDto {
+  @IsOptional()
   @IsNotEmpty({
     message: 'Workflow name is required',
   })

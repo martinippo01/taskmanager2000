@@ -17,6 +17,7 @@ import {
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from '@shared/WorkflowExecutionRequest';
+import { HealthCheckService } from '@domains/HealthCheckImpl';
 
 @Module({
   imports: [],
@@ -51,6 +52,7 @@ import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImp
       useClass: WorkflowExecutionRequestProducerImpl,
     },
     redisClientFactory,
+    HealthCheckService,
   ],
 })
 export class AppModule {}

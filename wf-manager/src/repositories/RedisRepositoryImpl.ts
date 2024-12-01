@@ -59,4 +59,19 @@ export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
   ): Promise<void> {
     await this.redisClient.set(key, value, 'EX', expiry);
   }
+
+  async ping(): Promise<boolean> {
+    try {
+      const response = await this.redisClient.ping();
+      if (response === 'PONG') {
+        this.LOGGER.log('Redis ping successful');
+        return true;
+      }
+      this.LOGGER.error(`Unexpected Redis ping response: ${response}`);
+      return false;
+    } catch (error) {
+      this.LOGGER.error(`Redis ping failed: ${error.message}`);
+      return false;
+    }
+  }
 }

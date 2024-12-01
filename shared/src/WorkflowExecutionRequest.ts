@@ -68,4 +68,8 @@ export class WorkflowExecutionRequestProducer {
     });
     return executionId;
   }
+
+  getIsConnected(): boolean {
+    return this.isConnected;
+  }
 }
