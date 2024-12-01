@@ -7,7 +7,7 @@ class WorkflowAlreadyExistsException extends WorkflowException {
   constructor(private readonly workflowName: string) {
     super(
       WorkflowAlreadyExistsException.NAME,
-      `Workflow with name ${workflowName} already exists`,
+      `Workflow with name '${workflowName}' already exists`,
       HttpStatus.CONFLICT,
     );
   }

@@ -7,7 +7,7 @@ class DisabledWorkflowException extends WorkflowException {
   constructor(name: string) {
     super(
       DisabledWorkflowException.NAME,
-      `Workflow ${name} is disabled`,
+      `Workflow '${name}' is disabled`,
       HttpStatus.CONFLICT,
     );
   }

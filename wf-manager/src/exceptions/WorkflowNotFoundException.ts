@@ -7,7 +7,7 @@ class WorkflowNotFoundException extends WorkflowException {
   constructor(private readonly workflowName: string) {
     super(
       WorkflowNotFoundException.NAME,
-      `Workflow ${workflowName} not found`,
+      `Workflow '${workflowName}' not found`,
       HttpStatus.NOT_FOUND,
     );
   }
