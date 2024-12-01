@@ -9,22 +9,19 @@ export class WorkflowExceptionFilter
 {
   protected readonly LOGGER: Logger = new Logger(WorkflowExceptionFilter.name);
 
-  catchHttp(exception: WorkflowException): {
-    body: object;
-    httpStatus: number;
-  } {
-    const status = exception.getStatus();
-    const message = exception.getMessage();
-    const name = exception.getName();
+  getExceptionMessage(exception: WorkflowException): string {
+    return exception.getMessage();
+  }
 
-    this.LOGGER.error(`${name}: ${message}`);
+  getExceptionName(exception: WorkflowException): string {
+    return exception.getName();
+  }
 
+  getHttpBody(exception: WorkflowException): object {
+    const message = this.getExceptionMessage(exception);
     return {
-      body: {
-        statusCode: status,
-        error: message,
-      },
-      httpStatus: status,
+      statusCode: exception.getStatus(),
+      error: message,
     };
   }
 }

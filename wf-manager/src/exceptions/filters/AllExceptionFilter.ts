@@ -15,27 +15,26 @@ export class AllExceptionFilter<TException>
 
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-  catchHttp(exception: TException): {
-    body: object;
-    httpStatus: number;
-  } {
-    const status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let name: string;
-    let message: string;
-    if (exception instanceof Error) {
-      name = exception.name;
-      message = exception.message;
-    } else {
-      name = 'UnknownException';
-      message = 'Internal Server Error';
-    }
-    this.LOGGER.error(`${name}: ${message}`);
+  getExceptionName(exception: TException): string {
+    return exception instanceof Error ? exception.name : 'UnknownException';
+  }
+
+  getExceptionMessage(exception: TException): string {
+    return exception instanceof Error
+      ? exception.message
+      : 'Internal Server Error';
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getExceptionHttpStatus(_exception: TException): number {
+    return HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+  getHttpBody(exception: TException): object {
+    const message = this.getExceptionMessage(exception);
     return {
-      body: {
-        statusCode: status,
-        error: message,
-      },
-      httpStatus: status,
+      statusCode: this.getExceptionHttpStatus(exception),
+      error: message,
     };
   }
 
@@ -43,7 +42,13 @@ export class AllExceptionFilter<TException>
     if (host.getType() === 'http') {
       const { httpAdapter } = this.httpAdapterHost;
       const ctx = host.switchToHttp();
-      const { body, httpStatus } = this.catchHttp(exception);
+
+      const name = this.getExceptionName(exception);
+      const message = this.getExceptionMessage(exception);
+      this.LOGGER.error(`${name}: ${message}`);
+
+      const body = this.getHttpBody(exception);
+      const httpStatus = this.getExceptionHttpStatus(exception);
       const path = httpAdapter.getRequestUrl(ctx.getRequest());
       const responseBody = {
         ...body,

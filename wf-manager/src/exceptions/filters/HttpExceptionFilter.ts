@@ -15,21 +15,23 @@ export class HttpExceptionFilter<
     super(httpAdapterHost);
   }
 
-  catchHttp(exception: TException): { body: object; httpStatus: number } {
-    const status = exception.getStatus();
-    const message = exception.getResponse();
-    const name = exception.name;
+  getExceptionName(exception: TException): string {
+    return exception.name;
+  }
 
-    const messageStr =
-      typeof message === 'string' ? message : JSON.stringify(message);
+  getExceptionMessage(exception: TException): string {
+    const response = exception.getResponse();
+    return typeof response === 'string' ? response : JSON.stringify(response);
+  }
 
-    this.LOGGER.error(`${name}: ${messageStr}`);
+  getHttpBody(exception: TException): object {
+    const response = exception.getResponse();
+    const messageObj =
+      typeof response === 'string' ? { message: response } : response;
+    return messageObj;
+  }
 
-    const messageObj = typeof message === 'string' ? { message } : message;
-
-    return {
-      body: messageObj,
-      httpStatus: status,
-    };
+  getExceptionHttpStatus(exception: TException): number {
+    return exception.getStatus();
   }
 }
