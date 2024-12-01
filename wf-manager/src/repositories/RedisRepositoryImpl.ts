@@ -3,7 +3,10 @@ import { Redis } from 'ioredis';
 
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 
-import { RedisRepository } from '@interfaces/repositories/RedisRepository';
+import {
+  RedisMultiCommand,
+  RedisRepository,
+} from '@interfaces/repositories/RedisRepository';
 
 export const redisClientFactory: FactoryProvider<Redis> = {
   provide: 'RedisClient',
@@ -58,5 +61,21 @@ export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
     expiry: number,
   ): Promise<void> {
     await this.redisClient.set(key, value, 'EX', expiry);
+  }
+
+  async sadd(key: string, value: string): Promise<void> {
+    await this.redisClient.sadd(key, value);
+  }
+
+  async sIsMember(key: string, value: string): Promise<boolean> {
+    return (await this.redisClient.sismember(key, value)) === 1;
+  }
+
+  async multi(commands: RedisMultiCommand[]): Promise<void> {
+    await this.redisClient.multi(commands).exec((err) => {
+      if (err) {
+        throw new Error(`Failed to execute multi command: ${err}`);
+      }
+    });
   }
 }

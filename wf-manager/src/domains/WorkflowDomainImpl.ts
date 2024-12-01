@@ -33,7 +33,8 @@ class WorkflowDomainImpl implements WorkflowDomain {
 
     // Validate the workflow does not exist
     this.LOGGER.debug('Validating workflow does not exist');
-    if (await this.doesWorkflowExist(name, version)) {
+    const exists = await this.doesWorkflowExist(name, version);
+    if (exists) {
       throw new WorkflowAlreadyExistsException(name);
     }
 
@@ -58,7 +59,7 @@ class WorkflowDomainImpl implements WorkflowDomain {
     version?: string,
   ): Promise<boolean> {
     this.LOGGER.debug(`Checking if workflow ${name} exists`);
-    return (await this.workflowDao.getWorkflow(name, version)) !== null;
+    return await this.workflowDao.doesWorkflowExist(name, version);
   }
 
   async isWorkflowEnabled(name: string, version?: string): Promise<boolean> {

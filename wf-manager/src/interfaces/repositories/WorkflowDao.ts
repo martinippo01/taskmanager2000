@@ -2,6 +2,7 @@ import { Workflow, WorkflowMetadata } from '@interfaces/types/Workflow';
 import { Plan } from '@shared/WorkflowPlan';
 
 export interface WorkflowDao {
+  doesWorkflowExist(name: string, version?: string): Promise<boolean>;
   getWorkflow(name: string, version?: string): Promise<Workflow | null>;
   getWorkflowMetadata(
     name: string,
