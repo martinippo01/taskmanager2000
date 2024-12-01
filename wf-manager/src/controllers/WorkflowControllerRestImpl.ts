@@ -24,6 +24,8 @@ import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecution
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 import { CreateWorkflowResponseDto } from '@interfaces/types/CreateWorkflow';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { WorkflowNameParam } from '@interfaces/types/WorkflowName';
+import DisabledWorkflowException from '@exceptions/DisabledWorkflowException';
 
 @Controller('workflows')
 class WorkflowControllerRestImpl {
@@ -66,9 +68,10 @@ class WorkflowControllerRestImpl {
 
   @Put(':name/status')
   async toggleWorkflow(
-    @Param('name') name: string,
+    @Param() params: WorkflowNameParam,
     @Query('version') version?: string,
   ): Promise<ToggleWorkflowResponseDto> {
+    const { name } = params;
     this.LOGGER.debug(`Toggling workflow ${name}`);
     const enabled = await this.workflowDomain.toggleWorkflow(name, version);
     this.LOGGER.log(`Workflow ${name} is ${enabled ? 'enabled' : 'disabled'}`);
@@ -80,15 +83,19 @@ class WorkflowControllerRestImpl {
 
   @Post(':name')
   async executeWorkflow(
-    @Param('name') name: string,
+    @Param() params: WorkflowNameParam,
     @Body() request: ExecuteWorkflowRequestDto,
     @Query('version') version?: string,
   ): Promise<ExecuteWorkflowResponseDto> {
+    const { name } = params;
     // 1 - Get workflow
     this.LOGGER.debug(`Executing workflow ${name}`);
     const workflow = await this.workflowDomain.getWorkflow(name, version);
     if (workflow === null) {
       throw new WorkflowNotFoundException(name);
+    }
+    if (!workflow.enabled) {
+      throw new DisabledWorkflowException(name);
     }
     // 2 - Validate request input args
     this.LOGGER.debug(`Validating input arguments`);

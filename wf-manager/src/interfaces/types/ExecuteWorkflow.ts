@@ -1,9 +1,5 @@
 import {
-  IsAscii,
-  IsNotEmpty,
   IsOptional,
-  IsString,
-  MaxLength,
   registerDecorator,
   ValidationOptions,
 } from 'class-validator';
@@ -33,20 +29,6 @@ function IsInputArgs(validationOptions?: ValidationOptions) {
 }
 
 export class ExecuteWorkflowRequestDto {
-  @IsNotEmpty({
-    message: 'Workflow name is required',
-  })
-  @IsString({
-    message: 'Workflow name must be a string',
-  })
-  @IsAscii({
-    message: 'Workflow name must be an ASCII string',
-  })
-  @MaxLength(255, {
-    message: 'Workflow name must be at most 255 characters',
-  })
-  name: string;
-
   @IsOptional()
   @IsInputArgs({
     message: 'Input arguments must be a record of strings or string arrays',
