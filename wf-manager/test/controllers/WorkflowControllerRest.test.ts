@@ -90,7 +90,10 @@ describe('WorkflowControllerRestImpl', () => {
     it('should toggle a workflow and return the status', async () => {
       jest.spyOn(mockWorkflowDomain, 'toggleWorkflow').mockResolvedValue(true);
 
-      const result = await controller.toggleWorkflow('workflow-name', '1.0');
+      const result = await controller.toggleWorkflow(
+        { name: 'workflow-name' },
+        '1.0',
+      );
 
       expect(mockWorkflowDomain.toggleWorkflow).toHaveBeenCalledWith(
         'workflow-name',
@@ -120,8 +123,8 @@ describe('WorkflowControllerRestImpl', () => {
         .mockResolvedValue('execution-id');
 
       const result = await controller.executeWorkflow(
-        'workflow-name',
-        { name: 'hola' },
+        { name: 'workflow-name' },
+        {},
         '1.0',
       );
 
@@ -137,7 +140,7 @@ describe('WorkflowControllerRestImpl', () => {
       jest.spyOn(mockWorkflowDomain, 'getWorkflow').mockResolvedValue(null);
 
       await expect(
-        controller.executeWorkflow('workflow-name', { name: 'hola' }, '1.0'),
+        controller.executeWorkflow({ name: 'workflow-name' }, {}, '1.0'),
       ).rejects.toThrow(WorkflowNotFoundException);
     });
   });

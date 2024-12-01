@@ -4,7 +4,7 @@ import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
 import WorkflowDomainImpl from '@domains/WorkflowDomainImpl';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
 import { jest } from '@jest/globals';
-import { Workflow, WorkflowMetadata } from '@interfaces/types/Workflow';
+import { Workflow } from '@interfaces/types/Workflow';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 
@@ -22,6 +22,7 @@ describe('WorkflowDomainImpl', () => {
       disableWorkflow: jest.fn(),
       enableWorkflow: jest.fn(),
       getWorkflowPlan: jest.fn(),
+      doesWorkflowExist: jest.fn(),
     } as jest.Mocked<WorkflowDao>;
 
     workflowPlanDomain = {
@@ -65,7 +66,7 @@ describe('WorkflowDomainImpl', () => {
 
       workflowPlanDomain.getPlanFromYaml.mockResolvedValue(wfPlan);
       workflowPlanDomain.getPlanProperties.mockResolvedValue(wfProperties);
-      workflowDao.getWorkflow.mockResolvedValue(null);
+      workflowDao.doesWorkflowExist.mockResolvedValue(false);
       workflowDao.createWorkflow.mockResolvedValue(true);
 
       const result = await workflowDomain.createWorkflow(fileContent);
@@ -76,7 +77,7 @@ describe('WorkflowDomainImpl', () => {
       expect(workflowPlanDomain.getPlanProperties).toHaveBeenCalledWith(
         fileContent,
       );
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
+      expect(workflowDao.doesWorkflowExist).toHaveBeenCalledWith(
         'TestWorkflow',
         '1.0.0',
       );
@@ -109,13 +110,13 @@ describe('WorkflowDomainImpl', () => {
 
       workflowPlanDomain.getPlanFromYaml.mockResolvedValue({ steps: [] });
       workflowPlanDomain.getPlanProperties.mockResolvedValue(wfProperties);
-      workflowDao.getWorkflow.mockResolvedValue({} as Workflow);
+      workflowDao.doesWorkflowExist.mockResolvedValue(true);
 
       await expect(workflowDomain.createWorkflow(fileContent)).rejects.toThrow(
         WorkflowAlreadyExistsException,
       );
 
-      expect(workflowDao.getWorkflow).toHaveBeenCalledWith(
+      expect(workflowDao.doesWorkflowExist).toHaveBeenCalledWith(
         'ExistingWorkflow',
         '1.0.0',
       );

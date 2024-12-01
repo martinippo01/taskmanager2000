@@ -26,6 +26,7 @@ describe('PlanDomain', () => {
         `
           name: Test Plan
           description: A description of the test plan
+          version: '1.0'
           steps:
             - name: hola
               task: echo
@@ -58,6 +59,7 @@ describe('PlanDomain', () => {
     expect(result).toEqual({
       name: 'Test Plan',
       description: 'A description of the test plan',
+      version: '1.0',
       inputParams: {
         param1: 'string',
         param2: 'number',
@@ -74,6 +76,7 @@ describe('PlanDomain', () => {
         `
       name: Empty Plan
       description: No steps here
+      version: '1.0'
       steps: []
     `,
       ),
@@ -86,6 +89,7 @@ describe('PlanDomain', () => {
     expect(result).toEqual({
       name: 'Empty Plan',
       description: 'No steps here',
+      version: '1.0',
       inputParams: {},
     });
   });
@@ -108,6 +112,7 @@ describe('PlanDomain', () => {
         `
           name: Valid Plan
           description: A properly structured plan
+          version: '1.0'
           steps:
             - name: step1
               task: echo
@@ -138,6 +143,7 @@ describe('PlanDomain', () => {
       arrayBuffer: jest.fn().mockResolvedValueOnce(
         `
           description: Missing name
+          version: '1.0'
           steps: 
             - name: step1
               task: echo
@@ -163,6 +169,7 @@ describe('PlanDomain', () => {
         `
           name: Invalid Steps Plan
           description: Steps are missing
+          version: '1.0'
         `,
       ),
     };
@@ -181,6 +188,7 @@ describe('PlanDomain', () => {
         `
           name: Duplicate Steps Plan
           description: Plan with duplicate steps
+          version: '1.0'
           steps:
             - name: step1
               task: echo
@@ -206,12 +214,13 @@ describe('PlanDomain', () => {
     );
   });
 
-  it('should return false for a plan with duplicate param names', async () => {
+  it('should return true for a valid plan with nested parameters', async () => {
     const mockFile = {
       arrayBuffer: jest.fn().mockResolvedValueOnce(
         `
           name: Duplicate Steps Plan
           description: Plan with duplicate steps
+          version: '1.0'
           steps:
             - name: step1
               task: echo
@@ -232,9 +241,7 @@ describe('PlanDomain', () => {
     const arrayBuffer = await mockFile.arrayBuffer();
     const fileContent = Buffer.from(arrayBuffer).toString('utf8');
 
-    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
-      InvalidWorkflowPlanException,
-    );
+    await expect(service.getPlanFromYaml(fileContent)).resolves.toBeTruthy();
   });
 
   it('should return false for an empty plan', async () => {
@@ -256,6 +263,7 @@ describe('PlanDomain', () => {
         `
           name: Plan Without Params
           description: A step is missing params
+          version: '1.0'
           steps:
             - name: step1
               task: echo
@@ -277,6 +285,7 @@ describe('PlanDomain', () => {
         `
           name: Invalid From Reference
           description: Invalid reference in from
+          version: '1.0'
           steps:
             - name: step1
               task: echo
@@ -302,6 +311,7 @@ describe('PlanDomain', () => {
         `
           name: Nested Parameters Plan
           description: A valid plan with nested parameters
+          version: '1.0'
           steps:
             - name: step1
               task: bash
@@ -350,6 +360,7 @@ describe('PlanDomain', () => {
         `
           name: Invalid Step Name
           description: A step has an invalid name
+          version: '1.0'
           steps:
             - name: ""
               task: echo
@@ -372,6 +383,7 @@ describe('PlanDomain', () => {
         `
           name: Missing Task Plan
           description: A step is missing a task
+          version: '1.0'
           steps:
             - name: step1
               params:
@@ -396,6 +408,7 @@ describe('PlanDomain', () => {
         `
           name: Plan With Extra Fields
           description: Plan contains extra invalid fields
+          version: '1.0'
           steps:
             - name: step1
               task: echo
@@ -428,7 +441,58 @@ describe('PlanDomain', () => {
         `
           name: Non-Array Steps Plan
           description: Steps is not an array
+          version: '1.0'
           steps: invalidStructure
+        `,
+      ),
+    };
+
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
+  });
+
+  it('should return false if a step is missing a name', async () => {
+    const mockFile = {
+      arrayBuffer: jest.fn().mockResolvedValueOnce(
+        `
+          name: Missing Step Name
+          description: A step is missing a name
+          version: '1.0'
+          steps:
+            - task: echo
+              params:
+                - name: param1
+                  type: string
+                  value: hello
+        `,
+      ),
+    };
+
+    const arrayBuffer = await mockFile.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString('utf8');
+
+    await expect(service.getPlanFromYaml(fileContent)).rejects.toThrow(
+      InvalidWorkflowPlanException,
+    );
+  });
+
+  it('should return false if a plan has no version', async () => {
+    const mockFile = {
+      arrayBuffer: jest.fn().mockResolvedValueOnce(
+        `
+          name: No Version Plan
+          description: A plan is missing a version
+          steps:
+            - name: step1
+              task: echo
+              params:
+                - name: param1
+                  type: string
+                  value: hello
         `,
       ),
     };
