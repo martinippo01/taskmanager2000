@@ -9,7 +9,7 @@ export class HealthCheckService {
   private readonly LOGGER = new Logger(HealthCheckService.name);
 
   constructor(
-    @Inject('RedisRepository')
+    @Inject(RedisRepository)
     private readonly redisClient: RedisRepository,
     @Inject(WorkflowExecutionRequestProducer)
     private readonly kafkaProducer: WorkflowExecutionRequestProducer, // Inject Kafka producer

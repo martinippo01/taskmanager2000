@@ -19,6 +19,10 @@ import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExec
 import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from '@shared/WorkflowExecutionRequest';
 import { HealthCheckService } from '@domains/HealthCheckImpl';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
+import { WorkflowExceptionFilter } from '@exceptions/filters/WorkflowExceptionFilter';
+import { HttpExceptionFilter } from '@exceptions/filters/HttpExceptionFilter';
+import { AllExceptionFilter } from '@exceptions/filters/AllExceptionFilter';
 
 @Module({
   imports: [ConfigModule.forRoot()],
@@ -54,6 +58,18 @@ import { ConfigModule } from '@nestjs/config';
     },
     redisClientFactory,
     HealthCheckService,
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: WorkflowExceptionFilter,
+    },
   ],
 })
 export class AppModule {}
