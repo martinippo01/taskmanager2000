@@ -20,6 +20,7 @@ export interface RedisRepository {
   sIsMember(key: string, value: string): Promise<boolean>;
   delete(key: string): Promise<void>;
   setWithExpiry(key: string, value: string, expiry: number): Promise<void>;
+  ping(): Promise<boolean>;
   multi(commands: RedisMultiCommand[]): Promise<void>;
 }
 
