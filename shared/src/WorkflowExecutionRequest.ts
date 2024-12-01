@@ -1,7 +1,7 @@
-import { Kafka, logLevel, Producer } from "kafkajs";
-import { InputArguments, InputParams } from "./WorkflowInput";
-import { randomBytes } from "crypto";
-import { Plan } from "./WorkflowPlan";
+import { Kafka, logLevel, Producer } from 'kafkajs';
+import { InputArguments, InputParams } from './WorkflowInput';
+import { randomBytes } from 'crypto';
+import { Plan } from './WorkflowPlan';
 
 export type WorkflowExecutionRequest = {
   executionId: string;
@@ -12,21 +12,21 @@ export type WorkflowExecutionRequest = {
   plan: Plan;
 };
 
-const username = process.env.KAFKA_USERNAME || "";
-const password = process.env.KAFKA_PASSWORD || "";
-const topic = process.env.KAFKA_TOPIC || "";
-const brokers = process.env.KAFKA_BROKERS || "";
-const clientId = process.env.KAFKA_CLIENT_ID || "";
-
 export class WorkflowExecutionRequestProducer {
   private readonly producer: Producer;
   private readonly kafka: Kafka;
   private isConnected: boolean = false;
 
-  constructor() {
+  constructor(
+    private readonly username: string = process.env.KAFKA_USERNAME || '',
+    private readonly password: string = process.env.KAFKA_PASSWORD || '',
+    private readonly topic: string = process.env.KAFKA_TOPIC || '',
+    private readonly brokers: string = process.env.KAFKA_BROKERS || '',
+    private readonly clientId: string = process.env.KAFKA_CLIENT_ID || '',
+  ) {
     this.kafka = new Kafka({
       clientId,
-      brokers: brokers.split(","),
+      brokers: brokers.split(','),
       ssl: false,
       sasl: {
         mechanism: "plain",
@@ -50,15 +50,15 @@ export class WorkflowExecutionRequestProducer {
 
   async send(
     key: string,
-    request: Omit<WorkflowExecutionRequest, "executionId">
+    request: Omit<WorkflowExecutionRequest, 'executionId'>,
   ): Promise<string> {
     if (!this.isConnected) {
-      throw new Error("Producer is not connected");
+      throw new Error('Producer is not connected');
     }
-    const executionId = randomBytes(20).toString("hex");
+    const executionId = randomBytes(20).toString('hex');
     const value = { ...request, executionId };
     await this.producer.send({
-      topic,
+      topic: this.topic,
       messages: [
         {
           key,
