@@ -66,13 +66,14 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
       throw_excep('Workflow steps are required');
 
     const stepNames: Set<string> = new Set();
-    const paramNames: Set<string> = new Set();
     const steps: Step[] = [];
 
     // Validate each step
     this.LOGGER.debug('Validating steps');
     const i: number = 0;
     for (const step of parsed.steps) {
+      const paramNames: Set<string> = new Set();
+
       this.LOGGER.debug(`Validating step ${i}`);
       this.LOGGER.debug('Validating step name');
       if (!step.name || typeof step.name !== 'string')
