@@ -15,6 +15,8 @@ import {
   RedisRepositoryImpl,
 } from '@repositories/RedisRepositoryImpl';
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
+import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
+import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from '@shared/WorkflowExecutionRequest';
 
 @Module({
   imports: [],
@@ -43,6 +45,10 @@ import { RedisRepository } from '@interfaces/repositories/RedisRepository';
     {
       provide: RedisRepository,
       useClass: RedisRepositoryImpl,
+    },
+    {
+      provide: WorkflowExecutionRequestProducer,
+      useClass: WorkflowExecutionRequestProducerImpl,
     },
     redisClientFactory,
   ],

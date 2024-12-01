@@ -27,18 +27,22 @@ describe('WorkflowExecutionGateway', () => {
   let producer: WorkflowExecutionRequestProducer;
 
   beforeEach(async () => {
-    producer = new WorkflowExecutionRequestProducerMock();
     const moduleRef = await Test.createTestingModule({
       providers: [
         {
           provide: WorkflowExecutionGateway,
-          useValue: new WorkflowExecutionGatewayImpl(producer),
+          useClass: WorkflowExecutionGatewayImpl,
+        },
+        {
+          provide: WorkflowExecutionRequestProducer,
+          useClass: WorkflowExecutionRequestProducerMock,
         },
       ],
     }).compile();
 
     moduleRef.useLogger(false);
     gateway = moduleRef.get(WorkflowExecutionGateway);
+    producer = moduleRef.get(WorkflowExecutionRequestProducer);
   });
 
   describe('connect', () => {

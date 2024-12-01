@@ -1,6 +1,7 @@
 import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecutionGateway';
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -9,18 +10,17 @@ import {
 } from '@nestjs/common';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { InputArguments } from '@shared/WorkflowInput';
-import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from '@shared/WorkflowExecutionRequest';
 
 @Injectable()
 class WorkflowExecutionGatewayImpl
   implements WorkflowExecutionGateway, OnModuleInit, OnModuleDestroy
 {
-  private readonly producer: WorkflowExecutionRequestProducer;
   private readonly LOGGER = new Logger(WorkflowExecutionGatewayImpl.name);
 
-  constructor() {
-    this.producer = new WorkflowExecutionRequestProducerImpl();
-  }
+  constructor(
+    @Inject(WorkflowExecutionRequestProducer)
+    private readonly producer: WorkflowExecutionRequestProducer,
+  ) {}
 
   async onModuleInit() {
     try {
@@ -28,7 +28,7 @@ class WorkflowExecutionGatewayImpl
       await this.producer.connect();
     } catch (error) {
       this.LOGGER.error(`Connection error: ${error}`);
-      // throw new InternalServerErrorException('Failed to connect to producer');
+      throw new InternalServerErrorException('Failed to connect to producer');
     }
   }
 
