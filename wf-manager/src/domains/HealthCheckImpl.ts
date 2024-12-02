@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import NodeCache from 'node-cache';
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
-import { WorkflowExecutionRequestProducer } from '@shared/WorkflowExecutionRequest';
+import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 
 @Injectable()
 export class HealthCheckDominio {
@@ -49,7 +49,6 @@ export class HealthCheckDominio {
     try {
       await this.kafkaProducer.connect();
       result.details.kafka = true;
-      await this.kafkaProducer.disconnect();
       this.LOGGER.log('Checking kafka HC, result: Positive!');
     } catch (error) {
       this.LOGGER.error(`Connection error with Kafka, exception: ${error}`);
