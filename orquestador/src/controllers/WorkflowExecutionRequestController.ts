@@ -1,6 +1,6 @@
-import { CannotRunNewWorkflowExecution } from '@exceptions/CannotRunNewWorkflowExecution';
+import { CannotRunNewWorkflowExecutionException } from '@exceptions/CannotRunNewWorkflowExecution';
 import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDomain';
-import { KafkaClient } from '@configs/KafkaConfig';
+import { KafkaWorkflowExecutionRequestClient } from '@configs/KafkaWorkflowExecutionRequestConfig';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -13,7 +13,7 @@ import {
 import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
 
 type KafkaEnvironmentVariables = {
-  KAFKA_TOPIC: string;
+  KAFKA_TOPIC_WER: string;
 };
 
 @Controller()
@@ -21,7 +21,8 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
   private readonly LOGGER = new Logger(WorkflowExecutionRequestController.name);
 
   constructor(
-    @Inject(KafkaClient) private readonly kafkaClient: ClientKafka,
+    @Inject(KafkaWorkflowExecutionRequestClient)
+    private readonly kafkaClient: ClientKafka,
     @Inject(WorkflowExecutionDomain)
     private readonly workflowExecutionDomain: WorkflowExecutionDomain,
     private readonly configService: ConfigService<KafkaEnvironmentVariables>,
@@ -29,12 +30,12 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
 
   async onModuleInit() {
     const kafkaTopic =
-      this.configService.get('KAFKA_TOPIC', { infer: true }) || '';
+      this.configService.get('KAFKA_TOPIC_WER', { infer: true }) || '';
     this.kafkaClient.subscribeToResponseOf(kafkaTopic);
     await this.kafkaClient.connect();
   }
 
-  @EventPattern(process.env.KAFKA_TOPIC)
+  @EventPattern(process.env.KAFKA_TOPIC_WER)
   async handleExecutionRequest(
     @Payload() request: WorkflowExecutionRequest,
     @Ctx() context: KafkaContext,
@@ -45,7 +46,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     const { alreadyRunned, couldRun } =
       await this.workflowExecutionDomain.runNewWorkflowExecution(request);
     if (!alreadyRunned && !couldRun) {
-      throw new CannotRunNewWorkflowExecution(request.executionId);
+      throw new CannotRunNewWorkflowExecutionException(request.executionId);
     }
     if (alreadyRunned) {
       this.LOGGER.warn(
