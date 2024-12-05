@@ -52,14 +52,14 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     this.LOGGER.debug(
       `Received workflow execution request with id: ${request.executionId}`,
     );
-    const { alreadyRunned, couldRun } =
+    const { alreadyRun, couldRun } =
       await this.workflowExecutionDomain.runNewWorkflowExecution(request);
-    if (!alreadyRunned && !couldRun) {
+    if (!alreadyRun && !couldRun) {
       throw new CannotRunNewWorkflowExecutionException(request.executionId);
     }
-    if (alreadyRunned) {
+    if (alreadyRun) {
       this.LOGGER.warn(
-        `Workflow execution request with id: ${request.executionId} has already been runned`,
+        `Workflow execution request with id: ${request.executionId} has already been run`,
       );
     } else {
       this.LOGGER.log(
