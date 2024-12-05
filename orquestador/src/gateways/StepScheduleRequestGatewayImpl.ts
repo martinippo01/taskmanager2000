@@ -1,13 +1,13 @@
-import { KafkaStepScheduleRequestClient } from '@configs/KafkaStepScheduleRequestConfig';
+import {
+  KafkaStepScheduleRequestClient,
+  KafkaStepScheduleRequestEnvironmentVariables,
+} from '@configs/KafkaStepScheduleRequestConfig';
+import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientKafka } from '@nestjs/microservices';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
-
-type KafkaEnvironmentVariables = {
-  KAFKA_TOPIC_SSR: string;
-};
 
 @Injectable()
 export class StepScheduleRequestGatewayImpl
@@ -19,33 +19,46 @@ export class StepScheduleRequestGatewayImpl
   constructor(
     @Inject(KafkaStepScheduleRequestClient)
     private readonly kafkaClient: ClientKafka,
-    private readonly configService: ConfigService<KafkaEnvironmentVariables>,
+    private readonly configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
   ) {
     this.topic =
       this.configService.get('KAFKA_TOPIC_SSR', { infer: true }) || '';
   }
 
   async onModuleInit() {
-    await this.kafkaClient.connect();
+    try {
+      await this.kafkaClient.connect();
+    } catch (error) {
+      this.LOGGER.error(`Kafka connection error: ${error}`);
+      throw new KafkaConnectionException('StepScheduleRequestQueue', error);
+    }
   }
 
-  queueStep(stepScheduleRequest: StepScheduleRequest): Promise<boolean> {
+  queueStep(stepScheduleRequest: StepScheduleRequest): Promise<
+    | {
+        queued: true;
+      }
+    | {
+        queued: false;
+        error: unknown;
+      }
+  > {
     this.LOGGER.debug(
       `Queuing step schedule request '${stepScheduleRequest.name}' from workflow execution '${stepScheduleRequest.workflowExecutionId}'`,
     );
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.kafkaClient.emit(this.topic, stepScheduleRequest).subscribe({
         complete: () => {
           this.LOGGER.debug(
             `Step schedule request '${stepScheduleRequest.name}' from workflow execution '${stepScheduleRequest.workflowExecutionId}' queued successfully`,
           );
-          resolve(true);
+          resolve({ queued: true });
         },
         error: (error) => {
           this.LOGGER.error(
             `Failed to queue step schedule request '${stepScheduleRequest.name}' from workflow execution '${stepScheduleRequest.workflowExecutionId}'`,
           );
-          reject(error);
+          resolve({ queued: false, error });
         },
       });
     });
