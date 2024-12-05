@@ -2,17 +2,19 @@ import { ConfigService } from '@nestjs/config';
 import { ClientOptions, Transport } from '@nestjs/microservices';
 import { logLevel } from '@nestjs/microservices/external/kafka.interface';
 
-export const KafkaClient = Symbol('KafkaClient');
+export const KafkaWorkflowExecutionRequestClient = Symbol(
+  'KafkaWorkflowExecutionRequestClient',
+);
 
 type KafkaEnvironmentVariables = {
-  KAFKA_BROKERS: string;
-  KAFKA_CLIENT_ID: string;
-  KAFKA_USERNAME: string;
-  KAFKA_PASSWORD: string;
-  KAFKA_GROUP_ID: string;
+  KAFKA_BROKERS_WER: string;
+  KAFKA_CLIENT_ID_WER: string;
+  KAFKA_USERNAME_WER: string;
+  KAFKA_PASSWORD_WER: string;
+  KAFKA_GROUP_ID_WER: string;
 };
 
-export const getKafkaConfig = ({
+export const getKafkaWorkflowExecutionRequestConfig = ({
   brokers = [],
   clientId = 'orquestador',
   username = '',
@@ -51,18 +53,20 @@ export const getKafkaConfig = ({
   },
 });
 
-export const kafkaClientFactoryProvider = (
+export const kafkaWorkflowExecutionRequestClientFactoryProvider = (
   configService: ConfigService<KafkaEnvironmentVariables>,
 ): ClientOptions => {
   const brokers =
-    configService.get('KAFKA_BROKERS', { infer: true })?.split(',') || [];
+    configService.get('KAFKA_BROKERS_WER', { infer: true })?.split(',') || [];
   const clientId =
-    configService.get('KAFKA_CLIENT_ID', { infer: true }) || 'orquestador';
-  const username = configService.get('KAFKA_USERNAME', { infer: true }) || '';
-  const password = configService.get('KAFKA_PASSWORD', { infer: true }) || '';
+    configService.get('KAFKA_CLIENT_ID_WER', { infer: true }) || 'orquestador';
+  const username =
+    configService.get('KAFKA_USERNAME_WER', { infer: true }) || '';
+  const password =
+    configService.get('KAFKA_PASSWORD_WER', { infer: true }) || '';
   const groupId =
-    configService.get('KAFKA_GROUP_ID', { infer: true }) || 'orquestador';
-  return getKafkaConfig({
+    configService.get('KAFKA_GROUP_ID_WER', { infer: true }) || 'orquestador';
+  return getKafkaWorkflowExecutionRequestConfig({
     brokers,
     clientId,
     username,

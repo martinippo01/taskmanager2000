@@ -1,14 +1,12 @@
-import { HttpStatus } from '@nestjs/common';
-import OrchestatorException from './OrchestatorException';
+import OrchestatorRpcException from './OrchestatorRpcException';
 
-export class CannotRunNewWorkflowExecution extends OrchestatorException {
+export class CannotRunNewWorkflowExecutionException extends OrchestatorRpcException {
   private static readonly NAME = 'CannotRunNewWorkflowExecution';
 
   constructor(wfExecutionId: string) {
     super(
-      CannotRunNewWorkflowExecution.NAME,
+      CannotRunNewWorkflowExecutionException.NAME,
       `Cannot run new workflow execution with id: ${wfExecutionId}`,
-      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
