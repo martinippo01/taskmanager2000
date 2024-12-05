@@ -6,12 +6,13 @@ export const KafkaWorkflowExecutionRequestClient = Symbol(
   'KafkaWorkflowExecutionRequestClient',
 );
 
-type KafkaEnvironmentVariables = {
+export type KafkaWorkflowExecutionRequestEnvironmentVariables = {
   KAFKA_BROKERS_WER: string;
   KAFKA_CLIENT_ID_WER: string;
   KAFKA_USERNAME_WER: string;
   KAFKA_PASSWORD_WER: string;
   KAFKA_GROUP_ID_WER: string;
+  KAFKA_TOPIC_WER: string;
 };
 
 export const getKafkaWorkflowExecutionRequestConfig = ({
@@ -54,7 +55,7 @@ export const getKafkaWorkflowExecutionRequestConfig = ({
 });
 
 export const kafkaWorkflowExecutionRequestClientFactoryProvider = (
-  configService: ConfigService<KafkaEnvironmentVariables>,
+  configService: ConfigService<KafkaWorkflowExecutionRequestEnvironmentVariables>,
 ): ClientOptions => {
   const brokers =
     configService.get('KAFKA_BROKERS_WER', { infer: true })?.split(',') || [];
