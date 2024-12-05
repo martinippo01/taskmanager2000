@@ -95,7 +95,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should run a new workflow execution', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: false, couldRun: true });
+        .mockResolvedValueOnce({ alreadyRun: false, couldRun: true });
       await expect(
         controller.handleExecutionRequest(
           executionRequestExample,
@@ -107,7 +107,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should throw an error if the workflow execution could not be run', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: false, couldRun: false });
+        .mockResolvedValueOnce({ alreadyRun: false, couldRun: false });
       await expect(
         controller.handleExecutionRequest(
           executionRequestExample,
@@ -119,7 +119,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should log a warning if the workflow execution has already been runned', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: true, couldRun: false });
+        .mockResolvedValueOnce({ alreadyRun: true, couldRun: false });
       const spy = jest.spyOn(controller['LOGGER'], 'warn');
       await controller.handleExecutionRequest(
         executionRequestExample,
@@ -131,7 +131,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should log a warning if the workflow execution has already been runned (couldRun = true)', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: true, couldRun: true });
+        .mockResolvedValueOnce({ alreadyRun: true, couldRun: true });
       const spy = jest.spyOn(controller['LOGGER'], 'warn');
       await controller.handleExecutionRequest(
         executionRequestExample,
@@ -143,7 +143,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should log a message if the workflow execution was successfully processed', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: false, couldRun: true });
+        .mockResolvedValueOnce({ alreadyRun: false, couldRun: true });
       const spy = jest.spyOn(controller['LOGGER'], 'log');
       await controller.handleExecutionRequest(
         executionRequestExample,
@@ -155,7 +155,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should commit the offset after processing the request', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: false, couldRun: true });
+        .mockResolvedValueOnce({ alreadyRun: false, couldRun: true });
       const spy = jest.spyOn(kafkaContextMock.getConsumer(), 'commitOffsets');
       await controller.handleExecutionRequest(
         executionRequestExample,
@@ -167,7 +167,7 @@ describe('WorkflowExecutionRequestController', () => {
     it('should commit the offset after even the workflow execution has already been runned', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
-        .mockResolvedValueOnce({ alreadyRunned: true, couldRun: false });
+        .mockResolvedValueOnce({ alreadyRun: true, couldRun: false });
       const spy = jest.spyOn(kafkaContextMock.getConsumer(), 'commitOffsets');
       await controller.handleExecutionRequest(
         executionRequestExample,
