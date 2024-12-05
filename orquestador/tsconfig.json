@@ -22,6 +22,7 @@
       "@interfaces/*": ["src/interfaces/*"],
       "@controllers/*": ["src/controllers/*"],
       "@repositories/*": ["src/repositories/*"],
+      "@entities/*": ["src/repositories/entities/*"],
       "@domains/*": ["src/domains/*"],
       "@gateways/*": ["src/gateways/*"],
       "@exceptions/*": ["src/exceptions/*"],
