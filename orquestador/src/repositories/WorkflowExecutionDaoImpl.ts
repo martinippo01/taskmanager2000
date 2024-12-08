@@ -10,7 +10,7 @@ import {
   stepsInfo,
   WorkflowExecutionDao,
 } from '@interfaces/repository/WorkflowExecutionDao';
-import { Step } from '@shared/WorkflowPlan';
+import { RepeatedIdException } from '@exceptions/RepeatedIdException';
 
 @Injectable()
 export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
@@ -26,6 +26,14 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     data: Partial<WorkflowExecution>,
   ): Promise<WorkflowExecution> {
     this.LOGGER.log(`Saving workflow execution with id ${data.executionId}`);
+    const existingWorkflow = await this.workflowExecutionRepository.findOneBy({
+      executionId: data.executionId,
+    });
+
+    if (existingWorkflow) {
+      throw new RepeatedIdException(data.executionId || '');
+    }
+
     const workflowExecution = this.workflowExecutionRepository.create(data);
     return this.workflowExecutionRepository.save(workflowExecution);
   }
