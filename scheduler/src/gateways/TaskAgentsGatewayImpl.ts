@@ -1,0 +1,103 @@
+import { StepScheduleExceptionOrchestratorGateway } from '@interfaces/gateways/StepScheduleExceptionOrchestratorGateway';
+import {
+  TaskAgentGateway,
+  TaskAgentGatewayProvider,
+} from '@interfaces/gateways/TaskAgentGatewayProvider';
+import { TaskAgentsGateway } from '@interfaces/gateways/TaskAgentsGateway';
+import { Inject, Logger, OnModuleDestroy } from '@nestjs/common';
+import { StepScheduleException } from '@shared/StepScheduleException';
+import { StepScheduleRequest } from '@shared/StepScheduleRequest';
+import { areKafkaTaskDataEqual, TaskData } from '@shared/TaskData';
+
+export class TaskAgentsGatewayImpl
+  implements TaskAgentsGateway, OnModuleDestroy
+{
+  private readonly LOGGER = new Logger(TaskAgentsGatewayImpl.name);
+  private readonly CLIENT_ID = 'scheduler';
+  private readonly TASK_AGENT_GATEWAYS: Map<string, TaskAgentGateway> =
+    new Map();
+
+  constructor(
+    @Inject(StepScheduleExceptionOrchestratorGateway)
+    private readonly stepScheduleExceptionOrchestratorGateway: StepScheduleExceptionOrchestratorGateway,
+    @Inject(TaskAgentGatewayProvider)
+    private readonly taskAgentGatewayProvider: TaskAgentGatewayProvider,
+  ) {}
+
+  private hasTaskChanged(taskName: string, taskData: TaskData): boolean {
+    const taskAgent = this.TASK_AGENT_GATEWAYS.get(taskName);
+    if (!taskAgent) {
+      this.LOGGER.debug(`New task agent gateway for task ${taskName}`);
+      return true;
+    }
+    const kafkaConfig = taskAgent.getKafkaConfig();
+    const hasChanged = !areKafkaTaskDataEqual(taskData.kafka, kafkaConfig);
+    if (hasChanged) {
+      this.LOGGER.debug(`Task agent gateway for task ${taskName} has changed`);
+    }
+    return hasChanged;
+  }
+
+  private getTaskAgentGateway(
+    taskName: string,
+    taskData: TaskData,
+  ): TaskAgentGateway {
+    let taskAgentGateway: TaskAgentGateway | undefined;
+    if (this.hasTaskChanged(taskName, taskData)) {
+      taskAgentGateway = this.taskAgentGatewayProvider.provide({
+        ...taskData.kafka,
+        clientId: this.CLIENT_ID,
+      });
+      this.TASK_AGENT_GATEWAYS.set(taskName, taskAgentGateway);
+    } else {
+      this.LOGGER.debug(`Reusing task agent gateway for task ${taskName}`);
+      taskAgentGateway = this.TASK_AGENT_GATEWAYS.get(taskName)!;
+    }
+    return taskAgentGateway;
+  }
+
+  async sendStep(
+    taskData: TaskData,
+    request: StepScheduleRequest,
+  ): Promise<{ sent: boolean }> {
+    const taskAgentGateway = this.getTaskAgentGateway(request.task, taskData);
+    try {
+      if (!taskAgentGateway.isConnected()) {
+        this.LOGGER.debug(
+          `Connecting to task agent gateway for task ${request.task}`,
+        );
+        await taskAgentGateway.connect();
+        this.LOGGER.log(
+          `Connection to task agent gateway for task ${request.task} established`,
+        );
+      }
+      this.LOGGER.debug(
+        `Sending step with name ${request.name} from workflow execution with id ${request.workflowExecutionId} to task agent gateway for task ${request.task}`,
+      );
+      const key = `${request.workflowExecutionId}-${request.name}`;
+      await taskAgentGateway.send(key, request.inputArgs);
+      this.LOGGER.log(
+        `Step with name ${request.name} from workflow execution with id ${request.workflowExecutionId} sent successfully to task agent gateway for task ${request.task}`,
+      );
+      return { sent: true };
+    } catch (error) {
+      this.LOGGER.error(
+        `Failed to send step with name ${request.name} from workflow execution with id ${request.workflowExecutionId} to task agent gateway for task ${request.task}, with error: ${error}`,
+      );
+      await this.stepScheduleExceptionOrchestratorGateway.notify(
+        request,
+        StepScheduleException.TASK_ERROR,
+      );
+      return { sent: false };
+    }
+  }
+
+  onModuleDestroy() {
+    this.LOGGER.log('Disconnecting task agent gateways');
+    this.TASK_AGENT_GATEWAYS.forEach(async (taskAgentGateway) => {
+      if (taskAgentGateway.isConnected()) {
+        await taskAgentGateway.disconnect();
+      }
+    });
+  }
+}
