@@ -133,12 +133,12 @@ describe('WorkflowExecutionStepController', () => {
 
     it(
       'should notify orchestrator if task not exits',
-      testStepScheduleException(StepScheduleException.TASK_NOT_FOUND),
+      testStepScheduleException(StepScheduleException.TASK_NOT_EXISTS),
     );
 
     it(
       'should notify orchestrator if task param not exits',
-      testStepScheduleException(StepScheduleException.TASK_PARAM_NOT_FOUND),
+      testStepScheduleException(StepScheduleException.TASK_PARAM_NOT_EXISTS),
     );
 
     it(
