@@ -48,5 +48,6 @@ export class WorkflowExecutionStepController implements OnModuleInit {
     @Ctx() context: KafkaContext,
   ){
     this.LOGGER.debug('Task completed');
+    await this.workflowExecutionStepDomain.runNextStep(request.executionId);
   }
 }
