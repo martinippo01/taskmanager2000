@@ -2,8 +2,8 @@ import {
   TaskAgentGateway,
   TaskAgentGatewayProvider,
 } from '@interfaces/gateways/TaskAgentGatewayProvider';
+import { TaskAgentRequest } from '@shared/TaskAgentRequest';
 import { KafkaTaskData } from '@shared/TaskData';
-import { InputArguments } from '@shared/WorkflowInput';
 import { Kafka, logLevel, Producer } from 'kafkajs';
 
 class TaskAgentGatewayImpl implements TaskAgentGateway {
@@ -60,14 +60,13 @@ class TaskAgentGatewayImpl implements TaskAgentGateway {
     await this.producer.disconnect();
   }
 
-  async send(key: string, inputArgs: InputArguments): Promise<void> {
-    const value = { inputArgs };
+  async send(key: string, request: TaskAgentRequest): Promise<void> {
     await this.producer.send({
       topic: this.topic,
       messages: [
         {
           key,
-          value: JSON.stringify(value),
+          value: JSON.stringify(request),
         },
       ],
     });

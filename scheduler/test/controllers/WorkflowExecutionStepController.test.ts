@@ -128,7 +128,7 @@ describe('WorkflowExecutionStepController', () => {
         ).resolves.not.toThrow();
         expect(
           stepScheduleExceptionOrchestratorGatewayMock.notify,
-        ).toHaveBeenCalledWith(exception);
+        ).toHaveBeenCalledWith(stepScheduleRequestExample, exception);
       };
 
     it(

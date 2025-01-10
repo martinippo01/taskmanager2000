@@ -1,12 +1,12 @@
+import { TaskAgentRequest } from '@shared/TaskAgentRequest';
 import { KafkaTaskData } from '@shared/TaskData';
-import { InputArguments } from '@shared/WorkflowInput';
 
 export interface TaskAgentGateway {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   isConnected(): boolean;
   getKafkaConfig(): KafkaTaskData;
-  send(key: string, inputArgs: InputArguments): Promise<void>;
+  send(key: string, request: TaskAgentRequest): Promise<void>;
 }
 
 export interface TaskAgentGatewayProvider {
