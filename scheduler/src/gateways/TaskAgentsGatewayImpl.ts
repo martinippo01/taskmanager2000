@@ -75,7 +75,11 @@ export class TaskAgentsGatewayImpl
         `Sending step with name ${request.name} from workflow execution with id ${request.workflowExecutionId} to task agent gateway for task ${request.task}`,
       );
       const key = `${request.workflowExecutionId}-${request.name}`;
-      await taskAgentGateway.send(key, request.inputArgs);
+      await taskAgentGateway.send(key, {
+        name: request.name,
+        workflowExecutionId: request.workflowExecutionId,
+        inputArgs: request.inputArgs,
+      });
       this.LOGGER.log(
         `Step with name ${request.name} from workflow execution with id ${request.workflowExecutionId} sent successfully to task agent gateway for task ${request.task}`,
       );
@@ -92,11 +96,18 @@ export class TaskAgentsGatewayImpl
     }
   }
 
-  onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     this.LOGGER.log('Disconnecting task agent gateways');
-    this.TASK_AGENT_GATEWAYS.forEach(async (taskAgentGateway) => {
+    const entries = Array.from(this.TASK_AGENT_GATEWAYS.entries());
+    entries.forEach(async ([taskName, taskAgentGateway]) => {
       if (taskAgentGateway.isConnected()) {
-        await taskAgentGateway.disconnect();
+        try {
+          await taskAgentGateway.disconnect();
+        } catch (error) {
+          this.LOGGER.error(
+            `Failed to disconnect task agent gateway for task ${taskName}, with error: ${error}`,
+          );
+        }
       }
     });
   }
