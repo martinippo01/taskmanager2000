@@ -6,12 +6,13 @@ export const KafkaStepScheduleRequestClient = Symbol(
   'KafkaStepScheduleRequestClient',
 );
 
-type KafkaEnvironmentVariables = {
+export type KafkaStepScheduleRequestEnvironmentVariables = {
   KAFKA_BROKERS_SSR: string;
   KAFKA_CLIENT_ID_SSR: string;
   KAFKA_GROUP_ID_SSR: string;
   KAFKA_USERNAME_SSR: string;
   KAFKA_PASSWORD_SSR: string;
+  KAFKA_TOPIC_SSR: string;
 };
 
 export const getKafkaStepScheduleRequestConfig = ({
@@ -54,7 +55,7 @@ export const getKafkaStepScheduleRequestConfig = ({
 });
 
 export const KafkaStepScheduleRequestClientFactoryProvider = (
-  configService: ConfigService<KafkaEnvironmentVariables>,
+  configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
 ): ClientOptions => {
   const brokers =
     configService.get('KAFKA_BROKERS_SSR', { infer: true })?.split(',') ?? [];
