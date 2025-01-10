@@ -20,7 +20,7 @@ const config = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  // collectCoverageFrom: undefined,
+  collectCoverageFrom: ["**/*.(t|j)s"],
 
   // The directory where Jest should output its coverage files
   coverageDirectory: "coverage",
@@ -144,7 +144,7 @@ const config = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // testEnvironment: "jest-environment-node",
+  testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -164,7 +164,7 @@ const config = {
   // ],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
-  // testRegex: [],
+  testRegex: ".*\\.test\\.ts$",
 
   // This option allows the use of a custom results processor
   // testResultsProcessor: undefined,
@@ -173,7 +173,9 @@ const config = {
   // testRunner: "jest-circus/runner",
 
   // A map from regular expressions to paths to transformers
-  // transform: undefined,
+  transform: {
+    "^.+\\.(t|j)s$": "ts-jest",
+  },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [
