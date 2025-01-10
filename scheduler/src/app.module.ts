@@ -6,6 +6,8 @@ import {
   KafkaStepScheduleRequestClientFactoryProvider,
 } from './configs/KafkaStepScheduleRequestConfig';
 import { ConfigModuleValidationSchema } from './configs/ConfigValidationSchema';
+import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
+import SchedulerDomainImpl from '@domains/SchedulerDomainImpl';
 
 @Module({
   imports: [
@@ -26,6 +28,11 @@ import { ConfigModuleValidationSchema } from './configs/ConfigValidationSchema';
     ]),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: SchedulerDomain,
+      useClass: SchedulerDomainImpl,
+    },
+  ],
 })
 export class AppModule {}
