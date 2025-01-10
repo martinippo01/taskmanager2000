@@ -18,7 +18,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
   ): Promise<{ alreadyRun: boolean; couldRun: boolean }> {
     try {
       // No me acuerdo por qué no ponemos TAKEN directamente al persistirlo
-      this.workflowExecutionRepository.saveWorkflowExecution({
+      await this.workflowExecutionRepository.saveWorkflowExecution({
         ...request,
       });
     } catch (e) {
@@ -26,14 +26,14 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
       return { alreadyRun: true, couldRun: false };
     }
 
-    this.tryToRunFirstStep(request.executionId);
+    await this.tryToRunFirstStep(request.executionId);
 
     return { alreadyRun: false, couldRun: true };
   }
 
   async tryToRunFirstStep(executionId: string) {
     // quizás esto se hace directamente en el StepDomain
-    this.workflowExecutionRepository.updateStatus(
+    await this.workflowExecutionRepository.updateStatus(
       executionId,
       WfExecutionStatus.TAKEN,
     );
