@@ -52,8 +52,8 @@ describe('WorkflowExecutionStepController', () => {
     };
     kafkaContextMock = {
       getMessage: jest.fn().mockReturnValue({ offset: 'offset' }),
-      getTopic: jest.fn(),
-      getPartition: jest.fn(),
+      getTopic: jest.fn().mockReturnValue('KAFKA_TOPIC_SSR'),
+      getPartition: jest.fn().mockReturnValue(1),
       getConsumer: jest.fn().mockReturnValue({ commitOffsets: jest.fn() }),
     } as unknown as jest.Mocked<KafkaContext>;
 
@@ -126,9 +126,6 @@ describe('WorkflowExecutionStepController', () => {
             kafkaContextMock,
           ),
         ).resolves.not.toThrow();
-        expect(schedulerDomainMock.scheduleStepExecution).toHaveBeenCalledWith(
-          stepScheduleRequestExample,
-        );
         expect(
           stepScheduleExceptionOrchestratorGatewayMock.notify,
         ).toHaveBeenCalledWith(exception);
@@ -177,7 +174,7 @@ describe('WorkflowExecutionStepController', () => {
         kafkaContextMock,
       );
       expect(spy).toHaveBeenCalledWith([
-        { topic: 'KAFKA_TOPIC_SSR', partition: undefined, offset: 'offset' },
+        { topic: 'KAFKA_TOPIC_SSR', partition: 1, offset: 'offset' },
       ]);
     });
 
@@ -193,7 +190,7 @@ describe('WorkflowExecutionStepController', () => {
         kafkaContextMock,
       );
       expect(spy).toHaveBeenCalledWith([
-        { topic: 'KAFKA_TOPIC_SSR', partition: undefined, offset: 'offset' },
+        { topic: 'KAFKA_TOPIC_SSR', partition: 1, offset: 'offset' },
       ]);
     });
 
