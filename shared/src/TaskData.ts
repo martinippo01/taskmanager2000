@@ -1,3 +1,5 @@
+import { InputParams } from "./WorkflowInput";
+
 export type KafkaTaskData = {
   brokers: string;
   username: string;
@@ -7,7 +9,7 @@ export type KafkaTaskData = {
 
 export const areKafkaTaskDataEqual = (
   taskData1: KafkaTaskData,
-  taskData2: KafkaTaskData,
+  taskData2: KafkaTaskData
 ): boolean => {
   return (
     taskData1.brokers === taskData2.brokers &&
@@ -19,4 +21,6 @@ export const areKafkaTaskDataEqual = (
 
 export type TaskData = {
   kafka: KafkaTaskData;
+  params: InputParams;
+  optionalParams: [string];
 };

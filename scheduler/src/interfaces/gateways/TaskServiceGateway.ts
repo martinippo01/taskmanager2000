@@ -1,15 +1,7 @@
-import { StepScheduleException } from '@shared/StepScheduleException';
-import { InputArguments } from '@shared/WorkflowInput';
-
-export type StepScheduleResult =
-  | { success: true; kafkaData: string }
-  | { success: false; error: StepScheduleException };
+import { TaskData } from '@shared/TaskData';
 
 export interface TaskServiceGateway {
-  checkParameters(
-    task: string,
-    inputArgs: InputArguments,
-  ): Promise<StepScheduleResult>;
+  getTaskInfo(taskName: string): Promise<TaskData | null>;
 }
 
 export const TaskServiceGateway = Symbol('TaskServiceGateway');

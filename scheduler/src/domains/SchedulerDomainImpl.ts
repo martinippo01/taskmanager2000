@@ -1,4 +1,5 @@
 import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
+import { TaskAgentsGateway } from '@interfaces/gateways/TaskAgentsGateway';
 import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { StepScheduleException } from '@shared/StepScheduleException';
@@ -11,26 +12,50 @@ class SchedulerDomainImpl implements SchedulerDomain {
   constructor(
     @Inject(TaskServiceGateway)
     private readonly taskServiceGW: TaskServiceGateway,
+    @Inject(TaskAgentsGateway)
+    private readonly taskAgentsGW: TaskAgentsGateway,
   ) {}
 
   async scheduleStepExecution(
     stepScheduleRequest: StepScheduleRequest,
   ): Promise<{ error: StepScheduleException | null }> {
-    // Chequear si debería tirar error
-    const tsResult = await this.taskServiceGW.checkParameters(
+    const taskServResult = await this.taskServiceGW.getTaskInfo(
       stepScheduleRequest.task,
-      stepScheduleRequest.inputArgs,
     );
 
-    if (!tsResult.success) {
-      return { error: tsResult.error };
+    if (!taskServResult) {
+      return { error: StepScheduleException.TASK_NOT_EXISTS };
     }
+
+    const inputArgFromTask = stepScheduleRequest.inputArgs;
+    const optionals = taskServResult.optionalParams;
+
+    if (
+      !Object.entries(taskServResult.params).every(([key, value]) =>
+        key in inputArgFromTask
+          ? inputArgFromTask[key] === value
+          : key in optionals,
+      )
+    )
+      return { error: StepScheduleException.TASK_PARAM_MISSING };
+
+    // No puedo preguntar directamente por la length de ambos porque algunos pueden
+    // ser opcionales, se podría mirar cuántos opcionales hay y restarlos, pero es lo mismo
+    if (
+      !Object.keys(inputArgFromTask).every(
+        (key) => key in taskServResult.params,
+      )
+    )
+      return { error: StepScheduleException.TASK_PARAM_NOT_EXISTS };
 
     this.LOGGER.log(
       `Task Service ha validado el step ${stepScheduleRequest.name}!`,
     );
 
-    // TODO: Llamar al TaskAgentsGateway
+    if (
+      !(await this.taskAgentsGW.sendStep(taskServResult, stepScheduleRequest))
+    )
+      return { error: StepScheduleException.TASK_ERROR };
 
     return { error: null };
   }
