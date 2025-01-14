@@ -62,7 +62,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
       jest
         .spyOn(workflowExecutionRepository, 'getStepsFromExecution')
         .mockResolvedValue({
-          steps: [{ name: 'step1' }],
+          steps: [{ name: 'step1', task: 'task1', params: [] }],
           lastRun: 'step1',
         });
 
@@ -77,8 +77,8 @@ describe('WorkflowExecutionStepDomainImpl', () => {
         .spyOn(workflowExecutionRepository, 'getStepsFromExecution')
         .mockResolvedValue({
           steps: [
-            { name: 'step1' },
-            { name: 'step2', task: 'task2', params: {} },
+            { name: 'step1', task: 'task1', params: [] },
+            { name: 'step2', task: 'task2', params: [] },
           ],
           lastRun: 'step1',
         });
@@ -100,10 +100,18 @@ describe('WorkflowExecutionStepDomainImpl', () => {
 
   describe('saveAnswer', () => {
     it('should update step and status', async () => {
+      jest
+        .spyOn(workflowExecutionRepository, 'getStepsFromExecution')
+        .mockResolvedValue({
+          steps: [{ name: 'step1', task: 'task1', params: [] }],
+          lastRun: 'step1',
+        });
+
       await service.saveAnswer('executionId', 'answerPath');
 
       expect(workflowExecutionRepository.updateStep).toHaveBeenCalledWith(
         'executionId',
+        'step1',
         'answerPath',
       );
       expect(workflowExecutionRepository.updateStatus).toHaveBeenCalledWith(

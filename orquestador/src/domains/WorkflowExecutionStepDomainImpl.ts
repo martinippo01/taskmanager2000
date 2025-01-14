@@ -8,7 +8,6 @@ import { Step } from '@shared/WorkflowPlan';
 import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
-import { exec } from 'child_process';
 
 @Injectable()
 export class WorkflowExecutionStepDomainImpl
@@ -66,7 +65,23 @@ export class WorkflowExecutionStepDomainImpl
   }
 
   async saveAnswer(executionId: string, answerPath: string) {
-    this.workflowExecutionRepository.updateStep(executionId, answerPath);
+    // Check the persistence for steps and the lasr run step
+    const steps: stepsInfo | null =
+      await this.workflowExecutionRepository.getStepsFromExecution(executionId);
+    if (!steps) {
+      this.LOGGER.error(`No steps found for workflow ${executionId}`);
+      return; // check if to throw an error
+    }
+    if (!steps.lastRun) {
+      this.LOGGER.error(`No last step run found for workflow ${executionId}`);
+      return; // check if to throw an error
+    }
+
+    this.workflowExecutionRepository.updateStep(
+      executionId,
+      steps.lastRun,
+      answerPath,
+    );
 
     this.workflowExecutionRepository.updateStatus(
       executionId,
