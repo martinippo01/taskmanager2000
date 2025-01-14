@@ -34,6 +34,7 @@ class TaskAgentController {
     if (!taskData) {
       throw new TaskAgentNotFoundException(taskName);
     }
+    this.LOGGER.debug(`Task data for task ${taskName} found`);
     return { taskData };
   }
 
@@ -48,15 +49,16 @@ class TaskAgentController {
       optionalParams: request.optionalParams || [],
       params: request.params,
     };
-    const response = await this.taskServiceDomain.registerTask(
+    const { registered, updated } = await this.taskServiceDomain.registerTask(
       taskName,
       taskData,
     );
-    const registered = response.registered;
     if (registered) {
       this.LOGGER.log(`New task agent with name ${taskName} registered`);
+    } else if (updated) {
+      this.LOGGER.log(`Task agent with name ${taskName} updated`);
     }
-    return { registered: response.registered };
+    return { registered, updated };
   }
 }
 

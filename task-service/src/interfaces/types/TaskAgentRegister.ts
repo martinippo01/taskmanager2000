@@ -96,4 +96,5 @@ export class TaskAgentRegisterRequestDto {
 
 export class TaskAgentRegisterResponseDto {
   registered: boolean;
+  updated: boolean;
 }

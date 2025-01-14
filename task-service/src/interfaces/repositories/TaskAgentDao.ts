@@ -1,6 +1,6 @@
 import { TaskData } from '@shared/TaskData';
 
-export interface TaskServiceDomain {
+export interface TaskAgentDao {
   getTaskData(taskName: string): Promise<TaskData | null>;
   registerTask(
     taskName: string,
@@ -8,4 +8,4 @@ export interface TaskServiceDomain {
   ): Promise<{ registered: boolean; updated: boolean }>;
 }
 
-export const TaskServiceDomain = Symbol('TaskServiceDomain');
+export const TaskAgentDao = Symbol('TaskAgentDao');
