@@ -1,8 +1,9 @@
+import TaskAgentController from '@controllers/TaskAgentController';
 import { Module } from '@nestjs/common';
 
 @Module({
   imports: [],
-  controllers: [],
+  controllers: [TaskAgentController],
   providers: [],
 })
 export class AppModule {}
