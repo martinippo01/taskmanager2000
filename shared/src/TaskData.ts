@@ -31,7 +31,7 @@ export const isKafkaTaskData = (data: any): data is KafkaTaskData => {
   if (!('topic' in data) || typeof data.topic !== 'string' || !data.topic) {
     return false;
   }
-  return true;
+  return Object.keys(data).length === 4;
 };
 
 export const areKafkaTaskDataEqual = (

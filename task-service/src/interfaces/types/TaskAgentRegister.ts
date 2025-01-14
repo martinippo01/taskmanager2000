@@ -8,6 +8,7 @@ import {
   IsOptional,
   registerDecorator,
   ValidationOptions,
+  ValidationArguments,
 } from 'class-validator';
 
 function IsKafkaData(validationOptions?: ValidationOptions) {
@@ -44,15 +45,52 @@ function IsInputParams(validationOptions?: ValidationOptions) {
   };
 }
 
+function isOptionalParams(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'isOptionalParams',
+      target: object.constructor,
+      propertyName: propertyName,
+      constraints: [],
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const inputParams = (args.object as any)['params'];
+          if (!isInputParamsValidator(inputParams)) {
+            return true;
+          }
+          if (!Array.isArray(value)) {
+            return false;
+          }
+          return value.every(
+            (param) =>
+              typeof param === 'string' && inputParams[param] !== undefined,
+          );
+        },
+      },
+    });
+  };
+}
+
 export class TaskAgentRegisterRequestDto {
-  @IsKafkaData()
+  @IsKafkaData({
+    message:
+      'Kafka data must be an object with the properties "brokers", "username", "password", and "topic"',
+  })
   kafkaData: KafkaTaskData;
 
-  @IsInputParams()
+  @IsInputParams({
+    message:
+      'Input parameters must be a record of strings representing the parameter types (e.g., "string", "number", "boolean")',
+  })
   params: InputParams;
 
   @IsOptional()
   @IsArray()
+  @isOptionalParams({
+    message:
+      "Optional parameters must be an array containing a subset of the input parameters' keys",
+  })
   optionalParams?: string[];
 }
 
