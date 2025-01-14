@@ -64,6 +64,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
         .mockResolvedValue({
           steps: [{ name: 'step1', task: 'task1', params: [] }],
           lastRun: 'step1',
+          inputArguments: {},
         });
 
       const finishExecutionSpy = jest.spyOn(service, 'finishExecution');
@@ -81,6 +82,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
             { name: 'step2', task: 'task2', params: [] },
           ],
           lastRun: 'step1',
+          inputArguments: {},
         });
 
       await service.runNextStep('executionId');
@@ -105,6 +107,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
         .mockResolvedValue({
           steps: [{ name: 'step1', task: 'task1', params: [] }],
           lastRun: 'step1',
+          inputArguments: {},
         });
 
       await service.saveAnswer('executionId', 'answerPath');

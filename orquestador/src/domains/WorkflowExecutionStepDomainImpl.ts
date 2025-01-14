@@ -8,6 +8,7 @@ import { Step } from '@shared/WorkflowPlan';
 import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
+import { InputArguments } from '@shared/WorkflowInput';
 
 @Injectable()
 export class WorkflowExecutionStepDomainImpl
@@ -48,12 +49,26 @@ export class WorkflowExecutionStepDomainImpl
       this.finishExecution(executionId);
       return;
     } else {
+      const stepArguments: InputArguments = {};
+      nextStep.params.forEach((param) => {
+        if ('from' in param) {
+          stepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS;
+        } else {
+          if (!!param.constant || param.constant === false) {
+            stepArguments[param.name] = ''; // TODO: Obtener el valor desde la DB, leyendo los inputargs del workflow execution
+          } else {
+            stepArguments[param.name] = param.value;
+          }
+        }
+        // segun el tipo determinado, hacer un parseo para validar que el valor que se asigne sea el indicado.
+      });
+
       // call the gateway to schedule the next step
       const stepScheduleRequest: StepScheduleRequest = {
         workflowExecutionId: executionId,
         name: nextStep.name,
         task: nextStep.task,
-        inputArgs: nextStep.params,
+        inputArgs: stepArguments,
       };
       this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
 
