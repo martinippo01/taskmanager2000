@@ -15,7 +15,7 @@ export type WorkflowExecutionRequest = {
 export class WorkflowExecutionRequestProducer {
   private readonly producer: Producer;
   private readonly kafka: Kafka;
-  private isConnected: boolean = false;
+  private _isConnected: boolean = false;
 
   constructor(
     private readonly username: string = process.env.KAFKA_USERNAME || '',
@@ -29,23 +29,28 @@ export class WorkflowExecutionRequestProducer {
       brokers: brokers.split(','),
       ssl: false,
       sasl: {
-        mechanism: "plain",
+        mechanism: 'plain',
         username,
         password,
       },
       logLevel: logLevel.ERROR,
     });
     this.producer = this.kafka.producer();
+    const { CONNECT, DISCONNECT } = this.producer.events;
+    this.producer.on(CONNECT, () => this.setConnected(true));
+    this.producer.on(DISCONNECT, () => this.setConnected(false));
+  }
+
+  private setConnected(connected: boolean) {
+    this._isConnected = connected;
   }
 
   async connect() {
     await this.producer.connect();
-    this.isConnected = true;
   }
 
   async disconnect() {
     await this.producer.disconnect();
-    this.isConnected = false;
   }
 
   async send(
@@ -69,7 +74,7 @@ export class WorkflowExecutionRequestProducer {
     return executionId;
   }
 
-  getIsConnected(): boolean {
-    return this.isConnected;
+  isConnected(): boolean {
+    return this._isConnected;
   }
 }
