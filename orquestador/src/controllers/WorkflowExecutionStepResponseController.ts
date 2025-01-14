@@ -2,7 +2,7 @@ import {
   KafkaStepScheduleRequestClient,
   KafkaStepScheduleRequestEnvironmentVariables,
 } from '@configs/KafkaStepScheduleRequestConfig';
-import { WorkflowExecutionStepDomainImpl } from '@domains/WorkflowExecutionStepDomain';
+import { WorkflowExecutionStepDomainImpl } from '@domains/WorkflowExecutionStepDomainImpl';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import {
     ClientKafka,
@@ -15,8 +15,8 @@ import { ConfigService } from '@nestjs/config';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 
 @Controller()
-export class WorkflowExecutionStepController implements OnModuleInit {
-  private readonly LOGGER = new Logger(WorkflowExecutionStepController.name);
+export class WorkflowExecutionStepResponseController implements OnModuleInit {
+  private readonly LOGGER = new Logger(WorkflowExecutionStepResponseController.name);
 
   constructor(
     @Inject(KafkaStepScheduleRequestClient)
