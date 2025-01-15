@@ -11,13 +11,16 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
 
   async confirmTaskExists(taskId: string): Promise<boolean> {
     try {
-      const response: AxiosResponse<boolean> | undefined =
-        await this.httpService
-          .get<boolean>(`http://task-service/tasks/${taskId}/exists`)
-          .toPromise();
-      return !response ? false : response.data;
+      const response: AxiosResponse<any> | undefined = await this.httpService
+        .get<any>(`http://task-service/tasks/${taskId}`)
+        .toPromise();
+      return !response
+        ? false
+        : response.status >= 200 && response.status < 300;
     } catch (error) {
-      console.error(error);
+      if (error.response && error.response.status === 404) {
+        return false;
+      }
       this.LOGGER.error('Failed to confirm task existence for ID: ' + taskId);
       return false;
     }
