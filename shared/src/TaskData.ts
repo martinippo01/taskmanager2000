@@ -1,4 +1,4 @@
-import { InputParams } from './WorkflowInput';
+import { InputParams, isInputParams } from './WorkflowInput';
 
 export type KafkaTaskData = {
   brokers: string;
@@ -50,4 +50,24 @@ export type TaskData = {
   kafka: KafkaTaskData;
   params: InputParams;
   optionalParams: string[];
+};
+
+export const isTaskData = (data: any): data is TaskData => {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  if (!('kafka' in data) || !isKafkaTaskData(data.kafka)) {
+    return false;
+  }
+  if (!('params' in data) || !isInputParams(data.params)) {
+    return false;
+  }
+  if (
+    !('optionalParams' in data) ||
+    !Array.isArray(data.optionalParams) ||
+    !data.optionalParams.every((param) => typeof param === 'string')
+  ) {
+    return false;
+  }
+  return Object.keys(data).length === 3;
 };
