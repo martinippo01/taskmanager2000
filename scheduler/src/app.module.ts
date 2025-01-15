@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
+import { TaskServiceGatewayImpl } from './gateways/TaskServiceGatewayImpl';
 import {
   KafkaStepScheduleRequestClient,
   KafkaStepScheduleRequestClientFactoryProvider,
@@ -24,8 +26,9 @@ import { ConfigModuleValidationSchema } from './configs/ConfigValidationSchema';
         useFactory: KafkaStepScheduleRequestClientFactoryProvider,
       },
     ]),
+    HttpModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [TaskServiceGatewayImpl],
 })
 export class AppModule {}
