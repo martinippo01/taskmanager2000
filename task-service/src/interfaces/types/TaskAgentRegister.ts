@@ -75,7 +75,7 @@ function isOptionalParams(validationOptions?: ValidationOptions) {
 export class TaskAgentRegisterRequestDto {
   @IsKafkaData({
     message:
-      'Kafka data must be an object with the properties "brokers", "username", "password", and "topic"',
+      'Kafka data must be an object with the following properties: brokers, username, password, topic',
   })
   kafkaData: KafkaTaskData;
 
