@@ -16,7 +16,11 @@ describe('TaskAgentsGatewayImpl', () => {
     password: 'password',
     topic: 'topic',
   };
-  const taskDataExample: TaskData = { kafka: kafkaTaskDataExample };
+  const taskDataExample: TaskData = {
+    kafka: kafkaTaskDataExample,
+    params: {},
+    optionalParams: [],
+  };
   const stepScheduleRequestExample: StepScheduleRequest = {
     inputArgs: {
       input: 'input',
