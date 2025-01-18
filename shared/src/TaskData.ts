@@ -1,4 +1,4 @@
-import { InputParams, isInputParams } from './WorkflowInput';
+import { InputParams, isInputParams } from "./WorkflowInput";
 
 export type KafkaTaskData = {
   brokers: string;
@@ -8,27 +8,27 @@ export type KafkaTaskData = {
 };
 
 export const isKafkaTaskData = (data: any): data is KafkaTaskData => {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof data !== "object" || data === null) {
     return false;
   }
   if (
-    !('brokers' in data) ||
-    typeof data.brokers !== 'string' ||
+    !("brokers" in data) ||
+    typeof data.brokers !== "string" ||
     !data.brokers
   ) {
     return false;
   }
   if (
-    !('username' in data) ||
-    typeof data.username !== 'string' ||
+    !("username" in data) ||
+    typeof data.username !== "string" ||
     !data.username
   ) {
     return false;
   }
-  if (!('password' in data) || typeof data.password !== 'string') {
+  if (!("password" in data) || typeof data.password !== "string") {
     return false;
   }
-  if (!('topic' in data) || typeof data.topic !== 'string' || !data.topic) {
+  if (!("topic" in data) || typeof data.topic !== "string" || !data.topic) {
     return false;
   }
   return Object.keys(data).length === 4;
@@ -36,7 +36,7 @@ export const isKafkaTaskData = (data: any): data is KafkaTaskData => {
 
 export const areKafkaTaskDataEqual = (
   taskData1: KafkaTaskData,
-  taskData2: KafkaTaskData,
+  taskData2: KafkaTaskData
 ): boolean => {
   return (
     taskData1.brokers === taskData2.brokers &&
@@ -53,19 +53,19 @@ export type TaskData = {
 };
 
 export const isTaskData = (data: any): data is TaskData => {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof data !== "object" || data === null) {
     return false;
   }
-  if (!('kafka' in data) || !isKafkaTaskData(data.kafka)) {
+  if (!("kafka" in data) || !isKafkaTaskData(data.kafka)) {
     return false;
   }
-  if (!('params' in data) || !isInputParams(data.params)) {
+  if (!("params" in data) || !isInputParams(data.params)) {
     return false;
   }
   if (
-    !('optionalParams' in data) ||
+    !("optionalParams" in data) ||
     !Array.isArray(data.optionalParams) ||
-    !data.optionalParams.every((param) => typeof param === 'string')
+    !data.optionalParams.every((param) => typeof param === "string")
   ) {
     return false;
   }

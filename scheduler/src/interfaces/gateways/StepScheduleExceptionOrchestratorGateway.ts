@@ -1,7 +1,11 @@
 import { StepScheduleException } from '@shared/StepScheduleException';
+import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 
 export interface StepScheduleExceptionOrchestratorGateway {
-  notify(stepScheduleException: StepScheduleException): Promise<void>;
+  notify(
+    request: StepScheduleRequest,
+    exception: StepScheduleException,
+  ): Promise<void>;
 }
 
 export const StepScheduleExceptionOrchestratorGateway = Symbol(
