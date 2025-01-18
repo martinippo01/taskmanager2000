@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 import { AxiosResponse } from 'axios';
+import { TaskData } from '@shared/TaskData';
 
 @Injectable()
 export class TaskServiceGatewayImpl implements TaskServiceGateway {
@@ -9,10 +10,28 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
 
   constructor(private readonly httpService: HttpService) {}
 
+  private readonly TASK_SERVICE_URL: string =
+    process.env.TASK_SERVICE_URL || 'http://task-service/';
+
+  async getTaskInfo(taskName: string): Promise<TaskData | null> {
+    try {
+      const response: AxiosResponse<TaskData> | undefined =
+        await this.httpService
+          .get<TaskData>(`${this.TASK_SERVICE_URL}/tasks/info/${taskName}`)
+          .toPromise();
+      if (!response) throw new Error('Failed to retrieve task info');
+
+      return response.data;
+    } catch (error) {
+      this.LOGGER.error('Failed to retrieve task info for name: ' + taskName);
+      return null;
+    }
+  }
+
   async confirmTaskExists(taskId: string): Promise<boolean> {
     try {
       const response: AxiosResponse<any> | undefined = await this.httpService
-        .get<any>(`http://task-service/tasks/${taskId}`)
+        .get<any>(`${this.TASK_SERVICE_URL}/tasks/${taskId}`)
         .toPromise();
       return !response
         ? false
@@ -29,7 +48,7 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
   async getTaskQueue(taskId: string): Promise<string> {
     try {
       const response: AxiosResponse<string> | undefined = await this.httpService
-        .get<string>(`http://task-service/tasks/${taskId}/queue`)
+        .get<string>(`${this.TASK_SERVICE_URL}/tasks/${taskId}/queue`)
         .toPromise();
       if (!response) throw new Error('Failed to retrieve task queue');
 
@@ -44,7 +63,7 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
     try {
       const response: AxiosResponse<boolean> | undefined =
         await this.httpService
-          .get<boolean>('http://task-service/ping')
+          .get<boolean>(`${this.TASK_SERVICE_URL}/ping`)
           .toPromise();
       return !response ? false : true;
     } catch (error) {

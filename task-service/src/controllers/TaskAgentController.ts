@@ -15,8 +15,12 @@ import {
   Post,
 } from '@nestjs/common';
 import { TaskData } from '@shared/TaskData';
+import {
+  TaskAgentsPath,
+  TaskServicePingPath,
+} from '@shared/TaskServiceTaskAgentPath';
 
-@Controller('task-agents')
+@Controller(TaskAgentsPath)
 class TaskAgentController {
   private readonly LOGGER = new Logger(TaskAgentController.name);
 
