@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { of, throwError } from 'rxjs';
 import { AxiosResponse, AxiosHeaders } from 'axios';
 import { TaskServiceGatewayImpl } from '@gateways/TaskServiceGatewayImpl';
+import { TaskData } from '@shared/TaskData';
 
 describe('TaskServiceGatewayImpl', () => {
   let service: TaskServiceGatewayImpl;
@@ -28,8 +29,8 @@ describe('TaskServiceGatewayImpl', () => {
   describe('confirmTaskExists', () => {
     it('should return true if task exists', async () => {
       const taskId = '123';
-      const response: AxiosResponse<boolean> = {
-        data: true,
+      const response: AxiosResponse<any> = {
+        data: {},
         status: 200,
         statusText: 'OK',
         headers: {},
@@ -45,7 +46,7 @@ describe('TaskServiceGatewayImpl', () => {
 
     it('should return false if task does not exist', async () => {
       const taskId = '123';
-      const response: AxiosResponse<void> = {
+      const response: AxiosResponse<any> = {
         data: undefined,
         status: 404,
         statusText: 'Not Found',
@@ -72,8 +73,18 @@ describe('TaskServiceGatewayImpl', () => {
   describe('getTaskQueue', () => {
     it('should return the task queue', async () => {
       const taskId = '123';
+      const taskData: TaskData = {
+        kafka: {
+          brokers: 'brokers',
+          username: 'username',
+          password: 'password',
+          topic: 'topic',
+        },
+        params: {},
+        optionalParams: [],
+      };
       const response: AxiosResponse<string> = {
-        data: 'queue1',
+        data: JSON.stringify({ taskData }),
         status: 200,
         statusText: 'OK',
         headers: {},
@@ -84,7 +95,7 @@ describe('TaskServiceGatewayImpl', () => {
       jest.spyOn(httpService, 'get').mockReturnValueOnce(of(response));
 
       const result = await service.getTaskQueue(taskId);
-      expect(result).toBe('queue1');
+      expect(result).toBe('topic');
     });
 
     it('should throw an error if task queue cannot be retrieved', async () => {
