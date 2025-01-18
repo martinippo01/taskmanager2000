@@ -1,6 +1,9 @@
 import { ConfigModuleValidationSchema } from '@configs/ConfigValidationSchema';
+import PingController from '@controllers/PingController';
 import TaskAgentController from '@controllers/TaskAgentController';
+import HealthCheckDomainImpl from '@domains/HealthCheckDomainImpl';
 import TaskServiceDomainImpl from '@domains/TaskServiceDomainImpl';
+import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { TaskServiceDomain } from '@interfaces/domains/TaskServiceDomain';
 import { TaskAgentDao } from '@interfaces/repositories/TaskAgentDao';
 import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient';
@@ -19,7 +22,7 @@ import { taskAgentDaoClientUseFactory } from '@repositories/TaskAgentDaoProvider
       },
     }),
   ],
-  controllers: [TaskAgentController],
+  controllers: [TaskAgentController, PingController],
   providers: [
     {
       provide: TaskServiceDomain,
@@ -32,6 +35,10 @@ import { taskAgentDaoClientUseFactory } from '@repositories/TaskAgentDaoProvider
     {
       provide: TaskAgentDaoClient,
       useFactory: taskAgentDaoClientUseFactory,
+    },
+    {
+      provide: HealthCheckDomain,
+      useClass: HealthCheckDomainImpl,
     },
   ],
 })

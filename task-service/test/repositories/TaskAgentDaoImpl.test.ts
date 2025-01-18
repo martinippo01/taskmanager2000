@@ -26,6 +26,7 @@ describe('TaskAgentDaoImpl', () => {
     taskAgentDaoClientMock = {
       getTaskData: jest.fn(),
       setTaskData: jest.fn(),
+      ping: jest.fn(),
     };
 
     const module = await Test.createTestingModule({

@@ -4,9 +4,9 @@ import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 import { AxiosResponse } from 'axios';
 import { TaskData } from '@shared/TaskData';
 import {
-  TaskAgentsPath,
+  TaskServiceTaskAgentsPath,
   TaskServicePingPath,
-} from '@shared/TaskServiceTaskAgentPath';
+} from '@shared/TaskServicePaths';
 
 @Injectable()
 export class TaskServiceGatewayImpl implements TaskServiceGateway {
@@ -22,14 +22,19 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
       const response: AxiosResponse<TaskData> | undefined =
         await this.httpService
           .get<TaskData>(
-            `${this.TASK_SERVICE_URL}/${TaskAgentsPath}/${taskName}`,
+            `${this.TASK_SERVICE_URL}/${TaskServiceTaskAgentsPath}/${taskName}`,
           )
           .toPromise();
       if (!response) throw new Error('Failed to retrieve task info');
 
       return response.data;
     } catch (error) {
-      this.LOGGER.error('Failed to retrieve task info for name: ' + taskName);
+      this.LOGGER.error(
+        'Failed to retrieve task info for name: ' +
+          taskName +
+          ' - with error: ' +
+          error,
+      );
       return null;
     }
   }
@@ -37,7 +42,9 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
   async confirmTaskExists(taskId: string): Promise<boolean> {
     try {
       const response: AxiosResponse<any> | undefined = await this.httpService
-        .get<any>(`${this.TASK_SERVICE_URL}/${TaskAgentsPath}/${taskId}`)
+        .get<any>(
+          `${this.TASK_SERVICE_URL}/${TaskServiceTaskAgentsPath}/${taskId}`,
+        )
         .toPromise();
       return !response
         ? false
@@ -54,13 +61,20 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
   async getTaskQueue(taskId: string): Promise<string> {
     try {
       const response: AxiosResponse<string> | undefined = await this.httpService
-        .get<string>(`${this.TASK_SERVICE_URL}/${TaskAgentsPath}/${taskId}`)
+        .get<string>(
+          `${this.TASK_SERVICE_URL}/${TaskServiceTaskAgentsPath}/${taskId}`,
+        )
         .toPromise();
       if (!response) throw new Error('Failed to retrieve task queue');
       const taskData = JSON.parse(response.data).taskData as TaskData;
       return taskData.kafka.topic;
     } catch (error) {
-      this.LOGGER.error('Failed to retrieve task queue with ID: ' + taskId);
+      this.LOGGER.error(
+        'Failed to retrieve task queue with ID: ' +
+          taskId +
+          ' - with error: ' +
+          error,
+      );
       throw new Error('Failed to retrieve task queue');
     }
   }
@@ -73,7 +87,7 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
           .toPromise();
       return !response ? false : true;
     } catch (error) {
-      this.LOGGER.error('Failed to ping Task Service');
+      this.LOGGER.error('Failed to ping Task Service - with error: ' + error);
       return false;
     }
   }

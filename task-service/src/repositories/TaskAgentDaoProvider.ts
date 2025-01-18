@@ -38,5 +38,8 @@ export const taskAgentDaoClientUseFactory: FactoryProvider<TaskAgentDaoClient>['
         const taskDataString = JSON.stringify(taskData);
         await redis.set(taskName, taskDataString);
       },
+      ping: async () => {
+        return redis.ping();
+      },
     };
   };
