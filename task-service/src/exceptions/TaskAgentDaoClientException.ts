@@ -4,7 +4,7 @@ import TaskServiceException from './TaskServiceException';
 class TaskAgentDaoClientException extends TaskServiceException {
   private static readonly NAME = 'TaskAgentDaoClientException';
 
-  constructor(message: string, error: unknown) {
+  constructor(message: string, error?: unknown) {
     super(
       TaskAgentDaoClientException.NAME,
       message,

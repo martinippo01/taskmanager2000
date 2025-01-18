@@ -1,9 +1,7 @@
+import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient';
 import { FactoryProvider } from '@nestjs/common';
+import { TaskData } from '@shared/TaskData';
 import Redis from 'ioredis';
-
-export const TaskAgentDaoClient = Symbol('TaskAgentDaoClient');
-
-export type TaskAgentDaoClient = Redis;
 
 export const taskAgentDaoClientUseFactory: FactoryProvider<TaskAgentDaoClient>['useFactory'] =
   () => {
@@ -22,8 +20,23 @@ export const taskAgentDaoClientUseFactory: FactoryProvider<TaskAgentDaoClient>['
       throw new Error('Redis port must be a number');
     }
 
-    return new Redis({
+    const redis = new Redis({
       host,
       port: portNumber,
     });
+
+    return {
+      getTaskData: async (taskName: string) => {
+        const response = await redis.get(taskName);
+        if (!response) {
+          return null;
+        }
+        const parsed = JSON.parse(response);
+        return parsed;
+      },
+      setTaskData: async (taskName: string, taskData: TaskData) => {
+        const taskDataString = JSON.stringify(taskData);
+        await redis.set(taskName, taskDataString);
+      },
+    };
   };

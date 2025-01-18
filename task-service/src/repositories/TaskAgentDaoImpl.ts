@@ -1,9 +1,8 @@
 import { TaskAgentDao } from '@interfaces/repositories/TaskAgentDao';
 import { Inject, Logger } from '@nestjs/common';
-import { TaskAgentDaoClient } from './TaskAgentDaoProvider';
 import { isTaskData, TaskData } from '@shared/TaskData';
-import TaskAgentDaoParseException from '@exceptions/TaskAgentDaoParseException';
 import TaskAgentDaoClientException from '@exceptions/TaskAgentDaoClientException';
+import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient';
 
 class TaskAgentDaoImpl implements TaskAgentDao {
   private readonly LOGGER = new Logger(TaskAgentDaoImpl.name);
@@ -19,9 +18,11 @@ class TaskAgentDaoImpl implements TaskAgentDao {
 
   async getTaskData(taskName: string): Promise<TaskData | null> {
     this.LOGGER.debug(`Getting task data for task ${taskName}`);
-    let response: string | null;
+    let response: unknown | null;
     try {
-      response = await this.taskAgentDaoClient.get(this.getTaskKey(taskName));
+      response = await this.taskAgentDaoClient.getTaskData(
+        this.getTaskKey(taskName),
+      );
     } catch (e) {
       throw new TaskAgentDaoClientException(
         `Error getting task data for task ${taskName}`,
@@ -31,13 +32,10 @@ class TaskAgentDaoImpl implements TaskAgentDao {
     if (!response) {
       this.LOGGER.debug(`No task data found for task ${taskName}`);
       return null;
+    } else if (!isTaskData(response)) {
+      throw new TaskAgentDaoClientException('Invalid task data format');
     }
-    this.LOGGER.debug(`Got response for task ${taskName}`);
-    const parsed = JSON.parse(response);
-    if (!isTaskData(parsed)) {
-      throw new TaskAgentDaoParseException('Invalid task data format');
-    }
-    return parsed;
+    return response;
   }
 
   private async doesTaskExist(taskName: string): Promise<boolean> {
@@ -53,7 +51,7 @@ class TaskAgentDaoImpl implements TaskAgentDao {
     const key = this.getTaskKey(taskName);
     try {
       const exists = await this.doesTaskExist(taskName);
-      await this.taskAgentDaoClient.set(key, JSON.stringify(taskData));
+      await this.taskAgentDaoClient.setTaskData(key, taskData);
       this.LOGGER.debug(
         `Task agent for task ${taskName} ${exists ? 'updated' : 'registered'}`,
       );

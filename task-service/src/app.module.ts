@@ -3,13 +3,11 @@ import TaskAgentController from '@controllers/TaskAgentController';
 import TaskServiceDomainImpl from '@domains/TaskServiceDomainImpl';
 import { TaskServiceDomain } from '@interfaces/domains/TaskServiceDomain';
 import { TaskAgentDao } from '@interfaces/repositories/TaskAgentDao';
+import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import TaskAgentDaoImpl from '@repositories/TaskAgentDaoImpl';
-import {
-  TaskAgentDaoClient,
-  taskAgentDaoClientUseFactory,
-} from '@repositories/TaskAgentDaoProvider';
+import { taskAgentDaoClientUseFactory } from '@repositories/TaskAgentDaoProvider';
 
 @Module({
   imports: [
