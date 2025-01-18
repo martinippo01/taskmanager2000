@@ -41,6 +41,8 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
       WfExecutionStatus.TAKEN,
     );
 
+    // creo que esto no hace falta hacerlo porque la info está en request, pero bueno ya que
+    //  estamos revisamos que esté bien cómo guarda las cosas
     const stepsInfo =
       await this.workflowExecutionRepository.getStepsFromExecution(
         request.executionId,
@@ -61,12 +63,13 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
 
     const filteredArgs = {};
     const firstStep = stepsInfo.steps[0];
+
     firstStep.params.forEach((val) => {
-      if (val.name in request.inputArgs)
-        filteredArgs[val.name] = request.inputArgs[val.name];
+      if (val.name in stepsInfo.inputArguments)
+        filteredArgs[val.name] = stepsInfo.inputArguments[val.name];
       else {
         this.LOGGER.error(
-          `Un parámetro necesario para el primer paso (${val.name}) no está en la request enviada`,
+          `Un parámetro necesario para el primer paso (${val.name}) no está en lo que se guardó en la BD`,
         );
         return { queued: false, error: 'Esto no debería pasar nunca!' };
       }

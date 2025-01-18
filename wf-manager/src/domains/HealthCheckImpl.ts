@@ -46,13 +46,13 @@ export class HealthCheckDominio {
       result.status = 'error';
     }
 
-    try {
-      await this.kafkaProducer.connect();
+    // Check Kafka
+    if (this.kafkaProducer.isConnected()) {
       result.details.kafka = true;
       this.LOGGER.log('Checking kafka HC, result: Positive!');
-    } catch (error) {
-      this.LOGGER.error(`Connection error with Kafka, exception: ${error}`);
+    } else {
       result.status = 'error';
+      this.LOGGER.error('Connection error with Kafka');
     }
 
     // Cache the result

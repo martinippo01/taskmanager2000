@@ -1,4 +1,4 @@
-import { InputArguments } from "./WorkflowInput";
+import { InputArguments } from './WorkflowInput';
 
 export type StepScheduleRequest = {
   workflowExecutionId: string;
