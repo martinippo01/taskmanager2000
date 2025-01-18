@@ -92,20 +92,20 @@ export class WorkflowExecutionStepDomainImpl
       return; // check if to throw an error
     }
 
-    this.workflowExecutionRepository.updateStep(
+    await this.workflowExecutionRepository.updateStep(
       executionId,
       steps.lastRun,
       answerPath,
     );
 
-    this.workflowExecutionRepository.updateStatus(
+    await this.workflowExecutionRepository.updateStatus(
       executionId,
       WfExecutionStatus.STEP_FINISHED,
     );
   }
 
   async finishExecution(executionId: string) {
-    this.workflowExecutionRepository.updateStatus(
+    await this.workflowExecutionRepository.updateStatus(
       executionId,
       WfExecutionStatus.EXECUTION_FINISHED,
     );

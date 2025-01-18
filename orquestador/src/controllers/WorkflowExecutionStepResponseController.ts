@@ -2,7 +2,7 @@ import {
   KafkaStepScheduleRequestClient,
   KafkaStepScheduleRequestEnvironmentVariables,
 } from '@configs/KafkaStepScheduleRequestConfig';
-import { WorkflowExecutionStepDomainImpl } from '@domains/WorkflowExecutionStepDomainImpl';
+import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecutionStepDomain';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import {
   ClientKafka,
@@ -13,6 +13,7 @@ import {
 } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
+import { WorkflowExecutionStepRequest } from '@shared/WorkflowExecutionStepRequest';
 
 @Controller()
 export class WorkflowExecutionStepResponseController implements OnModuleInit {
@@ -23,8 +24,8 @@ export class WorkflowExecutionStepResponseController implements OnModuleInit {
   constructor(
     @Inject(KafkaStepScheduleRequestClient)
     private readonly kafkaClient: ClientKafka,
-    @Inject(WorkflowExecutionStepDomainImpl)
-    private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomainImpl,
+    @Inject(WorkflowExecutionStepDomain)
+    private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomain,
     private readonly configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
   ) {}
 
@@ -46,7 +47,10 @@ export class WorkflowExecutionStepResponseController implements OnModuleInit {
   }
 
   @EventPattern(process.env.KAFKA_TOPIC_SSR)
-  async taskCompleted(@Payload() request: ???, @Ctx() context: KafkaContext) {
+  async taskCompleted(
+    @Payload() request: WorkflowExecutionStepRequest,
+    @Ctx() context: KafkaContext,
+  ) {
     this.LOGGER.debug('Task completed');
     await this.workflowExecutionStepDomain.runNextStep(request.executionId);
   }
