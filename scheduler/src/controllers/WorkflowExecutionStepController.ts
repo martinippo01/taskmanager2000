@@ -56,7 +56,10 @@ export class WorkflowExecutionStepController implements OnModuleInit {
       this.LOGGER.error(
         `Failed to schedule step with name ${request.name} from workflow execution with id ${request.workflowExecutionId}`,
       );
-      await this.stepScheduleExceptionOrchestratorGateway.notify(error);
+      await this.stepScheduleExceptionOrchestratorGateway.notify(
+        request,
+        error,
+      );
     } else {
       this.LOGGER.debug(
         `Step with name ${request.name} from workflow execution with id ${request.workflowExecutionId} scheduled successfully`,
