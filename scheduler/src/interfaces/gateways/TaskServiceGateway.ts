@@ -1,3 +1,7 @@
+import { TaskData } from '@shared/TaskData';
+/**
+ * Interface representing a gateway to interact with the Task Service.
+ */
 export interface TaskServiceGateway {
   /**
    * Confirms if the task exists in the Task Service.
@@ -18,10 +22,12 @@ export interface TaskServiceGateway {
    * @returns A promise that resolves to a boolean indicating if the Task Service is healthy.
    */
   pingTaskService(): Promise<boolean>;
-}
-import { TaskData } from '@shared/TaskData';
 
-export interface TaskServiceGateway {
+  /**
+   * Retrieves information about a task given its name.
+   * @param taskName - The name of the task to retrieve information for.
+   * @returns A promise that resolves to the task data or null if the task is not found.
+   */
   getTaskInfo(taskName: string): Promise<TaskData | null>;
 }
 

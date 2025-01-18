@@ -16,6 +16,7 @@ import { TaskAgentGatewayProvider } from '@interfaces/gateways/TaskAgentGatewayP
 import { TaskAgentGatewayProviderImpl } from '@gateways/TaskAgentGatewayProvider';
 import SchedulerDomainImpl from '@domains/SchedulerDomainImpl';
 import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
+import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 
 @Module({
   imports: [
@@ -49,6 +50,10 @@ import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
     {
       provide: TaskAgentGatewayProvider,
       useClass: TaskAgentGatewayProviderImpl,
+    },
+    {
+      provide: TaskServiceGateway,
+      useClass: TaskServiceGatewayImpl,
     },
   ],
 })
