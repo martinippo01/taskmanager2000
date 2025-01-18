@@ -97,6 +97,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     return {
       steps: workflowExecution.plan.steps,
       lastRun: workflowExecution.lastStepRun,
+      inputArguments: workflowExecution.inputArguments,
     };
   }
 
