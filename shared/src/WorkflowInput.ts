@@ -1,7 +1,24 @@
-type AtomicInputParamType = "string" | "number" | "boolean";
+type AtomicInputParamType = 'string' | 'number' | 'boolean';
 type ArrayInputParamType = `${AtomicInputParamType}[]`;
 type InputParamType = AtomicInputParamType | ArrayInputParamType;
 export type InputParams = Record<string, InputParamType>;
+
+export const isInputParams = (data: any): data is InputParams => {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  for (const key in data) {
+    if (typeof key !== 'string' || !key) {
+      return false;
+    }
+    const value = data[key];
+    const regex = /^(string|number|boolean)(\[\])?$/;
+    if (typeof value !== 'string' || !value || !regex.test(value)) {
+      return false;
+    }
+  }
+  return true;
+};
 
 type AtomicInputArgumentType = string | number | boolean;
 type ArrayInputArgumentType = AtomicInputArgumentType[];
@@ -9,11 +26,11 @@ type InputArgumentType = AtomicInputArgumentType | ArrayInputArgumentType;
 export type InputArguments = Record<string, InputArgumentType>;
 
 const isParamArray = (
-  paramType: InputParamType
-): paramType is ArrayInputParamType => paramType.endsWith("[]");
+  paramType: InputParamType,
+): paramType is ArrayInputParamType => paramType.endsWith('[]');
 
 const getInputAtomicType = (
-  arrayParamType: ArrayInputParamType
+  arrayParamType: ArrayInputParamType,
 ): AtomicInputParamType => arrayParamType.slice(0, -2) as AtomicInputParamType;
 
 const getArgumentNumber = (argument: string): number | null => {
@@ -25,10 +42,10 @@ const getArgumentNumber = (argument: string): number | null => {
 };
 
 const getArgumentBoolean = (argument: string): boolean | null => {
-  if (argument === "true") {
+  if (argument === 'true') {
     return true;
   }
-  if (argument === "false") {
+  if (argument === 'false') {
     return false;
   }
   return null;
@@ -36,15 +53,15 @@ const getArgumentBoolean = (argument: string): boolean | null => {
 
 export const getInputArgumentFromParamType = (
   argument: string | string[],
-  paramType: InputParamType
+  paramType: InputParamType,
 ): InputArgumentType | null => {
   const getAtomicArgumentParser = (atomicParamType: AtomicInputParamType) => {
     switch (atomicParamType) {
-      case "string":
+      case 'string':
         return (arg: string) => arg;
-      case "number":
+      case 'number':
         return getArgumentNumber;
-      case "boolean":
+      case 'boolean':
         return getArgumentBoolean;
       default:
         return null;
