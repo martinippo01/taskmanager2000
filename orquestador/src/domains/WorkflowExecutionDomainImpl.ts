@@ -1,4 +1,5 @@
 import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDomain';
+import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { WorkflowExecutionDao } from '@interfaces/repository/WorkflowExecutionDao';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
@@ -11,13 +12,14 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
   constructor(
     @Inject(WorkflowExecutionDao)
     private readonly workflowExecutionRepository: WorkflowExecutionDao,
+    @Inject(StepScheduleRequestGateway)
+    private readonly stepScheduleRequestGateway: StepScheduleRequestGateway,
   ) {}
 
   async runNewWorkflowExecution(
     request: WorkflowExecutionRequest,
   ): Promise<{ alreadyRun: boolean; couldRun: boolean }> {
     try {
-      // No me acuerdo por qué no ponemos TAKEN directamente al persistirlo
       this.workflowExecutionRepository.saveWorkflowExecution({
         ...request,
       });
@@ -26,18 +28,69 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
       return { alreadyRun: true, couldRun: false };
     }
 
-    this.tryToRunFirstStep(request.executionId);
+    const queueRst = await this.tryToRunFirstStep(request);
 
-    return { alreadyRun: false, couldRun: true };
+    if (!queueRst.queued) this.LOGGER.log(queueRst.error);
+
+    return { alreadyRun: false, couldRun: queueRst.queued };
   }
 
-  async tryToRunFirstStep(executionId: string) {
-    // quizás esto se hace directamente en el StepDomain
+  async tryToRunFirstStep(request: WorkflowExecutionRequest) {
     this.workflowExecutionRepository.updateStatus(
-      executionId,
+      request.executionId,
       WfExecutionStatus.TAKEN,
     );
 
-    // TODO: llamado al StepDomain
+    // creo que esto no hace falta hacerlo porque la info está en request, pero bueno ya que
+    //  estamos revisamos que esté bien cómo guarda las cosas
+    const stepsInfo =
+      await this.workflowExecutionRepository.getStepsFromExecution(
+        request.executionId,
+      );
+
+    if (stepsInfo === null) {
+      this.LOGGER.error(
+        `No existe stepsInfo para executionId: ${request.executionId}`,
+      );
+      return { queued: false, error: 'Esto no debería pasar nunca!' };
+    }
+    if (!stepsInfo.lastRun) {
+      this.LOGGER.error(
+        `No parecería ser el primer step, ${request.executionId} has lastRun: ${stepsInfo.lastRun}`,
+      );
+      return { queued: false, error: 'Esto no debería pasar nunca!' };
+    }
+
+    const filteredArgs = {};
+    const firstStep = stepsInfo.steps[0];
+
+    firstStep.params.forEach((val) => {
+      if (val.name in stepsInfo.inputArguments)
+        filteredArgs[val.name] = stepsInfo.inputArguments[val.name];
+      else {
+        this.LOGGER.error(
+          `Un parámetro necesario para el primer paso (${val.name}) no está en lo que se guardó en la BD`,
+        );
+        return { queued: false, error: 'Esto no debería pasar nunca!' };
+      }
+    });
+
+    const stepScheduleRequest = {
+      workflowExecutionId: request.executionId,
+      name: request.name,
+      task: firstStep.task,
+      inputArgs: filteredArgs,
+    };
+    const queueRst =
+      await this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
+
+    if (queueRst.queued) {
+      this.workflowExecutionRepository.updateStatus(
+        request.executionId,
+        WfExecutionStatus.STEP_SCHEDULED,
+      );
+    }
+
+    return queueRst;
   }
 }

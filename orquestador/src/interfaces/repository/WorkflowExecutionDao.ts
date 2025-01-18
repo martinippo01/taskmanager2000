@@ -2,9 +2,15 @@ import {
   WfExecutionStatus,
   WorkflowExecution,
 } from '@repositories/entities/worflow-execution.entity';
+
+import { InputArguments } from '@shared/WorkflowInput';
 import { Step } from '@shared/WorkflowPlan';
 
-export type stepsInfo = { steps: Step[]; lastRun: string | null };
+export type stepsInfo = {
+  steps: Step[];
+  lastRun: string | null;
+  inputArguments: InputArguments;
+};
 
 export interface WorkflowExecutionDao {
   saveWorkflowExecution(
