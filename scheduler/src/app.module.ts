@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
+import { TaskServiceGatewayImpl } from './gateways/TaskServiceGatewayImpl';
 import {
   KafkaStepScheduleRequestClient,
   KafkaStepScheduleRequestClientFactoryProvider,
@@ -14,6 +16,7 @@ import { TaskAgentGatewayProvider } from '@interfaces/gateways/TaskAgentGatewayP
 import { TaskAgentGatewayProviderImpl } from '@gateways/TaskAgentGatewayProvider';
 import SchedulerDomainImpl from '@domains/SchedulerDomainImpl';
 import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
+import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 
 @Module({
   imports: [
@@ -32,6 +35,7 @@ import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
         useFactory: KafkaStepScheduleRequestClientFactoryProvider,
       },
     ]),
+    HttpModule,
   ],
   controllers: [WorkflowExecutionStepController],
   providers: [
@@ -46,6 +50,10 @@ import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
     {
       provide: TaskAgentGatewayProvider,
       useClass: TaskAgentGatewayProviderImpl,
+    },
+    {
+      provide: TaskServiceGateway,
+      useClass: TaskServiceGatewayImpl,
     },
   ],
 })
