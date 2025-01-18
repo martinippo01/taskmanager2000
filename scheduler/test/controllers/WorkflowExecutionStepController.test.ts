@@ -128,17 +128,17 @@ describe('WorkflowExecutionStepController', () => {
         ).resolves.not.toThrow();
         expect(
           stepScheduleExceptionOrchestratorGatewayMock.notify,
-        ).toHaveBeenCalledWith(exception);
+        ).toHaveBeenCalledWith(stepScheduleRequestExample, exception);
       };
 
     it(
       'should notify orchestrator if task not exits',
-      testStepScheduleException(StepScheduleException.TASK_NOT_FOUND),
+      testStepScheduleException(StepScheduleException.TASK_NOT_EXISTS),
     );
 
     it(
       'should notify orchestrator if task param not exits',
-      testStepScheduleException(StepScheduleException.TASK_PARAM_NOT_FOUND),
+      testStepScheduleException(StepScheduleException.TASK_PARAM_NOT_EXISTS),
     );
 
     it(

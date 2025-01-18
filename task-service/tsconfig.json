@@ -25,7 +25,8 @@
       "@domains/*": ["src/domains/*"],
       "@gateways/*": ["src/gateways/*"],
       "@exceptions/*": ["src/exceptions/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@configs/*": ["src/configs/*"]
     }
   }
 }
