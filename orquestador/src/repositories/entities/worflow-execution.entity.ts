@@ -15,6 +15,7 @@ export enum WfExecutionStatus {
   STEP_SCHEDULED,
   STEP_FINISHED,
   EXECUTION_FINISHED,
+  ERROR,
 }
 
 @Entity('workflow_executions')
