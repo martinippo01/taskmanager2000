@@ -8,7 +8,7 @@ import { Inject, Logger } from '@nestjs/common';
 class WorkflowExecutionOutputDomainImpl
   implements WorkflowExecutionOutputDomain
 {
-  private readonly logger = new Logger(WorkflowExecutionOutputDomainImpl.name);
+  private readonly LOGGER = new Logger(WorkflowExecutionOutputDomainImpl.name);
 
   constructor(
     @Inject(WorkflowExecutionOutputDao)
@@ -21,14 +21,14 @@ class WorkflowExecutionOutputDomainImpl
     workflowExecutionId: string,
     stepName: string,
   ): Promise<WorkflowExecutionStepOutput> {
-    this.logger.debug(
+    this.LOGGER.debug(
       `Getting output for step '${stepName}' from workflow execution with id '${workflowExecutionId}'`,
     );
     const outputPath = await this.workflowExecutionDao.getStepResultPath(
       workflowExecutionId,
       stepName,
     );
-    this.logger.debug(
+    this.LOGGER.debug(
       `Output path for step '${stepName}' from workflow execution with id '${workflowExecutionId}' retrieved successfully`,
     );
     if (!outputPath) {
@@ -38,7 +38,7 @@ class WorkflowExecutionOutputDomainImpl
       );
     }
     const output = await this.workflowExecutionOutputDao.getOutput(outputPath);
-    this.logger.debug(
+    this.LOGGER.debug(
       `Output for step '${stepName}' from workflow execution with id '${workflowExecutionId}' retrieved successfully`,
     );
     return output;
