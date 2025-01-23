@@ -12,12 +12,14 @@ export interface WorkflowExecutionQueryDomain {
    */
   getWorkflowExecutionByExecutionId(
     executionId: string,
-  ): Promise<WorkflowExecution>;
+  ): Promise<WorkflowExecution | null>;
   getStepDataByExecutionId(
     executionId: string,
     stepNumber: number,
   ): Promise<Step>;
-  listExecutionIdsByWorkflowName(workflowName: string): Promise<string[]>;
+  listExecutionIdsByWorkflowName(
+    workflowName: string,
+  ): Promise<string[] | null>;
   listExecutionIds(): Promise<string[]>;
 }
 export const WorkflowExecutionQueryDomain = Symbol(

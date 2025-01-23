@@ -19,7 +19,7 @@ export class WorkflowExecutionQueryDomainImpl
 
   async getWorkflowExecutionByExecutionId(
     executionId: string,
-  ): Promise<WorkflowExecution> {
+  ): Promise<WorkflowExecution | null> {
     let execution = {}; // TODO: Call repository to get the execution by id.
 
     return execution as WorkflowExecution;
@@ -41,7 +41,7 @@ export class WorkflowExecutionQueryDomainImpl
 
   async listExecutionIdsByWorkflowName(
     workflowName: string,
-  ): Promise<string[]> {
+  ): Promise<string[] | null> {
     const executionsByName = []; // TODO: Call repository to get all executions that match a name.
     //  await this.workflowExecutionRepository.getExecutionIdsByName(workflowName);
     return executionsByName;
