@@ -16,6 +16,10 @@ import {
 } from '@configs/KafkaStepScheduleRequestConfig';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { StepScheduleRequestGatewayImpl } from '@gateways/StepScheduleRequestGatewayImpl';
+import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecutionStepDomain';
+import { WorkflowExecutionStepDomainImpl } from '@domains/WorkflowExecutionStepDomainImpl';
+import { WorkflowExecutionDomainImpl } from '@domains/WorkflowExecutionDomainImpl';
+import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDomain';
 
 @Module({
   imports: [
@@ -50,6 +54,11 @@ import { StepScheduleRequestGatewayImpl } from '@gateways/StepScheduleRequestGat
     WorkflowExecutionStepResponseController,
   ],
   providers: [
+    {
+      provide: WorkflowExecutionStepDomain,
+      useClass: WorkflowExecutionStepDomainImpl,
+    },
+    { provide: WorkflowExecutionDomain, useClass: WorkflowExecutionDomainImpl },
     { provide: WorkflowExecutionDao, useClass: WorkflowExecutionDaoImpl },
     {
       provide: StepScheduleRequestGateway,
