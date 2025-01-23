@@ -11,6 +11,7 @@ import {
   WorkflowExecutionDao,
 } from '@interfaces/repository/WorkflowExecutionDao';
 import { RepeatedIdException } from '@exceptions/RepeatedIdException';
+import { WorkflowExecutionNotFoundException } from '@exceptions/WorkflowExecutionNotFoundException';
 
 @Injectable()
 export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
@@ -111,7 +112,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     });
 
     if (!workflowExecution) {
-      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+      throw new WorkflowExecutionNotFoundException(executionId);
     }
 
     workflowExecution.outputs = {
@@ -123,13 +124,17 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     return this.workflowExecutionRepository.save(workflowExecution);
   }
 
-  async getStepResultPath(executionId: string, step: string): Promise<string> {
+  async getStepResultPath(
+    executionId: string,
+    step: string,
+  ): Promise<string | undefined> {
     const workflowExecution = await this.workflowExecutionRepository.findOneBy({
       executionId,
     });
 
-    if (!workflowExecution)
-      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+    if (!workflowExecution) {
+      throw new WorkflowExecutionNotFoundException(executionId);
+    }
 
     return workflowExecution.outputs[step];
   }

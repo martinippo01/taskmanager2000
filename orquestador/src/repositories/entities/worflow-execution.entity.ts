@@ -40,7 +40,7 @@ export class WorkflowExecution {
 
   // Chequear que ese default funciona
   @Column('jsonb', { default: {} })
-  outputs: Record<string, string>;
+  outputs: Record<string, string | undefined>;
 
   @Column({ default: WfExecutionStatus.PERSISTED })
   status: WfExecutionStatus;

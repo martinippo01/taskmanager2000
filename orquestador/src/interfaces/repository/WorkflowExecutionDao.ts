@@ -32,7 +32,10 @@ export interface WorkflowExecutionDao {
   updateStep(executionId: string, lastStepRun: string, wantedOutput: string);
 
   // Esto es para devolver dónde se debe guardar el resultado (se dispuso ese path en updateStep)
-  getStepResultPath(executionId: string, step: string): Promise<string>;
+  getStepResultPath(
+    executionId: string,
+    step: string,
+  ): Promise<string | undefined>;
 }
 
 export const WorkflowExecutionDao = Symbol('WorkflowExecutionDao');
