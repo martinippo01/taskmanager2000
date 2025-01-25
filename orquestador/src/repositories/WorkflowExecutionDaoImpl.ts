@@ -133,4 +133,43 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
 
     return workflowExecution.outputs[step];
   }
+
+  async getWorkflowExecutionById(
+    executionId: string,
+  ): Promise<WorkflowExecution | null> {
+    this.LOGGER.log(`Fetching workflow execution with id ${executionId}`);
+    const workflowExecution = await this.workflowExecutionRepository.findOneBy({
+      executionId,
+    });
+
+    if (!workflowExecution) {
+      this.LOGGER.log(`Workflow execution with ID ${executionId} not found.`);
+      return null;
+    }
+
+    return workflowExecution;
+  }
+
+  async getExecutionIdsByName(workflowName: string): Promise<string[] | null> {
+    this.LOGGER.log(`Fetching execution IDs for workflow name ${workflowName}`);
+    const workflows = await this.workflowExecutionRepository.find({
+      where: { name: workflowName },
+      select: ['executionId'],
+    });
+
+    if (workflows.length === 0) {
+      this.LOGGER.log(`No workflows found with name ${workflowName}`);
+      return null;
+    }
+
+    return workflows.map((workflow) => workflow.executionId);
+  }
+
+  async getAllExecutionIds(): Promise<string[]> {
+    this.LOGGER.log('Fetching all workflow execution IDs');
+    const executions = await this.workflowExecutionRepository.find({
+      select: ['executionId'],
+    });
+    return executions.map((execution) => execution.executionId);
+  }
 }
