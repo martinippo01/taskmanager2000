@@ -20,9 +20,9 @@ export class WorkflowExecutionQueryDomainImpl
   async getWorkflowExecutionByExecutionId(
     executionId: string,
   ): Promise<WorkflowExecution | null> {
-    let execution = {}; // TODO: Call repository to get the execution by id.
-
-    return execution as WorkflowExecution;
+    return this.workflowExecutionRepository.getWorkflowExecutionById(
+      executionId,
+    );
   }
 
   async getStepDataByExecutionId(
@@ -42,14 +42,12 @@ export class WorkflowExecutionQueryDomainImpl
   async listExecutionIdsByWorkflowName(
     workflowName: string,
   ): Promise<string[] | null> {
-    const executionsByName = []; // TODO: Call repository to get all executions that match a name.
-    //  await this.workflowExecutionRepository.getExecutionIdsByName(workflowName);
-    return executionsByName;
+    return await this.workflowExecutionRepository.getExecutionIdsByName(
+      workflowName,
+    );
   }
 
   async listExecutionIds(): Promise<string[]> {
-    const executionIds: string[] = [];
-    //  await this.workflowExecutionRepository.getAllExecutionIds();
-    return executionIds;
+    return await this.workflowExecutionRepository.getAllExecutionIds();
   }
 }
