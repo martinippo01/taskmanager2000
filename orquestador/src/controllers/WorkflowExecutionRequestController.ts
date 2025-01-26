@@ -25,6 +25,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     private readonly kafkaClient: ClientKafka,
     @Inject(WorkflowExecutionDomain)
     private readonly workflowExecutionDomain: WorkflowExecutionDomain,
+    @Inject(ConfigService)
     private readonly configService: ConfigService<KafkaWorkflowExecutionRequestEnvironmentVariables>,
   ) {}
 
