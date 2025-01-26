@@ -1,6 +1,10 @@
-# # Imagen de base para todos los jobs
-# image: node:23.1.0
+# Imagen de base para todos los jobs
+image: node:23.1.0
 
+example-job:
+  script:
+    - echo "Hello, $GITLAB_USER_LOGIN!"
+    - hostname
 # include:
 #   - template: Jobs/SAST.gitlab-ci.yml
 
