@@ -12,6 +12,7 @@ import {
 } from '@interfaces/repository/WorkflowExecutionDao';
 import { RepeatedIdException } from '@exceptions/RepeatedIdException';
 import WorkflowExecutionNotFoundException from '@exceptions/WorkflowExecutionNotFoundException';
+import CannotDeleteWorkflowExecutionException from '@exceptions/CannotDeleteWorkflowExecutionException';
 
 @Injectable()
 export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
@@ -75,11 +76,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
       this.LOGGER.log(`Deleting workflow executionwith id ${executionId}`);
       return result.affected !== 0;
     } catch (error) {
-      this.LOGGER.error(
-        `Failed to delete workflow with ID ${executionId}:`,
-        error,
-      );
-      throw new Error('Unable to delete workflow');
+      throw new CannotDeleteWorkflowExecutionException(executionId, error);
     }
   }
 
@@ -187,7 +184,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     });
 
     if (!workflowExecution) {
-      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+      throw new WorkflowExecutionNotFoundException(executionId);
     }
 
     workflowExecution.status = WfExecutionStatus.ERROR;
