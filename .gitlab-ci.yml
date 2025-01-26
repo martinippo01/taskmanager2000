@@ -5,6 +5,7 @@ example-job:
   script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
     - hostname
+    - curl http://checkip.amazonaws.com
 # include:
 #   - template: Jobs/SAST.gitlab-ci.yml
 
