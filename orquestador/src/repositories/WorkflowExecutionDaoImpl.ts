@@ -172,4 +172,22 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     });
     return executions.map((execution) => execution.executionId);
   }
+
+  async markExecutionAsError(
+    executionId: string,
+    reason: string,
+  ): Promise<WorkflowExecution> {
+    const workflowExecution = await this.workflowExecutionRepository.findOneBy({
+      executionId,
+    });
+
+    if (!workflowExecution) {
+      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+    }
+
+    workflowExecution.status = WfExecutionStatus.ERROR;
+    workflowExecution.errorReason = reason;
+
+    return this.workflowExecutionRepository.save(workflowExecution);
+  }
 }

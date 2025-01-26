@@ -110,4 +110,20 @@ export class WorkflowExecutionStepDomainImpl
       WfExecutionStatus.EXECUTION_FINISHED,
     );
   }
+
+  async handleError(executionId: string, error: string): Promise<void> {
+    this.LOGGER.error(`Error in workflow with ID ${executionId}: ${error}`);
+    try {
+      await this.workflowExecutionRepository.markExecutionAsError(
+        executionId,
+        error,
+      );
+    } catch (error) {
+      this.LOGGER.error(
+        `Failed to mark workflow with ID ${executionId} as error:`,
+        error,
+      );
+      throw new Error('Unable to mark workflow as error');
+    }
+  }
 }
