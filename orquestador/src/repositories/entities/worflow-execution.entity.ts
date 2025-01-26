@@ -45,6 +45,9 @@ export class WorkflowExecution {
   @Column({ default: WfExecutionStatus.PERSISTED })
   status: WfExecutionStatus;
 
+  @Column({ default: null, nullable: true })
+  errorReason: string | null;
+
   @Column({ default: null })
   lastStepRun: string | null;
 

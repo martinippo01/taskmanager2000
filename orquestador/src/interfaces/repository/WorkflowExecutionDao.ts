@@ -36,6 +36,23 @@ export interface WorkflowExecutionDao {
     executionId: string,
     step: string,
   ): Promise<string | undefined>;
+
+  // Given an executionId, returns the workflow execution
+  getWorkflowExecutionById(
+    executionId: string,
+  ): Promise<WorkflowExecution | null>;
+
+  // Given a workflow name, returns all the execution ids that match that name
+  getExecutionIdsByName(workflowName: string): Promise<string[] | null>;
+
+  // Return all workflow execution ids
+  getAllExecutionIds(): Promise<string[]>;
+
+  // Mark the execution as error and persist the reason
+  markExecutionAsError(
+    executionId: string,
+    reason: string,
+  ): Promise<WorkflowExecution>;
 }
 
 export const WorkflowExecutionDao = Symbol('WorkflowExecutionDao');
