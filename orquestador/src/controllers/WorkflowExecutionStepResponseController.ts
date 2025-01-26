@@ -27,6 +27,7 @@ export class WorkflowExecutionStepResponseController implements OnModuleInit {
     private readonly kafkaClient: ClientKafka,
     @Inject(WorkflowExecutionStepDomain)
     private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomain,
+    @Inject(ConfigService)
     private readonly configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
   ) {}
 
