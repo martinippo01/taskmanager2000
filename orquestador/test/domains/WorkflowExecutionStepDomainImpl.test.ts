@@ -34,6 +34,8 @@ describe('WorkflowExecutionStepDomainImpl', () => {
       ],
     }).compile();
 
+    module.useLogger(false);
+
     service = module.get<WorkflowExecutionStepDomainImpl>(
       WorkflowExecutionStepDomainImpl,
     );

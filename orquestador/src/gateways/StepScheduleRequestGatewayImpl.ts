@@ -19,6 +19,7 @@ export class StepScheduleRequestGatewayImpl
   constructor(
     @Inject(KafkaStepScheduleRequestClient)
     private readonly kafkaClient: ClientKafka,
+    @Inject(ConfigService)
     private readonly configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
   ) {
     this.topic =
