@@ -20,10 +20,21 @@ import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecuti
 import { WorkflowExecutionStepDomainImpl } from '@domains/WorkflowExecutionStepDomainImpl';
 import { WorkflowExecutionDomainImpl } from '@domains/WorkflowExecutionDomainImpl';
 import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDomain';
+import { ConfigModuleValidationSchema } from '@configs/ConfigValidationSchema';
+import { WorkflowExecutionOutputDomain } from '@interfaces/domains/WorkflowExecutionOutputDomain';
+import WorkflowExecutionOutputDomainImpl from '@domains/WorkflowExecutionOutputDomainImpl';
+import { WorkflowExecutionOutputDao } from '@interfaces/repository/WorkflowExecutionOutputDao';
+import WorkflowExecutionOutputDaoImpl from '@repositories/WorkflowExecutionOutputDaoImpl';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      validationSchema: ConfigModuleValidationSchema,
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: false,
+      },
+    }),
     ClientsModule.registerAsync([
       {
         imports: [ConfigModule],
@@ -63,6 +74,14 @@ import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDo
     {
       provide: StepScheduleRequestGateway,
       useClass: StepScheduleRequestGatewayImpl,
+    },
+    {
+      provide: WorkflowExecutionOutputDomain,
+      useClass: WorkflowExecutionOutputDomainImpl,
+    },
+    {
+      provide: WorkflowExecutionOutputDao,
+      useClass: WorkflowExecutionOutputDaoImpl,
     },
   ],
 })

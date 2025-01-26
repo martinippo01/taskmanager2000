@@ -11,6 +11,8 @@ import {
   WorkflowExecutionDao,
 } from '@interfaces/repository/WorkflowExecutionDao';
 import { RepeatedIdException } from '@exceptions/RepeatedIdException';
+import WorkflowExecutionNotFoundException from '@exceptions/WorkflowExecutionNotFoundException';
+import CannotDeleteWorkflowExecutionException from '@exceptions/CannotDeleteWorkflowExecutionException';
 
 @Injectable()
 export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
@@ -74,11 +76,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
       this.LOGGER.log(`Deleting workflow executionwith id ${executionId}`);
       return result.affected !== 0;
     } catch (error) {
-      this.LOGGER.error(
-        `Failed to delete workflow with ID ${executionId}:`,
-        error,
-      );
-      throw new Error('Unable to delete workflow');
+      throw new CannotDeleteWorkflowExecutionException(executionId, error);
     }
   }
 
@@ -111,7 +109,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     });
 
     if (!workflowExecution) {
-      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+      throw new WorkflowExecutionNotFoundException(executionId);
     }
 
     workflowExecution.outputs = {
@@ -123,13 +121,17 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     return this.workflowExecutionRepository.save(workflowExecution);
   }
 
-  async getStepResultPath(executionId: string, step: string): Promise<string> {
+  async getStepResultPath(
+    executionId: string,
+    step: string,
+  ): Promise<string | undefined> {
     const workflowExecution = await this.workflowExecutionRepository.findOneBy({
       executionId,
     });
 
-    if (!workflowExecution)
-      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+    if (!workflowExecution) {
+      throw new WorkflowExecutionNotFoundException(executionId);
+    }
 
     return workflowExecution.outputs[step];
   }
@@ -182,7 +184,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     });
 
     if (!workflowExecution) {
-      throw new Error(`Workflow execution with ID ${executionId} not found.`);
+      throw new WorkflowExecutionNotFoundException(executionId);
     }
 
     workflowExecution.status = WfExecutionStatus.ERROR;
