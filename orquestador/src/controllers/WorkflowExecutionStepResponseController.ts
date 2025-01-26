@@ -14,6 +14,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 import { WorkflowExecutionStepRequest } from '@shared/WorkflowExecutionStepRequest';
+import { WorkflowExecutionStepError } from '@shared/WorkflowExecutionStepError';
 
 @Controller()
 export class WorkflowExecutionStepResponseController implements OnModuleInit {
@@ -49,6 +50,15 @@ export class WorkflowExecutionStepResponseController implements OnModuleInit {
   @EventPattern(process.env.KAFKA_TOPIC_SSR)
   async taskCompleted(
     @Payload() request: WorkflowExecutionStepRequest,
+    @Ctx() context: KafkaContext,
+  ) {
+    this.LOGGER.debug('Task completed');
+    await this.workflowExecutionStepDomain.runNextStep(request.executionId);
+  }
+
+  @EventPattern(process.env.KAFKA_TOPIC_SSE)
+  async taskError(
+    @Payload() request: WorkflowExecutionStepError,
     @Ctx() context: KafkaContext,
   ) {
     this.LOGGER.debug('Task completed');
