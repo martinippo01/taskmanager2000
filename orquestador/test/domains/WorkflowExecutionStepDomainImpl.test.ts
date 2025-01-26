@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WorkflowExecutionStepDomainImpl } from '@domains/WorkflowExecutionStepDomainImpl';
 import { WorkflowExecutionDao } from '@interfaces/repository/WorkflowExecutionDao';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
-import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
+import {
+  WfExecutionStatus,
+  WorkflowExecution,
+} from '@repositories/entities/worflow-execution.entity';
 
 describe('WorkflowExecutionStepDomainImpl', () => {
   let service: WorkflowExecutionStepDomainImpl;
@@ -19,6 +22,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
             getStepsFromExecution: jest.fn(),
             updateStatus: jest.fn(),
             updateStep: jest.fn(),
+            markExecutionAsError: jest.fn(),
           },
         },
         {
@@ -131,6 +135,45 @@ describe('WorkflowExecutionStepDomainImpl', () => {
       expect(workflowExecutionRepository.updateStatus).toHaveBeenCalledWith(
         'executionId',
         WfExecutionStatus.EXECUTION_FINISHED,
+      );
+    });
+  });
+
+  describe('handleError', () => {
+    it('should log an error and mark execution as error', async () => {
+      const error = 'Some error';
+      const loggerSpy = jest.spyOn(service['LOGGER'], 'error');
+      const markExecutionAsErrorSpy = jest
+        .spyOn(workflowExecutionRepository, 'markExecutionAsError')
+        .mockResolvedValue({} as WorkflowExecution);
+
+      await service.handleError('executionId', error);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        `Error in workflow with ID executionId: ${error}`,
+      );
+      expect(markExecutionAsErrorSpy).toHaveBeenCalledWith(
+        'executionId',
+        error,
+      );
+    });
+
+    it('should log an error if marking execution as error fails', async () => {
+      const error = 'Some error';
+      const loggerSpy = jest.spyOn(service['LOGGER'], 'error');
+      jest
+        .spyOn(workflowExecutionRepository, 'markExecutionAsError')
+        .mockRejectedValue(new Error('Failed to mark as error'));
+
+      await expect(service.handleError('executionId', error)).rejects.toThrow(
+        'Unable to mark workflow as error',
+      );
+      expect(loggerSpy).toHaveBeenCalledWith(
+        `Error in workflow with ID executionId: ${error}`,
+      );
+      expect(loggerSpy).toHaveBeenCalledWith(
+        `Failed to mark workflow with ID executionId as error:`,
+        expect.any(Error),
       );
     });
   });
