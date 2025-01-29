@@ -17,10 +17,8 @@ import { WorkflowExecutionStepRequest } from '@shared/WorkflowExecutionStepReque
 import { WorkflowExecutionStepError } from '@shared/WorkflowExecutionStepError';
 
 @Controller()
-export class WorkflowExecutionStepResponseController implements OnModuleInit {
-  private readonly LOGGER = new Logger(
-    WorkflowExecutionStepResponseController.name,
-  );
+export class StepExecutionResponseController implements OnModuleInit {
+  private readonly LOGGER = new Logger(StepExecutionResponseController.name);
 
   constructor(
     @Inject(KafkaStepScheduleRequestClient)
