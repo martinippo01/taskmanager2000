@@ -1,7 +1,7 @@
 import {
-  KafkaStepScheduleRequestClient,
-  KafkaStepScheduleRequestEnvironmentVariables,
-} from '@configs/KafkaStepScheduleRequestConfig';
+  KafkaStepExecutionResponseClient,
+  KafkaStepExecutionResponseEnvironmentVariables,
+} from '@configs/KafkaStepExecutionResponseConfig';
 import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecutionStepDomain';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import {
@@ -21,18 +21,18 @@ export class StepExecutionResponseController implements OnModuleInit {
   private readonly LOGGER = new Logger(StepExecutionResponseController.name);
 
   constructor(
-    @Inject(KafkaStepScheduleRequestClient)
+    @Inject(KafkaStepExecutionResponseClient)
     private readonly kafkaClient: ClientKafka,
     @Inject(WorkflowExecutionStepDomain)
     private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomain,
     @Inject(ConfigService)
-    private readonly configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
+    private readonly configService: ConfigService<KafkaStepExecutionResponseEnvironmentVariables>,
   ) {}
 
   async onModuleInit() {
     this.LOGGER.log('WorkflowExecutionStepController initialized');
     const kafkaTopic =
-      this.configService.get('KAFKA_TOPIC_SSR', { infer: true }) || '';
+      this.configService.get('KAFKA_TOPIC_SER', { infer: true }) || '';
     this.kafkaClient.subscribeToResponseOf(kafkaTopic);
     try {
       await this.kafkaClient.connect();
@@ -46,7 +46,7 @@ export class StepExecutionResponseController implements OnModuleInit {
     }
   }
 
-  @EventPattern(process.env.KAFKA_TOPIC_SSR) // CHANGE THIS!!!! TO THE PROPER TOPIC AND EVERYTHING
+  @EventPattern(process.env.KAFKA_TOPIC_SER) // CHANGE THIS!!!! TO THE PROPER TOPIC AND EVERYTHING
   async taskCompleted(
     @Payload() request: WorkflowExecutionStepRequest,
     @Ctx() context: KafkaContext,
