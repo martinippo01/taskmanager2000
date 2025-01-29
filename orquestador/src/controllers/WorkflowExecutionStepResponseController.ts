@@ -48,24 +48,23 @@ export class WorkflowExecutionStepResponseController implements OnModuleInit {
     }
   }
 
-  @EventPattern(process.env.KAFKA_TOPIC_SSR)
+  @EventPattern(process.env.KAFKA_TOPIC_SSR) // CHANGE THIS!!!! TO THE PROPER TOPIC AND EVERYTHING
   async taskCompleted(
     @Payload() request: WorkflowExecutionStepRequest,
     @Ctx() context: KafkaContext,
   ) {
     this.LOGGER.debug('Task completed');
     await this.workflowExecutionStepDomain.runNextStep(request.executionId);
-  }
-
-  @EventPattern(process.env.KAFKA_TOPIC_SSE)
-  async taskError(
-    @Payload() request: WorkflowExecutionStepError,
-    @Ctx() context: KafkaContext,
-  ) {
-    this.LOGGER.debug('Task completed');
-    await this.workflowExecutionStepDomain.handleError(
-      request.executionId,
-      request.reason,
+    this.LOGGER.debug(
+      `Committing offset for request with id: ${request.executionId}`,
+    );
+    const { offset } = context.getMessage();
+    const partition = context.getPartition();
+    const topic = context.getTopic();
+    const consumer = context.getConsumer();
+    await consumer.commitOffsets([{ topic, partition, offset }]);
+    this.LOGGER.debug(
+      `Offset committed for request with id: ${request.executionId}`,
     );
   }
 }
