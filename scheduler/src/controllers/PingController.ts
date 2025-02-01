@@ -1,4 +1,4 @@
-import DeadTaskServiceException from '@exceptions/DeadTaskServiceException';
+import NotAliveException from '@exceptions/NotAliveException';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { HeartPingPath } from '@shared/HeartbeatPaths';
@@ -12,18 +12,14 @@ class PingController {
     private readonly healthCheckDomain: HealthCheckDomain,
   ) {}
 
-  @Get('')
-  async ping(): Promise<`pong`> {
-    try {
-      const isAlive = await this.healthCheckDomain.check();
-      if (!isAlive) {
-        throw 'Task service is dead';
-      }
-    } catch (error) {
-      this.LOGGER.error(`Health check error: ${error}`);
-      throw new DeadTaskServiceException();
+  @Get()
+  async healthCheck() {
+    const resp = this.healthCheckDomain.check();
+    if (!resp) {
+      this.LOGGER.error('Microservice not alive!');
+      throw new NotAliveException();
     }
-    return 'pong';
+    return resp;
   }
 }
 

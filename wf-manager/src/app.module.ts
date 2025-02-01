@@ -17,9 +17,10 @@ import {
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { WorkflowExecutionRequestProducer as WorkflowExecutionRequestProducerImpl } from '@shared/WorkflowExecutionRequest';
-import { HealthCheckDominio } from '@domains/HealthCheckImpl';
+import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { ConfigModule } from '@nestjs/config';
 import { exceptionFilterProviders } from '@exceptions/filters/providers';
+import { HealthCheckDomainImpl } from '@domains/HealthCheckImpl';
 
 @Module({
   imports: [ConfigModule.forRoot()],
@@ -53,8 +54,11 @@ import { exceptionFilterProviders } from '@exceptions/filters/providers';
       provide: WorkflowExecutionRequestProducer,
       useClass: WorkflowExecutionRequestProducerImpl,
     },
+    {
+      provide: HealthCheckDomain,
+      useClass: HealthCheckDomainImpl,
+    },
     redisClientFactory,
-    HealthCheckDominio,
     ...exceptionFilterProviders,
   ],
 })

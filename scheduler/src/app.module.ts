@@ -17,6 +17,8 @@ import { TaskAgentGatewayProviderImpl } from '@gateways/TaskAgentGatewayProvider
 import SchedulerDomainImpl from '@domains/SchedulerDomainImpl';
 import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
 import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
+import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
+import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
 
 @Module({
   imports: [
@@ -54,6 +56,10 @@ import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
     {
       provide: TaskServiceGateway,
       useClass: TaskServiceGatewayImpl,
+    },
+    {
+      provide: HealthCheckDomain,
+      useClass: HealthCheckDomainImpl,
     },
   ],
 })

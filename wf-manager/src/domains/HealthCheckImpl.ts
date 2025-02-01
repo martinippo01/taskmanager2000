@@ -2,11 +2,12 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import NodeCache from 'node-cache';
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
+import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 
 @Injectable()
-export class HealthCheckDominio {
+export class HealthCheckDomainImpl implements HealthCheckDomain {
   private readonly cache: NodeCache;
-  private readonly LOGGER = new Logger(HealthCheckDominio.name);
+  private readonly LOGGER = new Logger(HealthCheckDomainImpl.name);
 
   constructor(
     @Inject(RedisRepository)
@@ -19,7 +20,7 @@ export class HealthCheckDominio {
   }
 
   // Quizás hay que hacer algo con OnModuleInit
-  async checkHealth(): Promise<{ status: string; details: any }> {
+  async check(): Promise<{ status: string; details: any }> {
     // Check cache first
     const cachedResult = this.cache.get('health-check');
     if (cachedResult) return cachedResult as { status: string; details: any };
