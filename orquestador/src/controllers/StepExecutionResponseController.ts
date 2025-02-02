@@ -1,7 +1,7 @@
 import {
-  KafkaStepScheduleRequestClient,
-  KafkaStepScheduleRequestEnvironmentVariables,
-} from '@configs/KafkaStepScheduleRequestConfig';
+  KafkaStepExecutionResponseClient,
+  KafkaStepExecutionResponseEnvironmentVariables,
+} from '@configs/KafkaStepExecutionResponseConfig';
 import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecutionStepDomain';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import {
@@ -17,24 +17,22 @@ import { WorkflowExecutionStepRequest } from '@shared/WorkflowExecutionStepReque
 import { WorkflowExecutionStepError } from '@shared/WorkflowExecutionStepError';
 
 @Controller()
-export class WorkflowExecutionStepResponseController implements OnModuleInit {
-  private readonly LOGGER = new Logger(
-    WorkflowExecutionStepResponseController.name,
-  );
+export class StepExecutionResponseController implements OnModuleInit {
+  private readonly LOGGER = new Logger(StepExecutionResponseController.name);
 
   constructor(
-    @Inject(KafkaStepScheduleRequestClient)
+    @Inject(KafkaStepExecutionResponseClient)
     private readonly kafkaClient: ClientKafka,
     @Inject(WorkflowExecutionStepDomain)
     private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomain,
     @Inject(ConfigService)
-    private readonly configService: ConfigService<KafkaStepScheduleRequestEnvironmentVariables>,
+    private readonly configService: ConfigService<KafkaStepExecutionResponseEnvironmentVariables>,
   ) {}
 
   async onModuleInit() {
     this.LOGGER.log('WorkflowExecutionStepController initialized');
     const kafkaTopic =
-      this.configService.get('KAFKA_TOPIC_SSR', { infer: true }) || '';
+      this.configService.get('KAFKA_TOPIC_SER', { infer: true }) || '';
     this.kafkaClient.subscribeToResponseOf(kafkaTopic);
     try {
       await this.kafkaClient.connect();
@@ -48,24 +46,23 @@ export class WorkflowExecutionStepResponseController implements OnModuleInit {
     }
   }
 
-  @EventPattern(process.env.KAFKA_TOPIC_SSR)
+  @EventPattern(process.env.KAFKA_TOPIC_SER) // CHANGE THIS!!!! TO THE PROPER TOPIC AND EVERYTHING
   async taskCompleted(
     @Payload() request: WorkflowExecutionStepRequest,
     @Ctx() context: KafkaContext,
   ) {
     this.LOGGER.debug('Task completed');
     await this.workflowExecutionStepDomain.runNextStep(request.executionId);
-  }
-
-  @EventPattern(process.env.KAFKA_TOPIC_SSE)
-  async taskError(
-    @Payload() request: WorkflowExecutionStepError,
-    @Ctx() context: KafkaContext,
-  ) {
-    this.LOGGER.debug('Task completed');
-    await this.workflowExecutionStepDomain.handleError(
-      request.executionId,
-      request.reason,
+    this.LOGGER.debug(
+      `Committing offset for request with id: ${request.executionId}`,
+    );
+    const { offset } = context.getMessage();
+    const partition = context.getPartition();
+    const topic = context.getTopic();
+    const consumer = context.getConsumer();
+    await consumer.commitOffsets([{ topic, partition, offset }]);
+    this.LOGGER.debug(
+      `Offset committed for request with id: ${request.executionId}`,
     );
   }
 }
