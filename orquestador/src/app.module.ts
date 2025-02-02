@@ -9,7 +9,7 @@ import { WorkflowExecutionRequestController } from '@controllers/WorkflowExecuti
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkflowExecutionDaoImpl } from '@repositories/WorkflowExecutionDaoImpl';
 import { WorkflowExecutionDao } from '@interfaces/repository/WorkflowExecutionDao';
-import { WorkflowExecutionStepResponseController } from '@controllers/WorkflowExecutionStepResponseController';
+import { StepExecutionResponseController } from '@controllers/StepExecutionResponseController';
 import {
   KafkaStepScheduleRequestClient,
   KafkaStepScheduleRequestClientFactoryProvider,
@@ -62,7 +62,7 @@ import WorkflowExecutionOutputDaoImpl from '@repositories/WorkflowExecutionOutpu
   ],
   controllers: [
     WorkflowExecutionRequestController,
-    WorkflowExecutionStepResponseController,
+    StepExecutionResponseController,
   ],
   providers: [
     {
