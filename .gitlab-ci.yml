@@ -1,3 +1,10 @@
+stages:
+  - hello
+
+hello-world-job:
+  stage: hello
+  script:
+    - echo "Hello, World!"
 # # Imagen de base para todos los jobs
 # image: node:23.1.0
 
