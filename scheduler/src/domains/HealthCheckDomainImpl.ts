@@ -11,7 +11,7 @@ export class HealthCheckDomainImpl implements HealthCheckDomain {
     private readonly taskServiceGateway: TaskServiceGateway,
   ) {}
 
-  // Quizás tener en cuenta algo más?
+  // Quizás tener en cuenta algo más? El kafka con el orquestador
   async check(): Promise<boolean> {
     return this.taskServiceGateway.pingTaskService();
   }

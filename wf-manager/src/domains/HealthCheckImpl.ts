@@ -1,5 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import NodeCache from 'node-cache';
+import * as NodeCache from 'node-cache';
 import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';

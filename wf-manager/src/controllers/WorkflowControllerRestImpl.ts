@@ -11,7 +11,6 @@ import {
   ParseFilePipeBuilder,
   HttpStatus,
   Inject,
-  Get,
 } from '@nestjs/common';
 import {
   ExecuteWorkflowResponseDto,
@@ -24,8 +23,6 @@ import { WorkflowExecutionGateway } from '@interfaces/gateways/WorkflowExecution
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 import { CreateWorkflowResponseDto } from '@interfaces/types/CreateWorkflow';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { HealthCheckDominio } from '@domains/HealthCheckImpl';
-import NotAliveException from '@exceptions/NotAliveException';
 import { WorkflowNameParam } from '@interfaces/types/WorkflowName';
 import DisabledWorkflowException from '@exceptions/DisabledWorkflowException';
 
@@ -39,7 +36,6 @@ class WorkflowControllerRestImpl {
     private readonly workflowInputDomain: WorkflowInputDomain,
     @Inject(WorkflowExecutionGateway)
     private readonly workflowExecutionGateway: WorkflowExecutionGateway,
-    private readonly healthCheckService: HealthCheckDominio,
   ) {}
 
   @Post()
@@ -120,13 +116,6 @@ class WorkflowControllerRestImpl {
       queued: !!executionId && executionId.length > 0,
       executionId,
     };
-  }
-
-  @Get()
-  async healthCheck() {
-    const healthStatus = await this.healthCheckService.checkHealth();
-    if (healthStatus.status === 'error') throw new NotAliveException();
-    return healthStatus;
   }
 }
 
