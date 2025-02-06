@@ -46,10 +46,10 @@ export class WorkflowExecution {
   status: WfExecutionStatus;
 
   @Column({ default: null, nullable: true })
-  errorReason: string | null;
+  errorReason: string;
 
-  @Column({ default: null })
-  lastStepRun: string | null;
+  @Column({ default: null, nullable: true })
+  lastStepRun: string;
 
   @CreateDateColumn()
   createdAt: Date;

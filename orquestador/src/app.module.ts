@@ -25,6 +25,11 @@ import { WorkflowExecutionOutputDomain } from '@interfaces/domains/WorkflowExecu
 import WorkflowExecutionOutputDomainImpl from '@domains/WorkflowExecutionOutputDomainImpl';
 import { WorkflowExecutionOutputDao } from '@interfaces/repository/WorkflowExecutionOutputDao';
 import WorkflowExecutionOutputDaoImpl from '@repositories/WorkflowExecutionOutputDaoImpl';
+import { WorkflowExecution } from '@repositories/entities/worflow-execution.entity';
+import {
+  KafkaStepExecutionResponseClient,
+  KafkaStepExecutionResponseClientFactoryProvider,
+} from '@configs/KafkaStepExecutionResponseConfig';
 
 @Module({
   imports: [
@@ -48,17 +53,24 @@ import WorkflowExecutionOutputDaoImpl from '@repositories/WorkflowExecutionOutpu
         name: KafkaStepScheduleRequestClient,
         useFactory: KafkaStepScheduleRequestClientFactoryProvider,
       },
+      {
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        name: KafkaStepExecutionResponseClient,
+        useFactory: KafkaStepExecutionResponseClientFactoryProvider,
+      },
     ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432', 10),
-      username: process.env.DB_USERNAME || 'default_user',
-      password: process.env.DB_PASSWORD || 'default_password',
-      database: process.env.DB_NAME || 'default_db',
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'password',
+      database: process.env.DB_NAME || 'wf-execution-db',
       autoLoadEntities: true,
       synchronize: process.env.TYPEORM_SYNC === 'true', // Set false in production
     }),
+    TypeOrmModule.forFeature([WorkflowExecution]),
   ],
   controllers: [
     WorkflowExecutionRequestController,
@@ -84,5 +96,6 @@ import WorkflowExecutionOutputDaoImpl from '@repositories/WorkflowExecutionOutpu
       useClass: WorkflowExecutionOutputDaoImpl,
     },
   ],
+  exports: [WorkflowExecutionDao],
 })
 export class AppModule {}

@@ -14,7 +14,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 import { WorkflowExecutionStepRequest } from '@shared/WorkflowExecutionStepRequest';
-import { WorkflowExecutionStepError } from '@shared/WorkflowExecutionStepError';
 
 @Controller()
 export class StepExecutionResponseController implements OnModuleInit {
