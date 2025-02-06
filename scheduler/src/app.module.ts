@@ -19,6 +19,12 @@ import { SchedulerDomain } from '@interfaces/domains/SchedulerDomain';
 import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
+import { StepScheduleExceptionOrchestratorGateway } from '@interfaces/gateways/StepScheduleExceptionOrchestratorGateway';
+import { StepScheduleExceptionOrchestratorGatewayImpl } from '@gateways/StepScheduleExceptionOrchestatorGatewayImpl';
+import {
+  KafkaStepScheduleExceptionOrchestratorGatewayClient,
+  KafkaStepScheduleExceptionOrchestratorGatewayClientFactoryProvider,
+} from '@configs/KafkaStepScheduleExceptionOrchestratorGatewayConfig';
 
 @Module({
   imports: [
@@ -35,6 +41,13 @@ import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
         inject: [ConfigService],
         name: KafkaStepScheduleRequestClient,
         useFactory: KafkaStepScheduleRequestClientFactoryProvider,
+      },
+      {
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        name: KafkaStepScheduleExceptionOrchestratorGatewayClient,
+        useFactory:
+          KafkaStepScheduleExceptionOrchestratorGatewayClientFactoryProvider,
       },
     ]),
     HttpModule,
@@ -60,6 +73,10 @@ import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
     {
       provide: HealthCheckDomain,
       useClass: HealthCheckDomainImpl,
+    },
+    {
+      provide: StepScheduleExceptionOrchestratorGateway,
+      useClass: StepScheduleExceptionOrchestratorGatewayImpl,
     },
   ],
 })
