@@ -8,4 +8,5 @@ export const ConfigModuleValidationSchema = Joi.object({
   KAFKA_PASSWORD_SSR: Joi.string().required(),
   KAFKA_TOPIC_SSR: Joi.string().required(),
   TASK_SERVICE_URL: Joi.string().required(),
+  PORT: Joi.number().port().required(),
 });
