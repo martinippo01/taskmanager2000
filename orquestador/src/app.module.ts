@@ -30,6 +30,7 @@ import {
   KafkaStepExecutionResponseClient,
   KafkaStepExecutionResponseClientFactoryProvider,
 } from '@configs/KafkaStepExecutionResponseConfig';
+import PingController from '@controllers/PingController';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import {
   controllers: [
     WorkflowExecutionRequestController,
     StepExecutionResponseController,
+    PingController,
   ],
   providers: [
     {

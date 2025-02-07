@@ -21,10 +21,11 @@ import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { ConfigModule } from '@nestjs/config';
 import { exceptionFilterProviders } from '@exceptions/filters/providers';
 import { HealthCheckDomainImpl } from '@domains/HealthCheckImpl';
+import PingController from '@controllers/PingController';
 
 @Module({
   imports: [ConfigModule.forRoot()],
-  controllers: [WorkflowControllerRestImpl],
+  controllers: [WorkflowControllerRestImpl, PingController],
   providers: [
     {
       provide: WorkflowDomain,

@@ -25,6 +25,7 @@ import {
   KafkaStepScheduleExceptionOrchestratorGatewayClient,
   KafkaStepScheduleExceptionOrchestratorGatewayClientFactoryProvider,
 } from '@configs/KafkaStepScheduleExceptionOrchestratorGatewayConfig';
+import PingController from '@controllers/PingController';
 
 @Module({
   imports: [
@@ -52,7 +53,7 @@ import {
     ]),
     HttpModule,
   ],
-  controllers: [WorkflowExecutionStepController],
+  controllers: [WorkflowExecutionStepController, PingController],
   providers: [
     {
       provide: SchedulerDomain,
