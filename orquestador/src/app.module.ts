@@ -31,6 +31,8 @@ import {
   KafkaStepExecutionResponseClientFactoryProvider,
 } from '@configs/KafkaStepExecutionResponseConfig';
 import PingController from '@controllers/PingController';
+import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
+import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 
 @Module({
   imports: [
@@ -96,6 +98,10 @@ import PingController from '@controllers/PingController';
     {
       provide: WorkflowExecutionOutputDao,
       useClass: WorkflowExecutionOutputDaoImpl,
+    },
+    {
+      provide: HealthCheckDomain,
+      useClass: HealthCheckDomainImpl,
     },
   ],
   exports: [WorkflowExecutionDao],

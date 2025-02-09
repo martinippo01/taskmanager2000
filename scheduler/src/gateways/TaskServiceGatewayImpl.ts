@@ -15,7 +15,7 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
   constructor(private readonly httpService: HttpService) {}
 
   private readonly TASK_SERVICE_URL: string =
-    process.env.TASK_SERVICE_URL || 'http://task-service/';
+    process.env.TASK_SERVICE_URL || 'http://task-service:3000';
 
   async getTaskInfo(taskName: string): Promise<TaskData | null> {
     try {
