@@ -1,268 +1,30 @@
+image: docker:latest
+
+services:
+  - docker:dind # Enables Docker commands in CI
+
+variables:
+  IMAGE_REGISTRY: "martinippo"
+  IMAGE_PREFIX: "taskmanager2000"
+  DOCKER_DRIVER: overlay2 # Optimized storage driver for GitLab CI
+
 stages:
-  - hello
+  - build
+  - push
 
-hello-world-job:
-  stage: hello
+before_script:
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+
+build_and_push:
+  stage: build
   script:
-    - echo "Hello, World!"
-# # Imagen de base para todos los jobs
-# image: node:23.1.0
-
-# include:
-#   - template: Jobs/SAST.gitlab-ci.yml
-
-# # Variables globales de entorno
-# variables:
-#   SEARCH_MAX_DEPTH: 17 # No tengo idea de qué es esto
-#   GITLAB_ADVANCED_SAST_ENABLED: 'true'
-#   MICROSERVICE_ORQUESTADOR: "orquestador"
-#   MICROSERVICE_SCHEDULER: "scheduler"
-#   MICROSERVICE_TASK_SERVICE: "task_service"
-#   MICROSERVICE_WORKFLOW_MANAGER: "wf_manager"
-#   MICROSERVICES: "${MICROSERVICE_ORQUESTADOR} ${MICROSERVICE_SCHEDULER} ${MICROSERVICE_TASK_SERVICE} ${MICROSERVICE_WORKFLOW_MANAGER}"
-#   CACHE_KEY: "cache-$(for service in ${MICROSERVICES}; do cat $service/package-lock.json; done | sha256sum | awk '{ print $1 }')"
-#   # Agregamos los jobs acá???
-
-# stages:
-#   - prepare
-#   - test
-#   - build
-#   - release_approval
-#   - release
-#   - deploy
-
-# cache-job:
-#   stage: prepare
-#   cache:
-#     key: ${CACHE_KEY}
-#     paths:
-#       - ./*/.npm/
-#       - ./*/node_modules/
-#       - ./*/package-lock.json.sha256sum
-#     policy: pull-push
-#     when: on_failure
-#   script:
-#     - CI_CACHE_EXIT_CODE=0
-#     - for service in ${MICROSERVICES}; do
-#         hash=$(cat $service/package-lock.json | sha256sum | awk '{ print $1 }');
-#         if [ ! -f $service/package-lock.json.sha256sum ] || [ "$(cat $service/package-lock.json.sha256sum)" != "$hash" ]; then
-#           echo "Cache miss for $service";
-#           CI_CACHE_EXIT_CODE=123;
-#         fi;
-#         echo $hash > $service/package-lock.json.sha256sum;
-#       done
-#     - if [ $CI_CACHE_EXIT_CODE -ne 0 ]; then
-#         for service in ${MICROSERVICES}; do
-#           cd $service;
-#           echo "Installing dependencies for $service";
-#           npm ci --cache .npm --prefer-offline;
-#           cd ..;
-#         done;
-#       fi
-#     - exit $CI_CACHE_EXIT_CODE
-#   allow_failure:
-#     exit_codes: 123
-
-# .node-job:
-#   cache:
-#     key: ${CACHE_KEY}
-#     paths:
-#       - ${SERVICE_NAME}/.npm/
-#       - ${SERVICE_NAME}/node_modules/
-#     policy: pull
-
-# .unit-test:
-#   extends: .node-job
-#   stage: test
-#   script:
-#     - cd ${SERVICE_NAME}
-#     - npm install
-#     - JEST_JUNIT_OUTPUT_FILE='test-results.xml' npm run test -- --ci --reporters=default --reporters=jest-junit
-#   artifacts:
-#     reports:
-#       junit: ${SERVICE_NAME}/test-results.xml
-#   rules:
-#     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Ensure it doesn't run on version tags
-#       when: never
-#     - when: on_success
-
-# .performance-test:
-#   stage: test
-#   script:
-#     - echo "Chequeando perfomance..."
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "staging"
-#       when: on_success
-
-# .build:
-#   extends: .node-job
-#   stage: build
-#   script:
-#     - cd ${SERVICE_NAME}
-#     - npm install
-#     - npm run build
-#   artifacts:
-#     paths:
-#       - ${SERVICE_NAME}/dist/
-#     expire_in: 30 days
-#   rules:
-#     - when: on_success
-
-# .release:
-#   stage: release
-#   image: docker:latest
-#   services:
-#     - docker:dind
-#   script:
-#     - cd ${SERVICE_NAME}
-#     - echo "Helm algo algo que bueno que magico"
-#   rules:
-#     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
-#       when: on_success
-#   needs:
-#     - job: release_approval
-#       optional: false
-
-# .deploy:
-#   stage: deploy
-#   script:
-#     - echo "Deploy ${SERVICE_NAME} to Kubernetes cluster"
-#     - echo "Updating deployment for ${SERVICE_NAME} with image ${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
-#     - echo "kubectl set image deployment/${SERVICE_NAME} ${SERVICE_NAME}=${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${CI_COMMIT_TAG}"
-#     - echo "kubectl rollout status deployment/${SERVICE_NAME}"
-#   rules:
-#     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
-#       when: on_success
-#   needs:
-#     - job: release_approval
-#       optional: false
-
-# # Job de aprobación manual de release
-# release_approval:
-#   stage: release_approval
-#   rules:
-#     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
-#       when: manual
-#     - when: never
-#   script:
-#     - echo "Release $CI_COMMIT_TAG has been approved for deployment."
-#   allow_failure: false
-
-# # Jobs específicos de cada microservicio
-# orquestador-unit-tests:
-#   extends: .unit-test
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
-
-# scheduler-unit-tests:
-#   extends: .unit-test
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_SCHEDULER
-
-# orquestador-performance-tests:
-#   extends: .performance-test
-
-# # task-service-unit-tests:
-# #   extends: .unit-test
-# #   variables:
-# #     SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
-
-# # workflow-manager-unit-tests:
-# #   extends: .unit-test
-# #   variables:
-# #     SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
-
-# orquestador-build:
-#   extends: .build
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
-
-# orquestador-correcto:
-#   stage: build
-#   script:
-#     - echo "Buildeo correctamente el orchestador!"
-#   needs: [orquestador-build]
-#   when: "on_success"
-
-# orquestador-fail:
-#   stage: build
-#   script:
-#     - echo "No buildeo correctamente el orchestador!"
-#   needs: [orquestador-build]
-#   when: "on_failure"
-
-# scheduler-build:
-#   extends: .build
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_SCHEDULER
-
-# task-service-build:
-#   extends: .build
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
-
-# workflow-manager-build:
-#   extends: .build
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
-
-# orquestador-release:
-#   extends: .release
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
-
-# scheduler-release:
-#   extends: .release
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_SCHEDULER
-
-# task-service-release:
-#   extends: .release
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
-
-# workflow-manager-release:
-#   extends: .release
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
-
-# orquestador-deploy:
-#   extends: .deploy
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_ORQUESTADOR
-#   needs:
-#     - job: release_approval
-#       optional: false
-#     - job: orquestador-release
-#       optional: false
-
-# scheduler-deploy:
-#   extends: .deploy
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_SCHEDULER
-#   needs:
-#     - job: release_approval
-#       optional: false
-#     - job: scheduler-release
-#       optional: false
-
-# task-service-deploy:
-#   extends: .deploy
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_TASK_SERVICE
-#   needs:
-#     - job: release_approval
-#       optional: false
-#     - job: task-service-release
-#       optional: false
-
-# workflow-manager-deploy:
-#   extends: .deploy
-#   variables:
-#     SERVICE_NAME: $MICROSERVICE_WORKFLOW_MANAGER
-#   needs:
-#     - job: release_approval
-#       optional: false
-#     - job: workflow-manager-release
-#       optional: false
-
+    - for service in orquestador scheduler task-service wf-manager; do
+      echo "Building $service...";
+      # docker build -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest $service;
+      tar -czh . | docker build - -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest;
+      docker tag $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:$CI_COMMIT_SHORT_SHA;
+      echo "Pushing $service...";
+      docker push $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest;
+      docker push $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:$CI_COMMIT_SHORT_SHA;
+      done
+# tar -czh . | docker build - -t [MICROSERVICE]:[VERSION]
