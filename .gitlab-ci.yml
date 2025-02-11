@@ -6,11 +6,13 @@ stages:
   - build
   - push
 
-image: ubuntu:latest
+image: docker:latest
+
+services:
+  - docker:dind
 
 before_script:
-  - apt-get update && apt-get install -y tar
-  - apt-get install -y docker.io
+  - apk add --no-cache tar
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
 build_and_push:
