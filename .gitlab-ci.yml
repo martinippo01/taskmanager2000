@@ -1,19 +1,15 @@
-image: docker:latest
-
-services:
-  - docker:dind # Enables Docker commands in CI
-
-variables:
-  IMAGE_REGISTRY: "martinippo"
-  IMAGE_PREFIX: "taskmanager2000"
-  DOCKER_DRIVER: overlay2 # Optimized storage driver for GitLab CI
+IMAGE_PREFIX: "taskmanager2000"
+DOCKER_DRIVER: overlay2 # Optimized storage driver for GitLab CI
 
 stages:
   - build
   - push
 
+image: ubuntu:latest
+
 before_script:
   - apt-get update && apt-get install -y tar
+  - apt-get install -y docker.io
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
 build_and_push:
@@ -22,12 +18,9 @@ build_and_push:
     - |
       for service in orquestador scheduler task-service wf-manager; do
       echo "Building $service...";
-      # docker build -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest $service;
-      "tar -czh . | docker build - -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest";
+      tar -czh . | docker build - -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest;
       docker tag $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:$CI_COMMIT_SHORT_SHA;
       echo "Pushing $service...";
       docker push $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest;
       docker push $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:$CI_COMMIT_SHORT_SHA;
       done
-
-# tar -czh . | docker build - -t [MICROSERVICE]:[VERSION]
