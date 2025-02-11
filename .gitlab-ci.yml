@@ -1,5 +1,6 @@
-IMAGE_PREFIX: "taskmanager2000"
-DOCKER_DRIVER: overlay2 # Optimized storage driver for GitLab CI
+variables:
+  IMAGE_PREFIX: "taskmanager2000"
+  DOCKER_DRIVER: overlay2 # Optimized storage driver for GitLab CI
 
 stages:
   - build
