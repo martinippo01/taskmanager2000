@@ -21,7 +21,7 @@ build_and_push:
     - for service in orquestador scheduler task-service wf-manager; do
       echo "Building $service...";
       # docker build -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest $service;
-      tar -czh . | docker build - -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest;
+      "tar -czh . | docker build - -t $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest";
       docker tag $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:$CI_COMMIT_SHORT_SHA;
       echo "Pushing $service...";
       docker push $IMAGE_REGISTRY/$IMAGE_PREFIX-$service:latest;
