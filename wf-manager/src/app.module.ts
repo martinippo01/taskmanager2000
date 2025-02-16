@@ -22,9 +22,18 @@ import { ConfigModule } from '@nestjs/config';
 import { exceptionFilterProviders } from '@exceptions/filters/providers';
 import { HealthCheckDomainImpl } from '@domains/HealthCheckImpl';
 import PingController from '@controllers/PingController';
+import { ConfigModuleValidationSchema } from './configs/ConfigValidationSchema';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [
+    ConfigModule.forRoot({
+      validationSchema: ConfigModuleValidationSchema,
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: false,
+      },
+    }),
+  ],
   controllers: [WorkflowControllerRestImpl, PingController],
   providers: [
     {
