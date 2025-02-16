@@ -10,4 +10,10 @@ export const ConfigModuleValidationSchema = Joi.object({
   REDIS_PORT: Joi.number().port().required(),
 
   HC_CACHE_TTL: Joi.number().min(0).required(),
+
+  KAFKA_USERNAME: Joi.string().required(),
+  KAFKA_PASSWORD: Joi.string().required(),
+  KAFKA_TOPIC: Joi.string().required(),
+  KAFKA_BROKERS: Joi.string().required(),
+  KAFKA_CLIENT_ID: Joi.string().required(),
 });
