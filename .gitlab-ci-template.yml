@@ -1,0 +1,34 @@
+spec:
+  inputs:
+    image-prefix:
+      type: string
+    service:
+      type: string
+---
+image: docker:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2 # Optimized storage driver for GitLab CI
+  IMAGE_NAME: $DOCKER_USERNAME/$[[ inputs.image-prefix ]]-$[[ inputs.service ]]
+
+stages:
+  - to_docker_hub
+
+before_script:
+  - apt-get update && apt-get install -y tar
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+
+build_and_push:
+  stage: to_docker_hub
+  script:
+    - echo "Building $[[ inputs.service ]]..."
+    - cd $[[ inputs.service ]]
+    - tar -czh . | docker build - -t $IMAGE_NAME:latest
+    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - echo "Pushing $[[ inputs.service ]]..."
+    - docker push $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - cd ..
