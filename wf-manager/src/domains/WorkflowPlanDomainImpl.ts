@@ -6,7 +6,14 @@ import { InputParams } from '@shared/WorkflowInput';
 import { Param, Plan, Step } from '@shared/WorkflowPlan';
 import { parse } from 'yaml';
 
-const validTasks = ['echo', 'bash', 's3', 'filter', 'manual'] as const;
+const validTasks = [
+  'echo',
+  'bash',
+  's3_upload',
+  's3_download',
+  'filter',
+  'manual',
+] as const;
 const validTaskTypes = ['string', 'number', 'boolean'] as const;
 
 @Injectable()
@@ -23,9 +30,10 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
     const parsed = parse(fileContent);
     const inputParams = {};
 
+    // SI ALGO ESTÁ ROTO PUEDE SER QUE SEA PORQUE CAMBIÉ param.name a param.value
     for (const step of parsed.steps) {
       for (const param of step.params) {
-        inputParams[param.name] = param.type;
+        inputParams[param.value] = param.type;
       }
     }
 
@@ -85,10 +93,9 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
       stepNames.add(step.name);
       const current_step: Partial<Step> = {};
 
-      // TODO: Sacar esta info del Task manager
       this.LOGGER.debug('Validating task');
       if (!step.task || !validTasks.includes(step.task))
-        throw_excep(`Step ${step.name} has an invalid task`);
+        throw_excep(`Step ${step.name} has an invalid task ${step.task}`);
 
       if (!Array.isArray(step.params) || step.params.length === 0)
         throw_excep(`Step ${step.name} has no parameters`);

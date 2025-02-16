@@ -5,7 +5,10 @@ import {
 } from '@interfaces/repository/WorkflowExecutionDao';
 import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecutionStepDomain';
 import { Step } from '@shared/WorkflowPlan';
-import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
+import {
+  WfExecutionStatus,
+  WorkflowExecution,
+} from '@repositories/entities/worflow-execution.entity';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 import { InputArguments } from '@shared/WorkflowInput';
@@ -29,7 +32,11 @@ export class WorkflowExecutionStepDomainImpl
     // Check the persistence for steps and the lasr run step
     const steps: stepsInfo | null =
       await this.workflowExecutionRepository.getStepsFromExecution(executionId);
-    if (!steps) {
+    const wf_exec: WorkflowExecution | null =
+      await this.workflowExecutionRepository.getWorkflowExecutionById(
+        executionId,
+      );
+    if (!steps || !wf_exec) {
       this.LOGGER.error(`No steps found for workflow ${executionId}`);
       return; // check if to throw an error
     }
@@ -52,10 +59,10 @@ export class WorkflowExecutionStepDomainImpl
       const stepArguments: InputArguments = {};
       nextStep.params.forEach((param) => {
         if ('from' in param) {
-          stepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS;
+          stepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS; Bueno olvidate de esto
         } else {
           if (!!param.constant || param.constant === false) {
-            stepArguments[param.name] = ''; // TODO: Obtener el valor desde la DB, leyendo los inputargs del workflow execution
+            stepArguments[param.name] = wf_exec.inputArguments[param.value];
           } else {
             stepArguments[param.name] = param.value;
           }

@@ -64,9 +64,14 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
     const filteredArgs = {};
     const firstStep = stepsInfo.steps[0];
 
+    this.LOGGER.debug(
+      `First step of execution ${request.executionId}: ${firstStep}`,
+    );
+
+    // ANTES ESTABA EL val.name ACÁ en lugar de val.value
     firstStep.params.forEach((val) => {
-      if (val.name in stepsInfo.inputArguments)
-        filteredArgs[val.name] = stepsInfo.inputArguments[val.name];
+      if (val.name in stepsInfo.inputArguments && 'value' in val)
+        filteredArgs[val.name] = stepsInfo.inputArguments[val.value];
       else {
         this.LOGGER.error(
           `Un parámetro necesario para el primer paso (${val.name}) no está en lo que se guardó en la BD`,
