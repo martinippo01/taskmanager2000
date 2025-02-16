@@ -33,6 +33,7 @@ import {
 import PingController from '@controllers/PingController';
 import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
+import { WorkflowExecutionQueryController } from '@controllers/WorkflowExecutionQueryController';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
   controllers: [
     WorkflowExecutionRequestController,
     StepExecutionResponseController,
+    WorkflowExecutionQueryController,
     PingController,
   ],
   providers: [
