@@ -1,8 +1,8 @@
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { Resource } from "@opentelemetry/resources";
-import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { Resource } from '@opentelemetry/resources';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
 class OTelSDK {
   private readonly sdk: NodeSDK;
@@ -19,15 +19,21 @@ class OTelSDK {
         [ATTR_SERVICE_NAME]: serviceName,
       }),
       traceExporter,
-      instrumentations: [getNodeAutoInstrumentations()],
+      instrumentations: [
+        getNodeAutoInstrumentations({
+          '@opentelemetry/instrumentation-nestjs-core': {
+            enabled: true,
+          },
+        }),
+      ],
     });
 
-    process.on("SIGTERM", () => {
+    process.on('SIGTERM', () => {
       this.sdk
         .shutdown()
         .then(
-          () => console.log("OTel SDK shutdown successfully"),
-          (err) => console.log("OTel SDK shutdown failed", err)
+          () => console.log('OTel SDK shutdown successfully'),
+          (err) => console.log('OTel SDK shutdown failed', err),
         )
         .finally(() => process.exit(0));
     });
