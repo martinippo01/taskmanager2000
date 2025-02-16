@@ -22,6 +22,9 @@ export const ConfigModuleValidationSchema = Joi.object({
   TYPEORM_SYNC: Joi.boolean().required(),
 
   PORT: Joi.number().port().required(),
+  SERVICE_NAME: Joi.string().required(),
+
+  SIGNOZ_URL: Joi.string().required(),
 
   NFS_PATH: Joi.string().required(),
 });
