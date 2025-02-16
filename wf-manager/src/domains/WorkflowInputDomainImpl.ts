@@ -24,6 +24,7 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
     const setInputParams: Set<string> = new Set<string>();
     const allInputParams: string[] = Object.keys(inputParams);
 
+    this.LOGGER.debug(inputParams);
     this.LOGGER.debug('Validating input arguments');
     for (const [key, value] of Object.entries(inputArgs)) {
       // Check if the input argument is in the input parameters

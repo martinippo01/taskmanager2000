@@ -33,6 +33,9 @@ import {
 import PingController from '@controllers/PingController';
 import { HealthCheckDomainImpl } from '@domains/HealthCheckDomainImpl';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
+import { WorkflowExecutionQueryController } from '@controllers/WorkflowExecutionQueryController';
+import { WorkflowExecutionQueryDomain } from '@interfaces/domains/WorklowExecutionQueryDomain';
+import { WorkflowExecutionQueryDomainImpl } from '@domains/WorkflowExecutionQueryDomainImpl';
 
 @Module({
   imports: [
@@ -78,6 +81,7 @@ import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
   controllers: [
     WorkflowExecutionRequestController,
     StepExecutionResponseController,
+    WorkflowExecutionQueryController,
     PingController,
   ],
   providers: [
@@ -90,6 +94,10 @@ import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
     {
       provide: StepScheduleRequestGateway,
       useClass: StepScheduleRequestGatewayImpl,
+    },
+    {
+      provide: WorkflowExecutionQueryDomain,
+      useClass: WorkflowExecutionQueryDomainImpl,
     },
     {
       provide: WorkflowExecutionOutputDomain,
