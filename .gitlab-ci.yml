@@ -106,6 +106,12 @@ deploy-k8s:
     # - kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
     - echo "Deploy to AWS"
     # - helmfile apply
+    - echo "Modifying the kubeconfig file to use the master node's IP address..."
+    # delete line 4
+    - sed -i '4d' ~/.kube/config
+    # replace the server address with the master node's IP address and disable tls verification
+    - |
+      sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
