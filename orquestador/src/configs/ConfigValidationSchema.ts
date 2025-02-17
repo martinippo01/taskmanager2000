@@ -24,7 +24,8 @@ export const ConfigModuleValidationSchema = Joi.object({
   PORT: Joi.number().port().required(),
   SERVICE_NAME: Joi.string().required(),
 
-  SIGNOZ_URL: Joi.string().required(),
+  LOGGER_URL: Joi.string().required(),
+  TRACE_URL: Joi.string().required(),
 
   NFS_PATH: Joi.string().required(),
 });
