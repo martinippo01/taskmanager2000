@@ -1,11 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { WorkflowDao } from '@interfaces/repositories/WorkflowDao';
-import {
-  RedisMultiCommand,
-  RedisRepository,
-} from '@interfaces/repositories/RedisRepository';
+import { RedisRepository } from '@interfaces/repositories/RedisRepository';
 import WorkflowDaoImpl from '@repositories/WorkflowDaoImpl';
 import { Workflow } from '@interfaces/types/Workflow';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('WorkflowDao', () => {
   const redisRepositoryMock = {
@@ -33,6 +31,7 @@ describe('WorkflowDao', () => {
           provide: WorkflowDao,
           useClass: WorkflowDaoImpl,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

@@ -2,6 +2,7 @@ import InvalidWorkflowPlanException from '@exceptions/InvalidWorkflowPlanExcepti
 import WorkflowPlanDomainImpl from '../../src/domains/WorkflowPlanDomainImpl';
 import { WorkflowPlanDomain } from '../../src/interfaces/domains/WorkflowPlanDomain';
 import { Test, TestingModule } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('PlanDomain', () => {
   let service: WorkflowPlanDomain;
@@ -13,6 +14,7 @@ describe('PlanDomain', () => {
           provide: WorkflowPlanDomain,
           useClass: WorkflowPlanDomainImpl,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
@@ -61,10 +63,8 @@ describe('PlanDomain', () => {
       description: 'A description of the test plan',
       version: '1.0',
       inputParams: {
-        param1: 'string',
-        param2: 'number',
-        param3: 'boolean',
-        param4: 'string[]',
+        a_completar_1: 'string',
+        a_completar_3: 'string[]',
       },
     });
   });
