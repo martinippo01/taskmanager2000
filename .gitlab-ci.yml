@@ -113,6 +113,7 @@ deploy-k8s:
     - |
       sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
     - cat ~/.kube/config
+    - kubectl get nodes
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
