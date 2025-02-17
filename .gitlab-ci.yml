@@ -88,6 +88,8 @@ deploy-k8s:
     - echo "Deploying to k8s ..."
     # Move the config file to the helm directory to connecto to AWS kubectl
     - mkdir -p /helm/.kube
+    - scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o IdentitiesOnly=yes -o User=ubuntu ubuntu@$CLUSTER_IP:~/.kube/config /helm/.kube/config
+    - cat /helm/.kube/config
     # - cp $KUBE_CONFIG_FILE /helm/.kube/config # TODO: Change this
     - cd ~
     - git clone https://oauth2:$CI_ACCESS_TOKEN_2@gitlab.com/itba-73-40-microservicios/alumnos/grupo-a/taskmanager2000-cluster-config.git
@@ -100,5 +102,6 @@ deploy-k8s:
     # - kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
     - echo "Deploy to AWS"
     # - helmfile apply
+
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
