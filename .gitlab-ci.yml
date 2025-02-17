@@ -94,6 +94,7 @@ deploy-k8s:
     - cd taskmanager2000-cluster-config/helm
     - ls
     - echo "Install dependencies"
+    - echo "$CLUSTER_IP"
     # - helmfile init --interactive=false
     # - kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
     # - kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
