@@ -1,0 +1,4 @@
+include:
+  - local: '.gitlab-ci-template-test.yml'
+    inputs:
+      service: 'scheduler'
