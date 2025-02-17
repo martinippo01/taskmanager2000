@@ -30,13 +30,13 @@ export class WorkflowExecution {
   description: string;
 
   @Column('jsonb')
-  inputParams: InputParams;
+  inputParams: InputParams; // Diccionario de parametros VARIABLES donde las claves son el campo 'value' y el valor es el tipo (campo 'type'). NO SE USA
 
   @Column('jsonb')
-  inputArguments: InputArguments;
+  inputArguments: InputArguments; // Diccionario de parametros VARIABLES donde las claves son el campo 'value' y el valor es el valor definido por el usuario
 
   @Column('jsonb')
-  plan: Plan;
+  plan: Plan; // Es la lista de steps que se van a ejecutar
 
   // Chequear que ese default funciona
   @Column('jsonb', { default: {} })

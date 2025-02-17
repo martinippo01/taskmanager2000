@@ -7,6 +7,7 @@ import {
   RedisMultiCommand,
   RedisRepository,
 } from '@interfaces/repositories/RedisRepository';
+import { TracerGateway } from '@shared/TracerGateway';
 
 export const redisClientFactory: FactoryProvider<Redis> = {
   provide: 'RedisClient',
@@ -34,7 +35,10 @@ export const redisClientFactory: FactoryProvider<Redis> = {
 
 @Injectable()
 export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
-  constructor(@Inject('RedisClient') private readonly redisClient: Redis) {}
+  constructor(
+    @Inject('RedisClient') private readonly redisClient: Redis,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
+  ) {}
   private readonly LOGGER = new Logger(RedisRepositoryImpl.name);
 
   onModuleInit(): void {}
@@ -44,15 +48,28 @@ export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
   }
 
   async get(key: string): Promise<string | null> {
-    return this.redisClient.get(key);
+    return this.tracerGateway.trace('redis_get', async (span) => {
+      span.setAttribute('redis.key', key);
+      const value = await this.redisClient.get(key);
+      span.setAttribute('redis.response.ok', true);
+      return value;
+    });
   }
 
   async set(key: string, value: string): Promise<void> {
-    await this.redisClient.set(key, value);
+    return this.tracerGateway.trace('redis_set', async (span) => {
+      span.setAttribute('redis.key', key);
+      await this.redisClient.set(key, value);
+      span.setAttribute('redis.response.ok', true);
+    });
   }
 
   async delete(key: string): Promise<void> {
-    await this.redisClient.del(key);
+    return this.tracerGateway.trace('redis_delete', async (span) => {
+      span.setAttribute('redis.key', key);
+      await this.redisClient.del(key);
+      span.setAttribute('redis.response.ok', true);
+    });
   }
 
   async setWithExpiry(
@@ -60,37 +77,58 @@ export class RedisRepositoryImpl implements OnModuleDestroy, RedisRepository {
     value: string,
     expiry: number,
   ): Promise<void> {
-    await this.redisClient.set(key, value, 'EX', expiry);
+    return this.tracerGateway.trace('redis_set_with_expiry', async (span) => {
+      span.setAttribute('redis.key', key);
+      span.setAttribute('redis.expiry', expiry);
+      await this.redisClient.set(key, value, 'EX', expiry);
+      span.setAttribute('redis.response.ok', true);
+    });
   }
 
   async ping(): Promise<boolean> {
-    try {
-      const response = await this.redisClient.ping();
-      if (response === 'PONG') {
-        this.LOGGER.log('Redis ping successful');
-        return true;
+    return this.tracerGateway.trace('redis_ping', async (span) => {
+      try {
+        const response = await this.redisClient.ping();
+        span.setAttribute('redis.response', response);
+        if (response === 'PONG') {
+          this.LOGGER.log('Redis ping successful');
+          return true;
+        }
+        this.LOGGER.error(`Unexpected Redis ping response: ${response}`);
+        return false;
+      } catch (error) {
+        this.LOGGER.error(`Redis ping failed: ${error.message}`);
+        return false;
       }
-      this.LOGGER.error(`Unexpected Redis ping response: ${response}`);
-      return false;
-    } catch (error) {
-      this.LOGGER.error(`Redis ping failed: ${error.message}`);
-      return false;
-    }
+    });
   }
 
   async sadd(key: string, value: string): Promise<void> {
-    await this.redisClient.sadd(key, value);
+    return this.tracerGateway.trace('redis_sadd', async (span) => {
+      span.setAttribute('redis.key', key);
+      await this.redisClient.sadd(key, value);
+      span.setAttribute('redis.response.ok', true);
+    });
   }
 
   async sIsMember(key: string, value: string): Promise<boolean> {
-    return (await this.redisClient.sismember(key, value)) === 1;
+    return this.tracerGateway.trace('redis_sismember', async (span) => {
+      span.setAttribute('redis.key', key);
+      const response = await this.redisClient.sismember(key, value);
+      span.setAttribute('redis.response', response);
+      return response === 1;
+    });
   }
 
   async multi(commands: RedisMultiCommand[]): Promise<void> {
-    await this.redisClient.multi(commands).exec((err) => {
-      if (err) {
-        throw new Error(`Failed to execute multi command: ${err}`);
-      }
+    return this.tracerGateway.trace('redis_multi', async (span) => {
+      span.setAttribute('redis.commands.length', commands.length);
+      await this.redisClient.multi(commands).exec((err) => {
+        if (err) {
+          throw new Error(`Failed to execute multi command: ${err}`);
+        }
+      });
+      span.setAttribute('redis.response.ok', true);
     });
   }
 }

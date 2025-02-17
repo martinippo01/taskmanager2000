@@ -4,6 +4,7 @@ import { Workflow } from '@interfaces/types/Workflow';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 import { InputArguments } from '@shared/WorkflowInput';
 
 describe('WorkflowExecutionGateway', () => {
@@ -21,6 +22,10 @@ describe('WorkflowExecutionGateway', () => {
     async send(): Promise<string> {
       return 'executionId';
     }
+
+    isConnected(): boolean {
+      return true;
+    }
   }
 
   let gateway: WorkflowExecutionGatewayImpl;
@@ -37,6 +42,7 @@ describe('WorkflowExecutionGateway', () => {
           provide: WorkflowExecutionRequestProducer,
           useClass: WorkflowExecutionRequestProducerMock,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

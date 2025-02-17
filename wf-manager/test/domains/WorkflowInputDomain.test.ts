@@ -5,6 +5,7 @@ import InvalidInputArgumentTypeException from '@exceptions/InvalidInputArgumentT
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { Workflow } from '@interfaces/types/Workflow';
 import { Test } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 import { InputParams } from '@shared/WorkflowInput';
 
 describe('WorkflowInputDomain', () => {
@@ -26,6 +27,7 @@ describe('WorkflowInputDomain', () => {
           provide: WorkflowInputDomain,
           useClass: WorkflowInputDomainImpl,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
