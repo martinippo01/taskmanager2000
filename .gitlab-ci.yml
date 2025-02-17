@@ -1,6 +1,7 @@
 stages:
   - test
   - build
+  - deploy
 
 test-orquestador:
   stage: test
@@ -76,4 +77,27 @@ build-wf-manager:
   rules:
     - changes:
         - wf-manager/**/*
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+deploy-k8s:
+  stage: deploy
+  image:
+    name: ghcr.io/helmfile/helmfile:latest
+    entrypoint: [""] # Override the default entrypoint
+  script:
+    - echo "Deploying to k8s ..."
+    # Move the config file to the helm directory to connecto to AWS kubectl
+    - mkdir -p /helm/.kube
+    # - cp $KUBE_CONFIG_FILE /helm/.kube/config # TODO: Change this
+    - cd ~
+    - git clone https://oauth2:$CI_ACCESS_TOKEN_2@gitlab.com/itba-73-40-microservicios/alumnos/grupo-a/taskmanager2000-cluster-config.git
+    - cd taskmanager2000-cluster-config/helm
+    - ls
+    - echo "Install dependencies"
+    # - helmfile init --interactive=false
+    # - kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+    # - kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
+    - echo "Deploy to AWS"
+    # - helmfile apply
+  rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
