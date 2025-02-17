@@ -7,6 +7,7 @@ import { jest } from '@jest/globals';
 import { Workflow } from '@interfaces/types/Workflow';
 import WorkflowAlreadyExistsException from '@exceptions/WorkflowAlreadyExistsException';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('WorkflowDomainImpl', () => {
   let workflowDomain: WorkflowDomain;
@@ -44,6 +45,7 @@ describe('WorkflowDomainImpl', () => {
           provide: WorkflowPlanDomain,
           useValue: workflowPlanDomain,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

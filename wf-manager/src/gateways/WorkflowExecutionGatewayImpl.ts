@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { WorkflowExecutionRequestProducer } from '@interfaces/types/WorkflowExecutionRequestProducer';
 import { InputArguments } from '@shared/WorkflowInput';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Injectable()
 class WorkflowExecutionGatewayImpl
@@ -20,6 +21,7 @@ class WorkflowExecutionGatewayImpl
   constructor(
     @Inject(WorkflowExecutionRequestProducer)
     private readonly producer: WorkflowExecutionRequestProducer,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async onModuleInit() {
@@ -48,23 +50,29 @@ class WorkflowExecutionGatewayImpl
     workflow: Workflow,
     inputArgs: InputArguments,
   ): Promise<string> {
-    const { name, description, inputParams, plan } = workflow;
-    try {
-      this.LOGGER.debug(`Sending workflow ${name} to execution`);
-      const executionId = await this.producer.send(name, {
-        name,
-        description,
-        inputParams,
-        inputArgs,
-        plan,
-      });
-      return executionId;
-    } catch (error) {
-      this.LOGGER.error(`Send error: ${error}`);
-      throw new InternalServerErrorException(
-        `Failed to queue workflow ${name} for execution`,
-      );
-    }
+    return this.tracerGateway.trace('queue_workflow_gateway', async (span) => {
+      const { name, description, inputParams, plan } = workflow;
+      span.setAttribute('workflow.name', name);
+
+      try {
+        this.LOGGER.debug(`Sending workflow ${name} to execution`);
+        const executionId = await this.producer.send(name, {
+          name,
+          description,
+          inputParams,
+          inputArgs,
+          plan,
+        });
+        span.setAttribute('workflow.execution.queued', true);
+        span.setAttribute('workflow.execution.id', executionId);
+        return executionId;
+      } catch (error) {
+        this.LOGGER.error(`Send error: ${error}`);
+        throw new InternalServerErrorException(
+          `Failed to queue workflow ${name} for execution`,
+        );
+      }
+    });
   }
 }
 
