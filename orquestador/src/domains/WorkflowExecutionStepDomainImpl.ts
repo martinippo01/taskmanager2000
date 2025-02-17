@@ -5,7 +5,10 @@ import {
 } from '@interfaces/repository/WorkflowExecutionDao';
 import { WorkflowExecutionStepDomain } from '@interfaces/domains/WorkflowExecutionStepDomain';
 import { Step } from '@shared/WorkflowPlan';
-import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
+import {
+  WfExecutionStatus,
+  WorkflowExecution,
+} from '@repositories/entities/worflow-execution.entity';
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 import { InputArguments } from '@shared/WorkflowInput';
@@ -29,7 +32,11 @@ export class WorkflowExecutionStepDomainImpl
     // Check the persistence for steps and the lasr run step
     const steps: stepsInfo | null =
       await this.workflowExecutionRepository.getStepsFromExecution(executionId);
-    if (!steps) {
+    const wf_exec: WorkflowExecution | null =
+      await this.workflowExecutionRepository.getWorkflowExecutionById(
+        executionId,
+      );
+    if (!steps || !wf_exec) {
       this.LOGGER.error(`No steps found for workflow ${executionId}`);
       return; // check if to throw an error
     }
@@ -55,13 +62,19 @@ export class WorkflowExecutionStepDomainImpl
           stepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS;
         } else {
           if (!!param.constant || param.constant === false) {
-            stepArguments[param.name] = ''; // TODO: Obtener el valor desde la DB, leyendo los inputargs del workflow execution
+            stepArguments[param.name] = wf_exec.inputArguments[param.value];
           } else {
             stepArguments[param.name] = param.value;
           }
         }
         // segun el tipo determinado, hacer un parseo para validar que el valor que se asigne sea el indicado.
       });
+
+      if (
+        this.checkInternal(executionId, nextStep, stepArguments, steps, wf_exec)
+      ) {
+        return;
+      }
 
       // call the gateway to schedule the next step
       const stepScheduleRequest: StepScheduleRequest = {
@@ -125,5 +138,129 @@ export class WorkflowExecutionStepDomainImpl
       );
       throw new Error('Unable to mark workflow as error');
     }
+  }
+
+  runDecision(
+    executionId,
+    stepArguments,
+    stepsInfo: stepsInfo,
+    wf_exec: WorkflowExecution,
+  ) {
+    const condition = stepArguments['condition'];
+    let wasSuccess = false;
+    const firstArg = stepArguments['left'];
+    const secondArg = stepArguments['right'];
+
+    if (condition === 'equals') {
+      wasSuccess = firstArg == secondArg;
+    } else if (condition === 'greater') {
+      wasSuccess = firstArg > secondArg;
+    } else if (condition === 'smaller') {
+      wasSuccess = firstArg < secondArg;
+    }
+
+    let stepToRunName;
+    if (wasSuccess) {
+      // Go to success task
+      stepToRunName = stepArguments['success'];
+    } else {
+      // Go to failure task
+      stepToRunName = stepArguments['failure'];
+    }
+
+    const stepToRun = stepsInfo.steps.find(
+      (step) => step.name === stepToRunName,
+    );
+
+    const newStepArguments: InputArguments = {};
+    if (stepToRun) {
+      stepToRun.params.forEach((param) => {
+        if ('from' in param) {
+          newStepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS;
+        } else {
+          if (!!param.constant || param.constant === false) {
+            newStepArguments[param.name] = wf_exec.inputArguments[param.value];
+          } else {
+            newStepArguments[param.name] = param.value;
+          }
+        }
+      });
+    } else {
+      this.LOGGER.error(
+        `Problema! No existe el step de la decision ${stepToRunName}, tenemos ${stepsInfo.steps}`,
+      );
+      return;
+    }
+
+    if (
+      this.checkInternal(
+        executionId,
+        stepToRun,
+        stepArguments,
+        stepsInfo,
+        wf_exec,
+      )
+    ) {
+      return;
+    }
+
+    const stepScheduleRequest: StepScheduleRequest = {
+      workflowExecutionId: executionId,
+      name: stepToRun.name,
+      task: stepToRun.task,
+      inputArgs: newStepArguments,
+    };
+    this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
+
+    this.workflowExecutionRepository.updateStatus(
+      executionId,
+      WfExecutionStatus.STEP_SCHEDULED,
+    );
+  }
+
+  runUpper(executionId, stepArguments, step_name: string) {
+    const arg = stepArguments['argument_to_upper'];
+    if (typeof arg === 'string') {
+      stepArguments['argument_to_upper'] = arg.toUpperCase();
+    }
+    // TODO: FALTA GUARDAR EN EL NFS
+
+    this.saveAnswer(executionId, `${executionId}/${step_name}`);
+  }
+
+  runLower(executionId, stepArguments, step_name: string) {
+    const arg = stepArguments['argument_to_lower'];
+    if (typeof arg === 'string') {
+      stepArguments['argument_to_lower'] = arg.toLowerCase();
+    }
+
+    // TODO: FALTA GUARDAR EN EL NFS
+
+    this.saveAnswer(executionId, `${executionId}/${step_name}`);
+  }
+
+  checkInternal(
+    executionId,
+    nextStep: Step,
+    stepArguments,
+    steps,
+    wf_exec,
+  ): boolean {
+    this.LOGGER.debug(
+      `Checking if it is internal: ${nextStep.task} of execId ${executionId}`,
+    );
+    if (nextStep.task === 'decision') {
+      this.runDecision(executionId, stepArguments, steps, wf_exec);
+    } else if (nextStep.task === 'upper') {
+      this.runUpper(executionId, stepArguments, nextStep.name);
+    } else if (nextStep.task === 'lower') {
+      this.runLower(executionId, stepArguments, nextStep.name);
+    } else {
+      return false;
+    }
+    this.LOGGER.debug(
+      `Just run Internal thingy ${nextStep.task} of execId ${executionId}`,
+    );
+    return true;
   }
 }
