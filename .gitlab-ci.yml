@@ -88,6 +88,10 @@ deploy-k8s:
     - echo "Deploying to k8s ..."
     # Move the config file to the helm directory to connecto to AWS kubectl
     - mkdir -p /helm/.kube
+    - mkdir -p ~/.ssh
+    - echo "$ENCODED_ID_ED25519" | base64 -d > ~/.ssh/id_ed25519
+    - echo "$ID_ED25519_pub" > ~/.ssh/id_ed25519.pub
+    - chmod 400 ~/.ssh/id_ed25519
     - scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o IdentitiesOnly=yes -o User=ubuntu ubuntu@$CLUSTER_IP:~/.kube/config /helm/.kube/config
     - cat /helm/.kube/config
     # - cp $KUBE_CONFIG_FILE /helm/.kube/config # TODO: Change this
