@@ -45,12 +45,16 @@ export class StepExecutionResponseController implements OnModuleInit {
     }
   }
 
-  @EventPattern(process.env.KAFKA_TOPIC_SER) // CHANGE THIS!!!! TO THE PROPER TOPIC AND EVERYTHING
+  @EventPattern(process.env.KAFKA_TOPIC_SER)
   async taskCompleted(
     @Payload() request: WorkflowExecutionStepRequest,
     @Ctx() context: KafkaContext,
   ) {
     this.LOGGER.debug('Task completed');
+    await this.workflowExecutionStepDomain.saveAnswer(
+      request.executionId,
+      request.answer,
+    );
     await this.workflowExecutionStepDomain.runNextStep(request.executionId);
     this.LOGGER.debug(
       `Committing offset for request with id: ${request.executionId}`,

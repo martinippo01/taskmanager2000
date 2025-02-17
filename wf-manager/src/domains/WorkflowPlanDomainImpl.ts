@@ -125,7 +125,6 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
           );
         paramNames.add(parameter.name);
 
-        // TODO: ver si no hay que agregar alguno más
         if (!validTaskTypes.includes(parameter.type))
           throw_excep(
             `Step ${step.name} has an invalid parameter type${parameter.type ? `: ${parameter.type}` : ''}`,
