@@ -57,13 +57,13 @@ stages:
 #   allow_failure:
 #     exit_codes: 123
 
-# .node-job:
-#   cache:
-#     key: ${CACHE_KEY}
-#     paths:
-#       - $[[ inputs.service ]]/.npm/
-#       - $[[ inputs.service ]]/node_modules/
-#     policy: pull
+.node-job:
+  cache:
+    key: ${CACHE_KEY}
+    paths:
+      - $[[ inputs.service ]]/.npm/
+      - $[[ inputs.service ]]/node_modules/
+    policy: pull
 
 unit-test:
   extends: .node-job
