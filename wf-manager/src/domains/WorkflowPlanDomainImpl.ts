@@ -11,8 +11,9 @@ const validTasks = [
   'bash',
   's3_upload',
   's3_download',
-  'filter',
-  'manual',
+  'decision',
+  'upper',
+  'lower',
 ] as const;
 const validTaskTypes = ['string', 'number', 'boolean'] as const;
 
