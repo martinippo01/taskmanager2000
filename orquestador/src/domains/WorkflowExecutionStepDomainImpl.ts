@@ -12,6 +12,8 @@ import {
 import { StepScheduleRequestGateway } from '@interfaces/gateways/StepScheduleRequestGateway';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 import { InputArguments } from '@shared/WorkflowInput';
+import { join } from 'path';
+import { readFile, writeFile } from 'fs/promises';
 
 @Injectable()
 export class WorkflowExecutionStepDomainImpl
@@ -57,9 +59,17 @@ export class WorkflowExecutionStepDomainImpl
       return;
     } else {
       const stepArguments: InputArguments = {};
-      nextStep.params.forEach((param) => {
+      await nextStep.params.forEach(async (param) => {
         if ('from' in param) {
-          stepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS;
+          const filePath = join('/mnt/nfs', executionId, param.from);
+
+          try {
+            const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
+            stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
+          } catch (error) {
+            console.error(`Failed to read value from NFS: ${error}`);
+            stepArguments[param.name] = ''; // Default to empty string if reading fails
+          }
         } else {
           if (!!param.constant || param.constant === false) {
             stepArguments[param.name] = wf_exec.inputArguments[param.value];
@@ -140,7 +150,7 @@ export class WorkflowExecutionStepDomainImpl
     }
   }
 
-  runDecision(
+  async runDecision(
     executionId,
     stepArguments,
     stepsInfo: stepsInfo,
@@ -174,9 +184,17 @@ export class WorkflowExecutionStepDomainImpl
 
     const newStepArguments: InputArguments = {};
     if (stepToRun) {
-      stepToRun.params.forEach((param) => {
+      await stepToRun.params.forEach(async (param) => {
         if ('from' in param) {
-          newStepArguments[param.name] = ''; // TODO: Obtener el valor desde el NFS;
+          const filePath = join('/mnt/nfs', executionId, param.from);
+
+          try {
+            const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
+            stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
+          } catch (error) {
+            console.error(`Failed to read value from NFS: ${error}`);
+            stepArguments[param.name] = ''; // Default to empty string if reading fails
+          }
         } else {
           if (!!param.constant || param.constant === false) {
             newStepArguments[param.name] = wf_exec.inputArguments[param.value];
@@ -196,7 +214,7 @@ export class WorkflowExecutionStepDomainImpl
       this.checkInternal(
         executionId,
         stepToRun,
-        stepArguments,
+        newStepArguments,
         stepsInfo,
         wf_exec,
       )
@@ -220,21 +238,33 @@ export class WorkflowExecutionStepDomainImpl
 
   runUpper(executionId, stepArguments, step_name: string) {
     const arg = stepArguments['argument_to_upper'];
+    let rst: string = 'Nadaaa';
     if (typeof arg === 'string') {
-      stepArguments['argument_to_upper'] = arg.toUpperCase();
+      rst = arg.toUpperCase();
     }
-    // TODO: FALTA GUARDAR EN EL NFS
-
-    this.saveAnswer(executionId, `${executionId}/${step_name}`);
+    this.saveOnNFS(executionId, rst, step_name);
   }
 
   runLower(executionId, stepArguments, step_name: string) {
     const arg = stepArguments['argument_to_lower'];
+    let rst: string = 'Nadaaa';
     if (typeof arg === 'string') {
-      stepArguments['argument_to_lower'] = arg.toLowerCase();
+      rst = arg.toLowerCase();
     }
+    this.saveOnNFS(executionId, rst, step_name);
+  }
 
-    // TODO: FALTA GUARDAR EN EL NFS
+  async saveOnNFS(executionId, rst: string, step_name: string) {
+    if (rst !== null) {
+      const nfsPath = join('/mnt/nfs', executionId, step_name);
+
+      try {
+        await writeFile(nfsPath, rst, 'utf-8');
+        console.log(`Saved result to ${nfsPath}`);
+      } catch (error) {
+        console.error(`Failed to save result to NFS: ${error}`);
+      }
+    }
 
     this.saveAnswer(executionId, `${executionId}/${step_name}`);
   }

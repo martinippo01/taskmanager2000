@@ -4,6 +4,8 @@ import { WorkflowExecutionDao } from '@interfaces/repository/WorkflowExecutionDa
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { WfExecutionStatus } from '@repositories/entities/worflow-execution.entity';
 import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
 
 @Injectable()
 export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
@@ -23,6 +25,9 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
       this.workflowExecutionRepository.saveWorkflowExecution({
         ...request,
       });
+
+      const dirPath = join('/mnt/nfs', request.executionId);
+      await mkdir(dirPath, { recursive: true });
     } catch (e) {
       this.LOGGER.log(e.messages);
       return { alreadyRun: true, couldRun: false };
@@ -69,12 +74,20 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
     );
 
     // ANTES ESTABA EL val.name ACÁ en lugar de val.value
-    firstStep.params.forEach((val) => {
-      if (val.name in stepsInfo.inputArguments && 'value' in val)
-        filteredArgs[val.name] = stepsInfo.inputArguments[val.value];
+    firstStep.params.forEach((param) => {
+      if (param.name in stepsInfo.inputArguments)
+        if ('from' in param) {
+          this.LOGGER.error(`Hay un parámetro con from en el primer paso!!!`);
+        } else {
+          if (!!param.constant || param.constant === false) {
+            filteredArgs[param.name] = request.inputArgs[param.value];
+          } else {
+            filteredArgs[param.name] = param.value;
+          }
+        }
       else {
         this.LOGGER.error(
-          `Un parámetro necesario para el primer paso (${val.name}) no está en lo que se guardó en la BD`,
+          `Un parámetro necesario para el primer paso (${param.name}) no está en lo que se guardó en la BD`,
         );
         return { queued: false, error: 'Esto no debería pasar nunca!' };
       }
