@@ -69,13 +69,14 @@ unit-test:
   extends: .node-job
   stage: test
   script:
-    - cd $[[ inputs.service ]]
+    - cd shared
     - npm install
-    # - JEST_JUNIT_OUTPUT_FILE='test-results.xml' npm run test -- --ci --reporters=default --reporters=jest-junit
-    - npm run test
-  # artifacts:
-  #   reports:
-  #     junit: $[[ inputs.service ]]/test-results.xml
+    - cd ../$[[ inputs.service ]]
+    - npm install
+    - JEST_JUNIT_OUTPUT_FILE='test-results.xml' npm run test -- --ci --reporters=default --reporters=jest-junit
+  artifacts:
+    reports:
+      junit: $[[ inputs.service ]]/test-results.xml
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/ # Ensure it doesn't run on version tags
       when: never
