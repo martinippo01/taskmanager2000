@@ -1,6 +1,7 @@
 stages:
   - test
   - build
+  - deploy
 
 test-orquestador:
   stage: test
@@ -76,4 +77,43 @@ build-wf-manager:
   rules:
     - changes:
         - wf-manager/**/*
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+deploy-k8s:
+  stage: deploy
+  image:
+    name: ghcr.io/helmfile/helmfile:latest
+    entrypoint: [""] # Override the default entrypoint
+  script:
+    - echo "Deploying to k8s ..."
+    # Move the config file to the helm directory to connecto to AWS kubectl
+    - mkdir -p /helm/.kube
+    - mkdir -p ~/.ssh
+    - echo "$ENCODED_ID_ED25519" | base64 -d > ~/.ssh/id_ed25519
+    - echo "$ID_ED25519_pub" > ~/.ssh/id_ed25519.pub
+    - chmod 400 ~/.ssh/id_ed25519
+    - scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o IdentitiesOnly=yes -o User=ubuntu ubuntu@$CLUSTER_IP:~/.kube/config /helm/.kube/config
+    - cat /helm/.kube/config
+    # - cp $KUBE_CONFIG_FILE /helm/.kube/config # TODO: Change this
+    - cd ~
+    - git clone https://oauth2:$CI_ACCESS_TOKEN_2@gitlab.com/itba-73-40-microservicios/alumnos/grupo-a/taskmanager2000-cluster-config.git
+    - cd taskmanager2000-cluster-config/helm
+    - ls
+    - echo "Install dependencies"
+    - echo "$CLUSTER_IP"
+    # - helmfile init --interactive=false
+    # - kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+    # - kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
+    - echo "Deploy to AWS"
+    # - helmfile apply
+    - echo "Modifying the kubeconfig file to use the master node's IP address..."
+    # delete line 4
+    - sed -i '4d' ~/.kube/config
+    # replace the server address with the master node's IP address and disable tls verification
+    - |
+      sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
+    - cat ~/.kube/config
+    - kubectl get nodes
+
+  rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
