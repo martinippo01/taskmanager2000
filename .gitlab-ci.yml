@@ -112,6 +112,7 @@ deploy-k8s:
     # replace the server address with the master node's IP address and disable tls verification
     - |
       sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
+    - cat ~/.kube/config
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
