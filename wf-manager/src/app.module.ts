@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { WorkflowDomain } from '@interfaces/domains/WorkflowDomain';
 import { WorkflowInputDomain } from '@interfaces/domains/WorkflowInputDomain';
 import { WorkflowPlanDomain } from '@interfaces/domains/WorkflowPlanDomain';
@@ -23,6 +23,8 @@ import { exceptionFilterProviders } from '@exceptions/filters/providers';
 import { HealthCheckDomainImpl } from '@domains/HealthCheckImpl';
 import PingController from '@controllers/PingController';
 import { ConfigModuleValidationSchema } from './configs/ConfigValidationSchema';
+import { tracerGatewayProvider } from '@shared/TracerGateway';
+import TracingMiddleware from '@shared/TracingMiddleware';
 
 @Module({
   imports: [
@@ -68,8 +70,13 @@ import { ConfigModuleValidationSchema } from './configs/ConfigValidationSchema';
       provide: HealthCheckDomain,
       useClass: HealthCheckDomainImpl,
     },
+    tracerGatewayProvider,
     redisClientFactory,
     ...exceptionFilterProviders,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TracingMiddleware).forRoutes('*');
+  }
+}

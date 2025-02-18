@@ -34,7 +34,14 @@ class WorkflowPlanDomainImpl implements WorkflowPlanDomain {
     // SI ALGO ESTÁ ROTO PUEDE SER QUE SEA PORQUE CAMBIÉ param.name a param.value
     for (const step of parsed.steps) {
       for (const param of step.params) {
-        inputParams[param.value] = param.type;
+        if ('value' in param && (!('constant' in param) || !param.constant)) {
+          if ('from' in param) {
+            throw new InvalidWorkflowPlanException(
+              `Parameter ${param.name} has both 'from' and 'value' fields`,
+            );
+          }
+          inputParams[param.value] = param.type;
+        }
       }
     }
 

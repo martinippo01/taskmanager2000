@@ -25,6 +25,7 @@ import { CreateWorkflowResponseDto } from '@interfaces/types/CreateWorkflow';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { WorkflowNameParam } from '@interfaces/types/WorkflowName';
 import DisabledWorkflowException from '@exceptions/DisabledWorkflowException';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Controller('workflows')
 class WorkflowControllerRestImpl {
@@ -36,6 +37,8 @@ class WorkflowControllerRestImpl {
     private readonly workflowInputDomain: WorkflowInputDomain,
     @Inject(WorkflowExecutionGateway)
     private readonly workflowExecutionGateway: WorkflowExecutionGateway,
+    @Inject(TracerGateway)
+    private readonly tracerGateway: TracerGateway,
   ) {}
 
   @Post()
@@ -56,13 +59,23 @@ class WorkflowControllerRestImpl {
     )
     file: Express.Multer.File,
   ): Promise<CreateWorkflowResponseDto> {
-    this.LOGGER.debug(`Creating workflow`);
-    const fileContent = file.buffer.toString('utf8');
-    const workflow = await this.workflowDomain.createWorkflow(fileContent);
-    this.LOGGER.log(`Workflow ${workflow ? workflow.name : 'not'} created`);
-    return {
-      created: workflow !== null,
-    };
+    return this.tracerGateway.trace(
+      'create_workflow_controller',
+      async (span) => {
+        this.LOGGER.debug(`Creating workflow`);
+        const fileContent = file.buffer.toString('utf8');
+        const workflow = await this.workflowDomain.createWorkflow(fileContent);
+        this.LOGGER.log(`Workflow ${workflow ? workflow.name : 'not'} created`);
+        span.setAttribute('workflow.created', workflow !== null);
+        if (workflow) {
+          span.setAttribute('workflow.name', workflow.name);
+          span.setAttribute('workflow.version', workflow.version);
+        }
+        return {
+          created: workflow !== null,
+        };
+      },
+    );
   }
 
   @Put(':name/status')
@@ -70,15 +83,25 @@ class WorkflowControllerRestImpl {
     @Param() params: WorkflowNameParam,
     @Query('version') version?: string,
   ): Promise<ToggleWorkflowResponseDto> {
-    const { name } = params;
-    this.LOGGER.debug(`Toggling workflow ${name}`);
-    const enabled = await this.workflowDomain.toggleWorkflow(name, version);
-    this.LOGGER.log(`Workflow ${name} is ${enabled ? 'enabled' : 'disabled'}`);
-    return {
-      name,
-      version,
-      enabled,
-    };
+    return this.tracerGateway.trace(
+      'toggle_workflow_controller',
+      async (span) => {
+        span.setAttribute('workflow.name', params.name);
+        if (version) span.setAttribute('workflow.version', version);
+        const { name } = params;
+        this.LOGGER.debug(`Toggling workflow ${name}`);
+        const enabled = await this.workflowDomain.toggleWorkflow(name, version);
+        this.LOGGER.log(
+          `Workflow ${name} is ${enabled ? 'enabled' : 'disabled'}`,
+        );
+        span.setAttribute('workflow.enabled', enabled);
+        return {
+          name,
+          version,
+          enabled,
+        };
+      },
+    );
   }
 
   @Post(':name')
@@ -87,35 +110,47 @@ class WorkflowControllerRestImpl {
     @Body() request: ExecuteWorkflowRequestDto,
     @Query('version') version?: string,
   ): Promise<ExecuteWorkflowResponseDto> {
-    const { name } = params;
-    // 1 - Get workflow
-    this.LOGGER.debug(`Executing workflow ${name}`);
-    const workflow = await this.workflowDomain.getWorkflow(name, version);
-    if (workflow === null) {
-      throw new WorkflowNotFoundException(name);
-    }
-    if (!workflow.enabled) {
-      throw new DisabledWorkflowException(name);
-    }
-    // 2 - Validate request input args
-    this.LOGGER.debug(`Validating input arguments`);
-    const inputArgs = this.workflowInputDomain.getInputArgs(
-      workflow,
-      request.inputArgs || {},
+    return this.tracerGateway.trace(
+      'execute_workflow_controller',
+      async (span) => {
+        const { name } = params;
+        span.setAttribute('workflow.name', name);
+        if (version) span.setAttribute('workflow.version', version);
+        // 1 - Get workflow
+        this.LOGGER.debug(`Executing workflow ${name}`);
+        const workflow = await this.workflowDomain.getWorkflow(name, version);
+        if (workflow === null) {
+          throw new WorkflowNotFoundException(name);
+        }
+        if (!workflow.enabled) {
+          throw new DisabledWorkflowException(name);
+        }
+        // 2 - Validate request input args
+        this.LOGGER.debug(`Validating input arguments`);
+        const inputArgs = this.workflowInputDomain.getInputArgs(
+          workflow,
+          request.inputArgs || {},
+        );
+        // 3 - Call gateway with id and wait for response
+        this.LOGGER.debug(`Queueing workflow ${name} for execution`);
+        const executionId = await this.workflowExecutionGateway.queueWorkflow(
+          workflow,
+          inputArgs,
+        );
+        this.LOGGER.log(
+          `Workflow ${name} queued for execution with ID ${executionId}`,
+        );
+        const queued = !!executionId && executionId.length > 0;
+        span.setAttribute('workflow.queued', queued);
+        if (queued) {
+          span.setAttribute('workflow.execution_id', executionId);
+        }
+        return {
+          queued,
+          executionId,
+        };
+      },
     );
-    // 3 - Call gateway with id and wait for response
-    this.LOGGER.debug(`Queueing workflow ${name} for execution`);
-    const executionId = await this.workflowExecutionGateway.queueWorkflow(
-      workflow,
-      inputArgs,
-    );
-    this.LOGGER.log(
-      `Workflow ${name} queued for execution with ID ${executionId}`,
-    );
-    return {
-      queued: !!executionId && executionId.length > 0,
-      executionId,
-    };
   }
 }
 
