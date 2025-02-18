@@ -4,6 +4,7 @@ import { TaskServiceGateway } from '@interfaces/gateways/TaskServiceGateway';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { StepScheduleException } from '@shared/StepScheduleException';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Injectable()
 class SchedulerDomainImpl implements SchedulerDomain {
@@ -14,50 +15,68 @@ class SchedulerDomainImpl implements SchedulerDomain {
     private readonly taskServiceGW: TaskServiceGateway,
     @Inject(TaskAgentsGateway)
     private readonly taskAgentsGW: TaskAgentsGateway,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async scheduleStepExecution(
     stepScheduleRequest: StepScheduleRequest,
   ): Promise<{ error: StepScheduleException | null }> {
-    const taskServResult = await this.taskServiceGW.getTaskInfo(
-      stepScheduleRequest.task,
+    return this.tracerGateway.trace(
+      'SchedulerDomainImpl.scheduleStepExecution',
+      async (span) => {
+        span.setAttribute('step.name', stepScheduleRequest.name);
+        span.setAttribute(
+          'workflow.execution.id',
+          stepScheduleRequest.workflowExecutionId,
+        );
+
+        const taskServResult = await this.taskServiceGW.getTaskInfo(
+          stepScheduleRequest.task,
+        );
+        span.setAttribute('task.exists', !!taskServResult);
+        if (!taskServResult) {
+          return { error: StepScheduleException.TASK_NOT_EXISTS };
+        }
+
+        const inputArgFromTask = stepScheduleRequest.inputArgs;
+        const optionals = taskServResult.optionalParams;
+
+        if (
+          !Object.entries(taskServResult.params).every(([key, value]) =>
+            key in inputArgFromTask
+              ? inputArgFromTask[key] === value
+              : key in optionals,
+          )
+        ) {
+          return { error: StepScheduleException.TASK_PARAM_MISSING };
+        }
+
+        // No puedo preguntar directamente por la length de ambos porque algunos pueden
+        // ser opcionales, se podría mirar cuántos opcionales hay y restarlos, pero es lo mismo
+        if (
+          !Object.keys(inputArgFromTask).every(
+            (key) => key in taskServResult.params,
+          )
+        ) {
+          return { error: StepScheduleException.TASK_PARAM_NOT_EXISTS };
+        }
+
+        this.LOGGER.log(
+          `Task Service ha validado el step ${stepScheduleRequest.name}!`,
+        );
+
+        if (
+          !(await this.taskAgentsGW.sendStep(
+            taskServResult,
+            stepScheduleRequest,
+          ))
+        ) {
+          return { error: StepScheduleException.TASK_ERROR };
+        }
+
+        return { error: null };
+      },
     );
-
-    if (!taskServResult) {
-      return { error: StepScheduleException.TASK_NOT_EXISTS };
-    }
-
-    const inputArgFromTask = stepScheduleRequest.inputArgs;
-    const optionals = taskServResult.optionalParams;
-
-    if (
-      !Object.entries(taskServResult.params).every(([key, value]) =>
-        key in inputArgFromTask
-          ? inputArgFromTask[key] === value
-          : key in optionals,
-      )
-    )
-      return { error: StepScheduleException.TASK_PARAM_MISSING };
-
-    // No puedo preguntar directamente por la length de ambos porque algunos pueden
-    // ser opcionales, se podría mirar cuántos opcionales hay y restarlos, pero es lo mismo
-    if (
-      !Object.keys(inputArgFromTask).every(
-        (key) => key in taskServResult.params,
-      )
-    )
-      return { error: StepScheduleException.TASK_PARAM_NOT_EXISTS };
-
-    this.LOGGER.log(
-      `Task Service ha validado el step ${stepScheduleRequest.name}!`,
-    );
-
-    if (
-      !(await this.taskAgentsGW.sendStep(taskServResult, stepScheduleRequest))
-    )
-      return { error: StepScheduleException.TASK_ERROR };
-
-    return { error: null };
   }
 }
 
