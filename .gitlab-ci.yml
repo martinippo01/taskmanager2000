@@ -5,8 +5,9 @@ stages:
 
 test-orquestador:
   stage: test
-  script:
-    - echo "Testing orquestador ..."
+  trigger:
+    include: orquestador/.gitlab-ci-test.yml
+    strategy: depend
   rules:
     - changes:
         - orquestador/**/*
@@ -14,8 +15,9 @@ test-orquestador:
 
 test-scheduler:
   stage: test
-  script:
-    - echo "Testing scheduler ..."
+  trigger:
+    include: scheduler/.gitlab-ci-test.yml
+    strategy: depend
   rules:
     - changes:
         - scheduler/**/*
@@ -23,8 +25,9 @@ test-scheduler:
 
 test-task-service:
   stage: test
-  script:
-    - echo "Testing task-service ..."
+  trigger:
+    include: task-service/.gitlab-ci-test.yml
+    strategy: depend
   rules:
     - changes:
         - task-service/**/*
@@ -32,8 +35,9 @@ test-task-service:
 
 test-wf-manager:
   stage: test
-  script:
-    - echo "Testing wf-manager ..."
+  trigger:
+    include: wf-manager/.gitlab-ci-test.yml
+    strategy: depend
   rules:
     - changes:
         - wf-manager/**/*
@@ -114,6 +118,12 @@ deploy-k8s:
       sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
     - cat ~/.kube/config
     - kubectl get nodes
+    - helm plugin install https://github.com/databus23/helm-diff
+    - helm repo add traefik https://traefik.github.io/charts
+    - helm install traefik traefik/traefik --set installCRDs=true
+    - helm repo add signoz https://charts.signoz.io
+    - helm install signoz signoz/signoz --set installCRDs=true --values charts/values-signoz.yaml
+    - helmfile apply
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
