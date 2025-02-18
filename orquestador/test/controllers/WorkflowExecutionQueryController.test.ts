@@ -5,8 +5,8 @@ import WorkflowExecutionNotFoundException from '@exceptions/WorkflowExecutionNot
 import CannotGetStepDataByExecutionId from '@exceptions/CannotGetStepDataByExecutionId';
 import WorkflowNotFoundException from '@exceptions/WorkflowNotFoundException';
 import { WorkflowExecution } from '@repositories/entities/worflow-execution.entity';
-import { stepsInfo } from '@interfaces/repository/WorkflowExecutionDao';
 import { Step } from '@shared/WorkflowPlan';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('WorkflowExecutionQueryController', () => {
   let controller: WorkflowExecutionQueryController;
@@ -25,9 +25,11 @@ describe('WorkflowExecutionQueryController', () => {
             listExecutionIds: jest.fn(),
           },
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
+    module.useLogger(false);
     controller = module.get<WorkflowExecutionQueryController>(
       WorkflowExecutionQueryController,
     );

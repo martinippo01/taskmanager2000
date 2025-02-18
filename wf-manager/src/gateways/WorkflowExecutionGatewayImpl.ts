@@ -50,29 +50,32 @@ class WorkflowExecutionGatewayImpl
     workflow: Workflow,
     inputArgs: InputArguments,
   ): Promise<string> {
-    return this.tracerGateway.trace('queue_workflow_gateway', async (span) => {
-      const { name, description, inputParams, plan } = workflow;
-      span.setAttribute('workflow.name', name);
+    return this.tracerGateway.trace(
+      'WorkflowExecutionGatewayImpl.queueWorkflow',
+      async (span) => {
+        const { name, description, inputParams, plan } = workflow;
+        span.setAttribute('workflow.name', name);
 
-      try {
-        this.LOGGER.debug(`Sending workflow ${name} to execution`);
-        const executionId = await this.producer.send(name, {
-          name,
-          description,
-          inputParams,
-          inputArgs,
-          plan,
-        });
-        span.setAttribute('workflow.execution.queued', true);
-        span.setAttribute('workflow.execution.id', executionId);
-        return executionId;
-      } catch (error) {
-        this.LOGGER.error(`Send error: ${error}`);
-        throw new InternalServerErrorException(
-          `Failed to queue workflow ${name} for execution`,
-        );
-      }
-    });
+        try {
+          this.LOGGER.debug(`Sending workflow ${name} to execution`);
+          const executionId = await this.producer.send(name, {
+            name,
+            description,
+            inputParams,
+            inputArgs,
+            plan,
+          });
+          span.setAttribute('workflow.execution.queued', true);
+          span.setAttribute('workflow.execution.id', executionId);
+          return executionId;
+        } catch (error) {
+          this.LOGGER.error(`Send error: ${error}`);
+          throw new InternalServerErrorException(
+            `Failed to queue workflow ${name} for execution`,
+          );
+        }
+      },
+    );
   }
 }
 

@@ -6,11 +6,27 @@ import {
   WfExecutionStatus,
   WorkflowExecution,
 } from '@repositories/entities/worflow-execution.entity';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('WorkflowExecutionStepDomainImpl', () => {
   let service: WorkflowExecutionStepDomainImpl;
   let workflowExecutionRepository: WorkflowExecutionDao;
   let stepScheduleRequestGateway: StepScheduleRequestGateway;
+
+  const workflowExecutionExample: WorkflowExecution = {
+    executionId: 'executionId',
+    name: 'name',
+    description: 'description',
+    inputParams: {},
+    inputArguments: {},
+    plan: { steps: [] },
+    outputs: {},
+    status: WfExecutionStatus.PERSISTED,
+    errorReason: 'errorReason',
+    lastStepRun: 'lastStepRun',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,6 +39,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
             updateStatus: jest.fn(),
             updateStep: jest.fn(),
             markExecutionAsError: jest.fn(),
+            getWorkflowExecutionById: jest.fn(),
           },
         },
         {
@@ -31,6 +48,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
             queueStep: jest.fn(),
           },
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
@@ -55,6 +73,9 @@ describe('WorkflowExecutionStepDomainImpl', () => {
       jest
         .spyOn(workflowExecutionRepository, 'getStepsFromExecution')
         .mockResolvedValue(null);
+      jest
+        .spyOn(workflowExecutionRepository, 'getWorkflowExecutionById')
+        .mockResolvedValue(workflowExecutionExample);
 
       const loggerSpy = jest.spyOn(service['LOGGER'], 'error');
       await service.runNextStep('executionId');
@@ -72,6 +93,9 @@ describe('WorkflowExecutionStepDomainImpl', () => {
           lastRun: 'step1',
           inputArguments: {},
         });
+      jest
+        .spyOn(workflowExecutionRepository, 'getWorkflowExecutionById')
+        .mockResolvedValue(workflowExecutionExample);
 
       const finishExecutionSpy = jest.spyOn(service, 'finishExecution');
       await service.runNextStep('executionId');
@@ -90,6 +114,9 @@ describe('WorkflowExecutionStepDomainImpl', () => {
           lastRun: 'step1',
           inputArguments: {},
         });
+      jest
+        .spyOn(workflowExecutionRepository, 'getWorkflowExecutionById')
+        .mockResolvedValue(workflowExecutionExample);
 
       await service.runNextStep('executionId');
 

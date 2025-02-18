@@ -12,6 +12,7 @@ import { ClientKafka, KafkaContext } from '@nestjs/microservices';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StepScheduleException } from '@shared/StepScheduleException';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 import { Producer } from 'kafkajs';
 
 describe('WorkflowExecutionStepController', () => {
@@ -67,6 +68,7 @@ describe('WorkflowExecutionStepController', () => {
           useValue: stepScheduleExceptionOrchestratorGatewayMock,
         },
         { provide: ConfigService, useValue: configServiceMock },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

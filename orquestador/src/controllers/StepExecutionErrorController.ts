@@ -14,6 +14,7 @@ import {
   KafkaContext,
   Payload,
 } from '@nestjs/microservices';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Controller()
 export class StepExecutionErrorController implements OnModuleInit {
@@ -25,6 +26,7 @@ export class StepExecutionErrorController implements OnModuleInit {
     @Inject(WorkflowExecutionStepDomain)
     private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomain,
     private readonly configService: ConfigService<KafkaStepExecutionErrorEnvironmentVariables>,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async onModuleInit() {
@@ -45,24 +47,40 @@ export class StepExecutionErrorController implements OnModuleInit {
     @Payload() error: WorkflowExecutionStepError,
     @Ctx() context: KafkaContext,
   ) {
-    this.LOGGER.debug(
-      `Received step execution error with execution id ${error.executionId} from workflow execution with reason ${error.reason}`,
-    );
-    this.workflowExecutionStepDomain.handleError(
-      error.executionId,
-      error.reason,
-    ); // TODO: Check if we want to store the stepNum
+    return this.tracerGateway.trace(
+      'StepExecutionErrorController.handleStepExecutionError',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', error.executionId);
+        span.setAttribute('workflow.execution.reason', error.reason);
+        this.LOGGER.debug(
+          `Received step execution error with execution id ${error.executionId} from workflow execution with reason ${error.reason}`,
+        );
+        await this.workflowExecutionStepDomain.handleError(
+          error.executionId,
+          error.reason,
+        ); // TODO: Check if we want to store the stepNum
+        span.setAttribute('workflow.execution.step.error.handled', true);
 
-    this.LOGGER.debug(
-      `Committing offset for request with id: ${error.executionId}`,
-    );
-    const { offset } = context.getMessage();
-    const partition = context.getPartition();
-    const topic = context.getTopic();
-    const consumer = context.getConsumer();
-    await consumer.commitOffsets([{ topic, partition, offset }]);
-    this.LOGGER.debug(
-      `Offset committed for request with id: ${error.executionId}`,
+        this.LOGGER.debug(
+          `Committing offset for request with id: ${error.executionId}`,
+        );
+        try {
+          const { offset } = context.getMessage();
+          const partition = context.getPartition();
+          const topic = context.getTopic();
+          const consumer = context.getConsumer();
+          await consumer.commitOffsets([{ topic, partition, offset }]);
+          this.LOGGER.debug(
+            `Offset committed for request with id: ${error.executionId}`,
+          );
+        } catch (error) {
+          span.addEvent('Failed to commit offset');
+          this.LOGGER.error(
+            `Failed to commit offset for request with id: ${error.executionId}`,
+          );
+          throw error;
+        }
+      },
     );
   }
 }

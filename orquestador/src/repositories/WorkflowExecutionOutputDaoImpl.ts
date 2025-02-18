@@ -7,6 +7,7 @@ import { WorkflowExecutionOutputDao } from '@interfaces/repository/WorkflowExecu
 import { WorkflowExecutionStepOutput } from '@interfaces/types/StepOutput';
 import { Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TracerGateway } from '@shared/TracerGateway';
 import { open } from 'fs/promises';
 
 class WorkflowExecutionOutputDaoImpl implements WorkflowExecutionOutputDao {
@@ -16,6 +17,7 @@ class WorkflowExecutionOutputDaoImpl implements WorkflowExecutionOutputDao {
   constructor(
     @Inject(ConfigService)
     private readonly configService: ConfigService<NfsStepOutputEnvVars>,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {
     this.nfsPath = this.configService.get(nfsStepOutputPathEnvVar, {
       infer: true,
@@ -32,30 +34,39 @@ class WorkflowExecutionOutputDaoImpl implements WorkflowExecutionOutputDao {
   }
 
   async getOutput(path: string): Promise<WorkflowExecutionStepOutput> {
-    this.LOGGER.debug(`Getting output from path ${path}`);
-    const fullPath = `${this.nfsPath}/${path}`;
-    this.LOGGER.debug(`Reading file from path ${fullPath}`);
-    const fileHandle = await this.handleOrThrow(
-      open(fullPath, 'r'),
-      (cause) =>
-        new StepOutputDaoException(`Error opening file ${fullPath}`, cause),
+    return this.tracerGateway.trace(
+      'WorkflowExecutionOutputDaoImpl.getOutput',
+      async (span) => {
+        span.setAttribute('workflow.execution.step.output.path', path);
+        this.LOGGER.debug(`Getting output from path ${path}`);
+        const fullPath = `${this.nfsPath}/${path}`;
+        this.LOGGER.debug(`Reading file from path ${fullPath}`);
+        const fileHandle = await this.handleOrThrow(
+          open(fullPath, 'r'),
+          (cause) =>
+            new StepOutputDaoException(`Error opening file ${fullPath}`, cause),
+        );
+        span.setAttribute('workflow.execution.step.output.file.opened', true);
+        this.LOGGER.debug(`File opened successfully`);
+        this.LOGGER.debug(`Reading content from file`);
+        const content = await this.handleOrThrow(
+          fileHandle.readFile({ encoding: 'utf-8' }),
+          (cause) =>
+            new StepOutputDaoException(`Error reading file ${fullPath}`, cause),
+        );
+        span.setAttribute('workflow.execution.step.output.content.read', true);
+        this.LOGGER.debug(`Content read successfully`);
+        this.LOGGER.debug(`Closing file`);
+        try {
+          await fileHandle.close();
+          span.setAttribute('workflow.execution.step.output.file.closed', true);
+          this.LOGGER.debug(`File closed successfully`);
+        } catch (e) {
+          this.LOGGER.warn(`Error closing file ${fullPath}`, e);
+        }
+        return content;
+      },
     );
-    this.LOGGER.debug(`File opened successfully`);
-    this.LOGGER.debug(`Reading content from file`);
-    const content = await this.handleOrThrow(
-      fileHandle.readFile({ encoding: 'utf-8' }),
-      (cause) =>
-        new StepOutputDaoException(`Error reading file ${fullPath}`, cause),
-    );
-    this.LOGGER.debug(`Content read successfully`);
-    this.LOGGER.debug(`Closing file`);
-    try {
-      await fileHandle.close();
-      this.LOGGER.debug(`File closed successfully`);
-    } catch (e) {
-      this.LOGGER.warn(`Error closing file ${fullPath}`, e);
-    }
-    return content;
   }
 }
 

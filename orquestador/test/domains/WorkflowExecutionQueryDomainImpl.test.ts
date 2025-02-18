@@ -5,7 +5,7 @@ import {
   WorkflowExecutionDao,
 } from '../../src/interfaces/repository/WorkflowExecutionDao';
 import { WorkflowExecution } from '../../src/repositories/entities/worflow-execution.entity';
-import { Step } from '../../src/shared/WorkflowPlan';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('WorkflowExecutionQueryDomainImpl', () => {
   let service: WorkflowExecutionQueryDomainImpl;
@@ -24,6 +24,7 @@ describe('WorkflowExecutionQueryDomainImpl', () => {
             getAllExecutionIds: jest.fn(),
           },
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
