@@ -15,6 +15,7 @@ import {
 } from '@nestjs/microservices';
 import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Controller()
 export class WorkflowExecutionRequestController implements OnModuleInit {
@@ -27,6 +28,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     private readonly workflowExecutionDomain: WorkflowExecutionDomain,
     @Inject(ConfigService)
     private readonly configService: ConfigService<KafkaWorkflowExecutionRequestEnvironmentVariables>,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async onModuleInit() {
@@ -50,34 +52,51 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     @Payload() request: WorkflowExecutionRequest,
     @Ctx() context: KafkaContext,
   ) {
-    this.LOGGER.debug(
-      `Received workflow execution request with id: ${request.executionId}`,
-    );
-    const { alreadyRun, couldRun } =
-      await this.workflowExecutionDomain.runNewWorkflowExecution(request);
-    if (!alreadyRun && !couldRun) {
-      throw new CannotRunNewWorkflowExecutionException(request.executionId);
-    }
-    if (alreadyRun) {
-      this.LOGGER.warn(
-        `Workflow execution request with id: ${request.executionId} has already been run`,
-      );
-    } else {
-      this.LOGGER.log(
-        `Workflow execution request with id: ${request.executionId} was successfully processed`,
-      );
-    }
+    return this.tracerGateway.trace(
+      'WorkflowExecutionRequestController.handleExecutionRequest',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', request.executionId);
+        span.setAttribute('workflow.name', request.name);
+        this.LOGGER.debug(
+          `Received workflow execution request with id: ${request.executionId}`,
+        );
+        const { alreadyRun, couldRun } =
+          await this.workflowExecutionDomain.runNewWorkflowExecution(request);
+        span.setAttribute('workflow.execution.alreadyRun', alreadyRun);
+        span.setAttribute('workflow.execution.couldRun', couldRun);
+        if (!alreadyRun && !couldRun) {
+          throw new CannotRunNewWorkflowExecutionException(request.executionId);
+        }
+        if (alreadyRun) {
+          this.LOGGER.warn(
+            `Workflow execution request with id: ${request.executionId} has already been run`,
+          );
+        } else {
+          this.LOGGER.log(
+            `Workflow execution request with id: ${request.executionId} was successfully processed`,
+          );
+        }
 
-    this.LOGGER.debug(
-      `Committing offset for request with id: ${request.executionId}`,
-    );
-    const { offset } = context.getMessage();
-    const partition = context.getPartition();
-    const topic = context.getTopic();
-    const consumer = context.getConsumer();
-    await consumer.commitOffsets([{ topic, partition, offset }]);
-    this.LOGGER.debug(
-      `Offset committed for request with id: ${request.executionId}`,
+        try {
+          this.LOGGER.debug(
+            `Committing offset for request with id: ${request.executionId}`,
+          );
+          const { offset } = context.getMessage();
+          const partition = context.getPartition();
+          const topic = context.getTopic();
+          const consumer = context.getConsumer();
+          await consumer.commitOffsets([{ topic, partition, offset }]);
+          this.LOGGER.debug(
+            `Offset committed for request with id: ${request.executionId}`,
+          );
+        } catch (error) {
+          span.addEvent('Failed to commit offset');
+          this.LOGGER.error(
+            `Failed to commit offset for request with id: ${request.executionId}`,
+          );
+          throw error;
+        }
+      },
     );
   }
 }

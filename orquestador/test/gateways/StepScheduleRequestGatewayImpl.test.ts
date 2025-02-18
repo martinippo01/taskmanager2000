@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { ClientKafka } from '@nestjs/microservices';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('StepScheduleRequestGatewayImpl', () => {
   const topic = 'KAFKA_TOPIC_SSR';
@@ -49,6 +50,7 @@ describe('StepScheduleRequestGatewayImpl', () => {
           provide: ConfigService,
           useValue: configServiceMock,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

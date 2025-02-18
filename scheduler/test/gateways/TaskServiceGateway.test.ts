@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { AxiosResponse, AxiosHeaders } from 'axios';
 import { TaskServiceGatewayImpl } from '@gateways/TaskServiceGatewayImpl';
 import { TaskData } from '@shared/TaskData';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('TaskServiceGatewayImpl', () => {
   let service: TaskServiceGatewayImpl;
@@ -19,9 +20,11 @@ describe('TaskServiceGatewayImpl', () => {
             get: jest.fn(),
           },
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
+    module.useLogger(false);
     service = module.get<TaskServiceGatewayImpl>(TaskServiceGatewayImpl);
     httpService = module.get<HttpService>(HttpService);
   });

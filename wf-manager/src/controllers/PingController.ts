@@ -17,11 +17,18 @@ class PingController {
 
   @Get()
   async healthCheck() {
-    return this.tracerGateway.trace('health_check_controller', async () => {
-      const healthStatus = await this.healthCheckDomain.check();
-      if (healthStatus.status === 'error') throw new NotAliveException();
-      return healthStatus;
-    });
+    return this.tracerGateway.trace(
+      'PingController.healthCheck',
+      async (span) => {
+        const healthStatus = await this.healthCheckDomain.check();
+        span.setAttribute('healthy', healthStatus.status === 'ok');
+        if (healthStatus.status === 'error') {
+          span.addEvent('Microservice not alive!');
+          throw new NotAliveException();
+        }
+        return healthStatus;
+      },
+    );
   }
 }
 

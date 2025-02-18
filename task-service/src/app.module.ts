@@ -7,10 +7,12 @@ import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { TaskServiceDomain } from '@interfaces/domains/TaskServiceDomain';
 import { TaskAgentDao } from '@interfaces/repositories/TaskAgentDao';
 import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import TaskAgentDaoImpl from '@repositories/TaskAgentDaoImpl';
 import { taskAgentDaoClientUseFactory } from '@repositories/TaskAgentDaoProvider';
+import { tracerGatewayProvider } from '@shared/TracerGateway';
+import TracingMiddleware from '@shared/TracingMiddleware';
 
 @Module({
   imports: [
@@ -40,6 +42,11 @@ import { taskAgentDaoClientUseFactory } from '@repositories/TaskAgentDaoProvider
       provide: HealthCheckDomain,
       useClass: HealthCheckDomainImpl,
     },
+    tracerGatewayProvider,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TracingMiddleware).forRoutes('*');
+  }
+}

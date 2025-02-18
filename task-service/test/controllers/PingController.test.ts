@@ -2,6 +2,7 @@ import PingController from '@controllers/PingController';
 import DeadTaskServiceException from '@exceptions/DeadTaskServiceException';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { Test } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('PingController', () => {
   let pingController: PingController;
@@ -19,6 +20,7 @@ describe('PingController', () => {
           provide: HealthCheckDomain,
           useValue: healthCheckDomainMock,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

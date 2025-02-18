@@ -8,6 +8,7 @@ import { Test } from '@nestjs/testing';
 import { StepScheduleException } from '@shared/StepScheduleException';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 import { KafkaTaskData, TaskData } from '@shared/TaskData';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('TaskAgentsGatewayImpl', () => {
   const kafkaTaskDataExample: KafkaTaskData = {
@@ -52,6 +53,7 @@ describe('TaskAgentsGatewayImpl', () => {
           provide: TaskAgentGatewayProvider,
           useValue: taskAgentGatewayProviderMock,
         },
+        tracerGatewayMockProvider,
       ],
     }).compile();
     testModule.useLogger(false);

@@ -4,6 +4,7 @@ import { WorkflowExecutionDao } from '@interfaces/repository/WorkflowExecutionDa
 import { WorkflowExecutionOutputDao } from '@interfaces/repository/WorkflowExecutionOutputDao';
 import { WorkflowExecutionStepOutput } from '@interfaces/types/StepOutput';
 import { Test } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('WorkflowExecutionOutputDomainImpl', () => {
   const WorkflowExecutionStepOutputExample: WorkflowExecutionStepOutput =
@@ -33,6 +34,7 @@ describe('WorkflowExecutionOutputDomainImpl', () => {
           useValue: workflowExecutionDaoMock,
         },
         WorkflowExecutionOutputDomainImpl,
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

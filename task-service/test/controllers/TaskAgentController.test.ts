@@ -4,6 +4,7 @@ import { TaskServiceDomain } from '@interfaces/domains/TaskServiceDomain';
 import { TaskAgentRegisterRequestDto } from '@interfaces/types/TaskAgentRegister';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TaskData } from '@shared/TaskData';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
@@ -35,6 +36,7 @@ describe('TaskAgentController', () => {
       controllers: [TaskAgentController],
       providers: [
         { provide: TaskServiceDomain, useValue: taskServiceDomainMock },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
