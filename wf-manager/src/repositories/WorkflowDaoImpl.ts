@@ -45,11 +45,10 @@ class WorkflowDaoImpl implements WorkflowDao {
         this.LOGGER.debug(
           `Checking if workflow ${name} version ${version} exists`,
         );
-        const res = await this.redisRepository.sIsMember(
+        const exists = await this.redisRepository.sIsMember(
           workflowVersionsKey(name),
           version,
         );
-        const exists = res !== null;
         this.LOGGER.debug(
           `Workflow ${name} version ${version} exists: ${exists}`,
         );

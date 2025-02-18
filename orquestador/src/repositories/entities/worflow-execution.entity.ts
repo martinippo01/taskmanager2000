@@ -3,10 +3,10 @@ import { InputArguments, InputParams } from '@shared/WorkflowInput';
 import { Plan } from '@shared/WorkflowPlan';
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 export enum WfExecutionStatus {
@@ -20,7 +20,7 @@ export enum WfExecutionStatus {
 
 @Entity('workflow_executions')
 export class WorkflowExecution {
-  @PrimaryGeneratedColumn() // no lo hacemos uid porque usamos el que nos pasa el wf-manager
+  @PrimaryColumn() // no lo hacemos uid porque usamos el que nos pasa el wf-manager
   executionId: string;
 
   @Column({ nullable: true })
