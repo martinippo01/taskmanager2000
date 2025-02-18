@@ -118,6 +118,8 @@ deploy-k8s:
       sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
     - cat ~/.kube/config
     - kubectl get nodes
+    - cd terraform
+    - export NFS_SERVER=$NFS_SERVER_IP
     # - helm plugin install https://github.com/databus23/helm-diff
     # - helm repo add traefik https://traefik.github.io/charts
     # - helm install traefik traefik/traefik --set installCRDs=true
