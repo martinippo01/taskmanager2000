@@ -26,7 +26,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
         ...request,
       });
 
-      const dirPath = join('/mnt/nfs', request.executionId);
+      const dirPath = join('/answers', request.executionId);
       await mkdir(dirPath, { recursive: true });
     } catch (e) {
       this.LOGGER.log(e.messages);
