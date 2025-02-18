@@ -2,7 +2,7 @@ import {
   KafkaWorkflowExecutionRequestClient,
   kafkaWorkflowExecutionRequestClientFactoryProvider,
 } from '@configs/KafkaWorkflowExecutionRequestConfig';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
 import { WorkflowExecutionRequestController } from '@controllers/WorkflowExecutionRequestController';
@@ -36,6 +36,8 @@ import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { WorkflowExecutionQueryController } from '@controllers/WorkflowExecutionQueryController';
 import { WorkflowExecutionQueryDomain } from '@interfaces/domains/WorklowExecutionQueryDomain';
 import { WorkflowExecutionQueryDomainImpl } from '@domains/WorkflowExecutionQueryDomainImpl';
+import { tracerGatewayProvider } from '@shared/TracerGateway';
+import TracingMiddleware from '@shared/TracingMiddleware';
 
 @Module({
   imports: [
@@ -111,7 +113,12 @@ import { WorkflowExecutionQueryDomainImpl } from '@domains/WorkflowExecutionQuer
       provide: HealthCheckDomain,
       useClass: HealthCheckDomainImpl,
     },
+    tracerGatewayProvider,
   ],
   exports: [WorkflowExecutionDao],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TracingMiddleware).forRoutes('*');
+  }
+}

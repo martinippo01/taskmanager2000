@@ -11,6 +11,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Controller('workflow-execution')
 export class WorkflowExecutionQueryController implements OnModuleInit {
@@ -18,6 +19,7 @@ export class WorkflowExecutionQueryController implements OnModuleInit {
   constructor(
     @Inject(WorkflowExecutionQueryDomain)
     private readonly workflowExecutionQueryDomain: WorkflowExecutionQueryDomain,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
   async onModuleInit() {
     this.LOGGER.log('WorkflowExecutionQueryController initialized');
@@ -26,12 +28,20 @@ export class WorkflowExecutionQueryController implements OnModuleInit {
 
   @Get('/:id')
   async getWorkflowExecution(@Param('id') id: string) {
-    const response =
-      await this.workflowExecutionQueryDomain.getWorkflowExecutionByExecutionId(
-        id,
-      );
-    if (response === null) throw new WorkflowExecutionNotFoundException(id);
-    return response;
+    return this.tracerGateway.trace(
+      'WorkflowExecutionQueryController.getWorkflowExecution',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', id);
+
+        const response =
+          await this.workflowExecutionQueryDomain.getWorkflowExecutionByExecutionId(
+            id,
+          );
+        span.addEvent('Workflow execution not found');
+        if (response === null) throw new WorkflowExecutionNotFoundException(id);
+        return response;
+      },
+    );
   }
 
   @Get('/:id/steps/:stepNum')
@@ -39,27 +49,45 @@ export class WorkflowExecutionQueryController implements OnModuleInit {
     @Param('id') id: string,
     @Param('stepNum') stepNum: number,
   ) {
-    try {
-      return await this.workflowExecutionQueryDomain.getStepDataByExecutionId(
-        id,
-        stepNum,
-      );
-    } catch (error) {
-      throw new CannotGetStepDataByExecutionId(error.message);
-    }
+    return this.tracerGateway.trace(
+      'WorkflowExecutionQueryController.getStepData',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', id);
+        span.setAttribute('workflow.execution.step.number', stepNum);
+        try {
+          return await this.workflowExecutionQueryDomain.getStepDataByExecutionId(
+            id,
+            stepNum,
+          );
+        } catch (error) {
+          span.addEvent('Workflow execution step not found');
+          throw new CannotGetStepDataByExecutionId(error.message);
+        }
+      },
+    );
   }
 
   @Get('/')
   async getExecutionsIdsByName(@Query('name') name: string) {
-    if (!!!name) {
-      return this.workflowExecutionQueryDomain.listExecutionIds();
-    } else {
-      const response =
-        await this.workflowExecutionQueryDomain.listExecutionIdsByWorkflowName(
-          name,
-        );
-      if (response === null) throw new WorkflowNotFoundException(name);
-      return response;
-    }
+    return this.tracerGateway.trace(
+      'WorkflowExecutionQueryController.getExecutionsIdsByName',
+      async (span) => {
+        if (!!name) {
+          span.setAttribute('workflow.name', name);
+        }
+        if (!!!name) {
+          span.addEvent('Listing all workflow executions');
+          return this.workflowExecutionQueryDomain.listExecutionIds();
+        } else {
+          const response =
+            await this.workflowExecutionQueryDomain.listExecutionIdsByWorkflowName(
+              name,
+            );
+          span.addEvent('Workflow execution not found');
+          if (response === null) throw new WorkflowNotFoundException(name);
+          return response;
+        }
+      },
+    );
   }
 }

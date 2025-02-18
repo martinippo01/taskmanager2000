@@ -14,6 +14,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 import { WorkflowExecutionStepRequest } from '@shared/WorkflowExecutionStepRequest';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Controller()
 export class StepExecutionResponseController implements OnModuleInit {
@@ -26,6 +27,7 @@ export class StepExecutionResponseController implements OnModuleInit {
     private readonly workflowExecutionStepDomain: WorkflowExecutionStepDomain,
     @Inject(ConfigService)
     private readonly configService: ConfigService<KafkaStepExecutionResponseEnvironmentVariables>,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async onModuleInit() {
@@ -50,22 +52,41 @@ export class StepExecutionResponseController implements OnModuleInit {
     @Payload() request: WorkflowExecutionStepRequest,
     @Ctx() context: KafkaContext,
   ) {
-    this.LOGGER.debug('Task completed');
-    await this.workflowExecutionStepDomain.saveAnswer(
-      request.executionId,
-      request.answer,
-    );
-    await this.workflowExecutionStepDomain.runNextStep(request.executionId);
-    this.LOGGER.debug(
-      `Committing offset for request with id: ${request.executionId}`,
-    );
-    const { offset } = context.getMessage();
-    const partition = context.getPartition();
-    const topic = context.getTopic();
-    const consumer = context.getConsumer();
-    await consumer.commitOffsets([{ topic, partition, offset }]);
-    this.LOGGER.debug(
-      `Offset committed for request with id: ${request.executionId}`,
+    return this.tracerGateway.trace(
+      'StepExecutionResponseController.taskCompleted',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', request.executionId);
+        span.setAttribute('workflow.execution.answer', request.answer);
+
+        this.LOGGER.debug('Task completed');
+        await this.workflowExecutionStepDomain.saveAnswer(
+          request.executionId,
+          request.answer,
+        );
+        span.setAttribute('workflow.execution.answer.saved', true);
+        await this.workflowExecutionStepDomain.runNextStep(request.executionId);
+        span.setAttribute('workflow.execution.next.step.started', true);
+        this.LOGGER.debug(
+          `Committing offset for request with id: ${request.executionId}`,
+        );
+
+        try {
+          const { offset } = context.getMessage();
+          const partition = context.getPartition();
+          const topic = context.getTopic();
+          const consumer = context.getConsumer();
+          await consumer.commitOffsets([{ topic, partition, offset }]);
+          this.LOGGER.debug(
+            `Offset committed for request with id: ${request.executionId}`,
+          );
+        } catch (error) {
+          span.addEvent('Failed to commit offset');
+          this.LOGGER.error(
+            `Failed to commit offset for request with id: ${request.executionId}`,
+          );
+          throw error;
+        }
+      },
     );
   }
 }
