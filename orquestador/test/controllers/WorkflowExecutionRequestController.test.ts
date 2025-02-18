@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { ClientKafka, KafkaContext } from '@nestjs/microservices';
 import { Producer } from '@nestjs/microservices/external/kafka.interface';
 import { Test, TestingModule } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
 
 describe('WorkflowExecutionRequestController', () => {
@@ -64,6 +65,7 @@ describe('WorkflowExecutionRequestController', () => {
           useValue: WorkflowExecutionDomainMock,
         },
         { provide: ConfigService, useValue: configServiceMock },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

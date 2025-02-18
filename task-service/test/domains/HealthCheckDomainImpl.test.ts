@@ -1,6 +1,7 @@
 import HealthCheckDomainImpl from '@domains/HealthCheckDomainImpl';
 import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient';
 import { Test } from '@nestjs/testing';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('HealthCheckDomainImpl', () => {
   let healthCheckService: HealthCheckDomainImpl;
@@ -16,6 +17,7 @@ describe('HealthCheckDomainImpl', () => {
       providers: [
         HealthCheckDomainImpl,
         { provide: TaskAgentDaoClient, useValue: taskAgentDaoClientMock },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

@@ -2,6 +2,7 @@ import NotAliveException from '@exceptions/NotAliveException';
 import { HealthCheckDomain } from '@interfaces/domains/HealthCheckDomain';
 import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { HeartPingPath } from '@shared/HeartbeatPaths';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Controller(HeartPingPath)
 class PingController {
@@ -10,16 +11,24 @@ class PingController {
   constructor(
     @Inject(HealthCheckDomain)
     private readonly healthCheckDomain: HealthCheckDomain,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   @Get()
   async healthCheck() {
-    const resp = this.healthCheckDomain.check();
-    if (!resp) {
-      this.LOGGER.error('Microservice not alive!');
-      throw new NotAliveException();
-    }
-    return resp;
+    return this.tracerGateway.trace(
+      'PingController.healthCheck',
+      async (span) => {
+        const resp = await this.healthCheckDomain.check();
+        span.setAttribute('healthy', resp);
+        if (!resp) {
+          span.addEvent('Microservice not alive!');
+          this.LOGGER.error('Microservice not alive!');
+          throw new NotAliveException();
+        }
+        return resp;
+      },
+    );
   }
 }
 

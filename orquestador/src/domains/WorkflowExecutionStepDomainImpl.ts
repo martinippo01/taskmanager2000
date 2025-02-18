@@ -14,6 +14,7 @@ import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 import { InputArguments } from '@shared/WorkflowInput';
 import { join } from 'path';
 import { readFile, writeFile } from 'fs/promises';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Injectable()
 export class WorkflowExecutionStepDomainImpl
@@ -26,128 +27,179 @@ export class WorkflowExecutionStepDomainImpl
     private readonly workflowExecutionRepository: WorkflowExecutionDao,
     @Inject(StepScheduleRequestGateway)
     private readonly stepScheduleRequestGateway: StepScheduleRequestGateway,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async runNextStep(executionId: string): Promise<void> {
-    this.LOGGER.log(`Running next step for workflow ${executionId}`);
+    return this.tracerGateway.trace(
+      'WorkflowExecutionStepDomainImpl.runNextStep',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', executionId);
 
-    // Check the persistence for steps and the lasr run step
-    const steps: stepsInfo | null =
-      await this.workflowExecutionRepository.getStepsFromExecution(executionId);
-    const wf_exec: WorkflowExecution | null =
-      await this.workflowExecutionRepository.getWorkflowExecutionById(
-        executionId,
-      );
-    if (!steps || !wf_exec) {
-      this.LOGGER.error(`No steps found for workflow ${executionId}`);
-      return; // check if to throw an error
-    }
+        this.LOGGER.log(`Running next step for workflow ${executionId}`);
 
-    // Iterate over the steps and match the last one, then get the next one to run it
-    let nextStep: Step | undefined = undefined;
-    for (let index = 0; index < steps.steps.length; index++) {
-      const step = steps.steps[index];
-      if (step.name === steps.lastRun && index + 1 < steps.steps.length) {
-        nextStep = steps.steps[index + 1];
-        break;
-      }
-    }
+        // Check the persistence for steps and the lasr run step
+        const steps: stepsInfo | null =
+          await this.workflowExecutionRepository.getStepsFromExecution(
+            executionId,
+          );
+        const wf_exec: WorkflowExecution | null =
+          await this.workflowExecutionRepository.getWorkflowExecutionById(
+            executionId,
+          );
+        if (!steps || !wf_exec) {
+          if (!wf_exec) span.addEvent('Workflow execution not found');
+          if (!steps) span.addEvent('Steps not found');
+          this.LOGGER.error(`No steps found for workflow ${executionId}`);
+          return; // check if to throw an error
+        }
 
-    if (nextStep === undefined) {
-      // Finish the execution
-      this.finishExecution(executionId);
-      return;
-    } else {
-      const stepArguments: InputArguments = {};
-      await nextStep.params.forEach(async (param) => {
-        if ('from' in param) {
-          const filePath = join('/answers', executionId, param.from);
-
-          try {
-            const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
-            stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
-          } catch (error) {
-            console.error(`Failed to read value from NFS: ${error}`);
-            stepArguments[param.name] = ''; // Default to empty string if reading fails
-          }
-        } else {
-          if (!!param.constant || param.constant === false) {
-            stepArguments[param.name] = wf_exec.inputArguments[param.value];
-          } else {
-            stepArguments[param.name] = param.value;
+        // Iterate over the steps and match the last one, then get the next one to run it
+        let nextStep: Step | undefined = undefined;
+        for (let index = 0; index < steps.steps.length; index++) {
+          const step = steps.steps[index];
+          if (step.name === steps.lastRun && index + 1 < steps.steps.length) {
+            nextStep = steps.steps[index + 1];
+            break;
           }
         }
-        // segun el tipo determinado, hacer un parseo para validar que el valor que se asigne sea el indicado.
-      });
 
-      if (
-        this.checkInternal(executionId, nextStep, stepArguments, steps, wf_exec)
-      ) {
-        return;
-      }
+        if (nextStep === undefined) {
+          // Finish the execution
+          await this.finishExecution(executionId);
+          return;
+        } else {
+          const stepArguments: InputArguments = {};
+          await nextStep.params.forEach(async (param) => {
+            if ('from' in param) {
+              const filePath = join('/answers', executionId, param.from);
 
-      // call the gateway to schedule the next step
-      const stepScheduleRequest: StepScheduleRequest = {
-        workflowExecutionId: executionId,
-        name: nextStep.name,
-        task: nextStep.task,
-        inputArgs: stepArguments,
-      };
-      this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
+              try {
+                const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
+                stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
+              } catch (error) {
+                console.error(`Failed to read value from NFS: ${error}`);
+                stepArguments[param.name] = ''; // Default to empty string if reading fails
+              }
+            } else {
+              if (!!param.constant || param.constant === false) {
+                stepArguments[param.name] = wf_exec.inputArguments[param.value];
+              } else {
+                stepArguments[param.name] = param.value;
+              }
+            }
+            // segun el tipo determinado, hacer un parseo para validar que el valor que se asigne sea el indicado.
+          });
 
-      this.workflowExecutionRepository.updateStatus(
-        executionId,
-        WfExecutionStatus.STEP_SCHEDULED,
-      );
-    }
+          if (
+            this.checkInternal(
+              executionId,
+              nextStep,
+              stepArguments,
+              steps,
+              wf_exec,
+            )
+          ) {
+            return;
+          }
+
+          // call the gateway to schedule the next step
+          const stepScheduleRequest: StepScheduleRequest = {
+            workflowExecutionId: executionId,
+            name: nextStep.name,
+            task: nextStep.task,
+            inputArgs: stepArguments,
+          };
+          await this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
+          span.setAttribute('workflow.execution.step.queued', true);
+
+          await this.workflowExecutionRepository.updateStatus(
+            executionId,
+            WfExecutionStatus.STEP_SCHEDULED,
+          );
+          span.setAttribute('workflow.execution.status.updated', true);
+        }
+      },
+    );
   }
 
   async saveAnswer(executionId: string, answerPath: string) {
-    // Check the persistence for steps and the lasr run step
-    const steps: stepsInfo | null =
-      await this.workflowExecutionRepository.getStepsFromExecution(executionId);
-    if (!steps) {
-      this.LOGGER.error(`No steps found for workflow ${executionId}`);
-      return; // check if to throw an error
-    }
-    if (!steps.lastRun) {
-      this.LOGGER.error(`No last step run found for workflow ${executionId}`);
-      return; // check if to throw an error
-    }
+    return this.tracerGateway.trace(
+      'WorkflowExecutionStepDomainImpl.saveAnswer',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', executionId);
+        span.setAttribute('workflow.execution.answer', answerPath);
+        // Check the persistence for steps and the lasr run step
+        const steps: stepsInfo | null =
+          await this.workflowExecutionRepository.getStepsFromExecution(
+            executionId,
+          );
+        if (!steps) {
+          span.addEvent('Steps not found');
+          this.LOGGER.error(`No steps found for workflow ${executionId}`);
+          return; // check if to throw an error
+        }
+        if (!steps.lastRun) {
+          span.addEvent('Last step not found');
+          this.LOGGER.error(
+            `No last step run found for workflow ${executionId}`,
+          );
+          return; // check if to throw an error
+        }
 
-    await this.workflowExecutionRepository.updateStep(
-      executionId,
-      steps.lastRun,
-      answerPath,
-    );
+        await this.workflowExecutionRepository.updateStep(
+          executionId,
+          steps.lastRun,
+          answerPath,
+        );
+        span.setAttribute('workflow.execution.step.answer.saved', true);
 
-    await this.workflowExecutionRepository.updateStatus(
-      executionId,
-      WfExecutionStatus.STEP_FINISHED,
+        await this.workflowExecutionRepository.updateStatus(
+          executionId,
+          WfExecutionStatus.STEP_FINISHED,
+        );
+        span.setAttribute('workflow.execution.status.updated', true);
+      },
     );
   }
 
   async finishExecution(executionId: string) {
-    await this.workflowExecutionRepository.updateStatus(
-      executionId,
-      WfExecutionStatus.EXECUTION_FINISHED,
+    return this.tracerGateway.trace(
+      'WorkflowExecutionStepDomainImpl.finishExecution',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', executionId);
+        await this.workflowExecutionRepository.updateStatus(
+          executionId,
+          WfExecutionStatus.EXECUTION_FINISHED,
+        );
+        span.setAttribute('workflow.execution.status.updated', true);
+      },
     );
   }
 
   async handleError(executionId: string, error: string): Promise<void> {
-    this.LOGGER.error(`Error in workflow with ID ${executionId}: ${error}`);
-    try {
-      await this.workflowExecutionRepository.markExecutionAsError(
-        executionId,
-        error,
-      );
-    } catch (error) {
-      this.LOGGER.error(
-        `Failed to mark workflow with ID ${executionId} as error:`,
-        error,
-      );
-      throw new Error('Unable to mark workflow as error');
-    }
+    return this.tracerGateway.trace(
+      'WorkflowExecutionStepDomainImpl.handleError',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', executionId);
+        span.setAttribute('workflow.execution.error', error);
+        this.LOGGER.error(`Error in workflow with ID ${executionId}: ${error}`);
+        try {
+          await this.workflowExecutionRepository.markExecutionAsError(
+            executionId,
+            error,
+          );
+          span.setAttribute('workflow.execution.marked.error', true);
+        } catch (error) {
+          span.setAttribute('workflow.execution.marked.error', false);
+          this.LOGGER.error(
+            `Failed to mark workflow with ID ${executionId} as error:`,
+            error,
+          );
+          throw new Error('Unable to mark workflow as error');
+        }
+      },
+    );
   }
 
   async runDecision(
@@ -156,83 +208,93 @@ export class WorkflowExecutionStepDomainImpl
     stepsInfo: stepsInfo,
     wf_exec: WorkflowExecution,
   ) {
-    const condition = stepArguments['condition'];
-    let wasSuccess = false;
-    const firstArg = stepArguments['left'];
-    const secondArg = stepArguments['right'];
+    return this.tracerGateway.trace(
+      'WorkflowExecutionStepDomainImpl.runDecision',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', executionId);
+        const condition = stepArguments['condition'];
+        let wasSuccess = false;
+        const firstArg = stepArguments['left'];
+        const secondArg = stepArguments['right'];
 
-    if (condition === 'equals') {
-      wasSuccess = firstArg == secondArg;
-    } else if (condition === 'greater') {
-      wasSuccess = firstArg > secondArg;
-    } else if (condition === 'smaller') {
-      wasSuccess = firstArg < secondArg;
-    }
-
-    let stepToRunName;
-    if (wasSuccess) {
-      // Go to success task
-      stepToRunName = stepArguments['success'];
-    } else {
-      // Go to failure task
-      stepToRunName = stepArguments['failure'];
-    }
-
-    const stepToRun = stepsInfo.steps.find(
-      (step) => step.name === stepToRunName,
-    );
-
-    const newStepArguments: InputArguments = {};
-    if (stepToRun) {
-      await stepToRun.params.forEach(async (param) => {
-        if ('from' in param) {
-          const filePath = join('/answers', executionId, param.from);
-
-          try {
-            const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
-            stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
-          } catch (error) {
-            console.error(`Failed to read value from NFS: ${error}`);
-            stepArguments[param.name] = ''; // Default to empty string if reading fails
-          }
-        } else {
-          if (!!param.constant || param.constant === false) {
-            newStepArguments[param.name] = wf_exec.inputArguments[param.value];
-          } else {
-            newStepArguments[param.name] = param.value;
-          }
+        if (condition === 'equals') {
+          wasSuccess = firstArg == secondArg;
+        } else if (condition === 'greater') {
+          wasSuccess = firstArg > secondArg;
+        } else if (condition === 'smaller') {
+          wasSuccess = firstArg < secondArg;
         }
-      });
-    } else {
-      this.LOGGER.error(
-        `Problema! No existe el step de la decision ${stepToRunName}, tenemos ${stepsInfo.steps}`,
-      );
-      return;
-    }
 
-    if (
-      this.checkInternal(
-        executionId,
-        stepToRun,
-        newStepArguments,
-        stepsInfo,
-        wf_exec,
-      )
-    ) {
-      return;
-    }
+        let stepToRunName;
+        if (wasSuccess) {
+          // Go to success task
+          stepToRunName = stepArguments['success'];
+        } else {
+          // Go to failure task
+          stepToRunName = stepArguments['failure'];
+        }
 
-    const stepScheduleRequest: StepScheduleRequest = {
-      workflowExecutionId: executionId,
-      name: stepToRun.name,
-      task: stepToRun.task,
-      inputArgs: newStepArguments,
-    };
-    this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
+        const stepToRun = stepsInfo.steps.find(
+          (step) => step.name === stepToRunName,
+        );
 
-    this.workflowExecutionRepository.updateStatus(
-      executionId,
-      WfExecutionStatus.STEP_SCHEDULED,
+        const newStepArguments: InputArguments = {};
+        if (stepToRun) {
+          await stepToRun.params.forEach(async (param) => {
+            if ('from' in param) {
+              const filePath = join('/answers', executionId, param.from);
+
+              try {
+                const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
+                stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
+              } catch (error) {
+                console.error(`Failed to read value from NFS: ${error}`);
+                stepArguments[param.name] = ''; // Default to empty string if reading fails
+              }
+            } else {
+              if (!!param.constant || param.constant === false) {
+                newStepArguments[param.name] =
+                  wf_exec.inputArguments[param.value];
+              } else {
+                newStepArguments[param.name] = param.value;
+              }
+            }
+          });
+        } else {
+          span.addEvent('Step not found');
+          this.LOGGER.error(
+            `Problema! No existe el step de la decision ${stepToRunName}, tenemos ${stepsInfo.steps}`,
+          );
+          return;
+        }
+
+        if (
+          this.checkInternal(
+            executionId,
+            stepToRun,
+            newStepArguments,
+            stepsInfo,
+            wf_exec,
+          )
+        ) {
+          return;
+        }
+
+        const stepScheduleRequest: StepScheduleRequest = {
+          workflowExecutionId: executionId,
+          name: stepToRun.name,
+          task: stepToRun.task,
+          inputArgs: newStepArguments,
+        };
+        this.stepScheduleRequestGateway.queueStep(stepScheduleRequest);
+        span.setAttribute('workflow.execution.step.queued', true);
+
+        this.workflowExecutionRepository.updateStatus(
+          executionId,
+          WfExecutionStatus.STEP_SCHEDULED,
+        );
+        span.setAttribute('workflow.execution.status.updated', true);
+      },
     );
   }
 
@@ -255,18 +317,29 @@ export class WorkflowExecutionStepDomainImpl
   }
 
   async saveOnNFS(executionId, rst: string, step_name: string) {
-    if (rst !== null) {
-      const nfsPath = join('/answers', executionId, step_name);
+    return this.tracerGateway.trace(
+      'WorkflowExecutionStepDomainImpl.saveOnNFS',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', executionId);
+        span.setAttribute('workflow.execution.step.name', step_name);
 
-      try {
-        await writeFile(nfsPath, rst, 'utf-8');
-        console.log(`Saved result to ${nfsPath}`);
-      } catch (error) {
-        console.error(`Failed to save result to NFS: ${error}`);
-      }
-    }
+        if (rst !== null) {
+          const nfsPath = join('/answers', executionId, step_name);
 
-    this.saveAnswer(executionId, `${executionId}/${step_name}`);
+          try {
+            await writeFile(nfsPath, rst, 'utf-8');
+            span.setAttribute('workflow.execution.step.result.saved', true);
+            console.log(`Saved result to ${nfsPath}`);
+          } catch (error) {
+            span.setAttribute('workflow.execution.step.result.saved', false);
+            console.error(`Failed to save result to NFS: ${error}`);
+          }
+        }
+
+        await this.saveAnswer(executionId, `${executionId}/${step_name}`);
+        span.setAttribute('workflow.execution.step.answer.saved', true);
+      },
+    );
   }
 
   checkInternal(

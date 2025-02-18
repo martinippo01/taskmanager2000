@@ -10,6 +10,7 @@ import {
 } from '@configs/KafkaStepScheduleExceptionOrchestratorGatewayConfig';
 import { StepScheduleRequest } from '@shared/StepScheduleRequest';
 import { WorkflowExecutionStepError } from '@shared/WorkflowExecutionStepError';
+import { TracerGateway } from '@shared/TracerGateway';
 
 @Injectable()
 export class StepScheduleExceptionOrchestratorGatewayImpl
@@ -25,6 +26,7 @@ export class StepScheduleExceptionOrchestratorGatewayImpl
     private readonly kafkaClient: ClientKafka,
     @Inject(ConfigService)
     private readonly configService: ConfigService<KafkaStepScheduleExceptionOrchestratorGatewayEnvironmentVariables>,
+    @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {
     this.topic =
       this.configService.get('KAFKA_TOPIC_SEE', { infer: true }) || '';
@@ -34,21 +36,33 @@ export class StepScheduleExceptionOrchestratorGatewayImpl
     request: StepScheduleRequest,
     exception: StepScheduleException,
   ): Promise<void> {
-    try {
-      const payload: WorkflowExecutionStepError = {
-        executionId: request.workflowExecutionId,
-        reason: exception,
-      };
-      await this.kafkaClient.emit(this.topic, payload).toPromise();
-      this.LOGGER.log(
-        `Successfully notified exception for request: ${request.workflowExecutionId}`,
-      );
-    } catch (error) {
-      this.LOGGER.error(
-        `Failed to notify exception for request: ${request.workflowExecutionId}, error: ${error}`,
-      );
-      throw new KafkaConnectionException('StepScheduleExceptionQueue', error);
-    }
+    return this.tracerGateway.trace(
+      'StepScheduleExceptionOrchestratorGatewayImpl.notify',
+      async (span) => {
+        span.setAttribute('step.name', request.name);
+        span.setAttribute('workflow.execution.id', request.workflowExecutionId);
+        span.setAttribute('exception', exception);
+        try {
+          const payload: WorkflowExecutionStepError = {
+            executionId: request.workflowExecutionId,
+            reason: exception,
+          };
+          await this.kafkaClient.emit(this.topic, payload).toPromise();
+          this.LOGGER.log(
+            `Successfully notified exception for request: ${request.workflowExecutionId}`,
+          );
+        } catch (error) {
+          span.addEvent('Failed to notify exception');
+          this.LOGGER.error(
+            `Failed to notify exception for request: ${request.workflowExecutionId}, error: ${error}`,
+          );
+          throw new KafkaConnectionException(
+            'StepScheduleExceptionQueue',
+            error,
+          );
+        }
+      },
+    );
   }
 
   async onModuleInit() {

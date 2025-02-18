@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
 import { HttpModule } from '@nestjs/axios';
@@ -26,6 +26,8 @@ import {
   KafkaStepScheduleExceptionOrchestratorGatewayClientFactoryProvider,
 } from '@configs/KafkaStepScheduleExceptionOrchestratorGatewayConfig';
 import PingController from '@controllers/PingController';
+import TracingMiddleware from '@shared/TracingMiddleware';
+import { tracerGatewayProvider } from '@shared/TracerGateway';
 
 @Module({
   imports: [
@@ -79,6 +81,11 @@ import PingController from '@controllers/PingController';
       provide: StepScheduleExceptionOrchestratorGateway,
       useClass: StepScheduleExceptionOrchestratorGatewayImpl,
     },
+    tracerGatewayProvider,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TracingMiddleware).forRoutes('*');
+  }
+}

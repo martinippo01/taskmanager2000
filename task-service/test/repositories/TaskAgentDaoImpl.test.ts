@@ -3,6 +3,7 @@ import { TaskAgentDaoClient } from '@interfaces/repositories/TaskAgentDaoClient'
 import { Test } from '@nestjs/testing';
 import TaskAgentDaoImpl from '@repositories/TaskAgentDaoImpl';
 import { TaskData } from '@shared/TaskData';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 
 describe('TaskAgentDaoImpl', () => {
   const taskDataExample: TaskData = {
@@ -33,6 +34,7 @@ describe('TaskAgentDaoImpl', () => {
       providers: [
         TaskAgentDaoImpl,
         { provide: TaskAgentDaoClient, useValue: taskAgentDaoClientMock },
+        tracerGatewayMockProvider,
       ],
     }).compile();
 

@@ -7,6 +7,7 @@ import { WorkflowExecutionStepOutput } from '@interfaces/types/StepOutput';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import WorkflowExecutionOutputDaoImpl from '@repositories/WorkflowExecutionOutputDaoImpl';
+import { tracerGatewayMockProvider } from '@shared/TracerGateway';
 import { FileHandle } from 'fs/promises';
 import * as fs from 'fs/promises';
 
@@ -32,6 +33,7 @@ describe('WorkflowExecutionOutputDaoImpl', () => {
           useValue: configServiceMock,
         },
         WorkflowExecutionOutputDaoImpl,
+        tracerGatewayMockProvider,
       ],
     }).compile();
 
