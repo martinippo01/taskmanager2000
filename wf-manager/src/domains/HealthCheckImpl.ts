@@ -23,52 +23,55 @@ export class HealthCheckDomainImpl implements HealthCheckDomain {
 
   // Quizás hay que hacer algo con OnModuleInit
   async check(): Promise<{ status: string; details: any }> {
-    return this.tracerGateway.trace('health_check_domain', async (span) => {
-      // Check cache first
-      const cachedResult = this.cache.get<{ status: string; details: any }>(
-        'health-check',
-      );
-      span.setAttribute('cache.hit', cachedResult ? 'true' : 'false');
-      if (cachedResult) return cachedResult;
+    return this.tracerGateway.trace(
+      'HealthCheckDomainImpl.check',
+      async (span) => {
+        // Check cache first
+        const cachedResult = this.cache.get<{ status: string; details: any }>(
+          'health-check',
+        );
+        span.setAttribute('cache.hit', cachedResult ? 'true' : 'false');
+        if (cachedResult) return cachedResult;
 
-      // Initialize health check result
-      const result = {
-        status: 'ok',
-        details: {
-          redis: false,
-          kafka: false,
-        },
-      };
+        // Initialize health check result
+        const result = {
+          status: 'ok',
+          details: {
+            redis: false,
+            kafka: false,
+          },
+        };
 
-      // Check Redis
-      try {
-        if (await this.redisClient.ping()) {
-          result.details.redis = true;
-          this.LOGGER.log('Checking redis HC, result: Positive!');
-        } else {
+        // Check Redis
+        try {
+          if (await this.redisClient.ping()) {
+            result.details.redis = true;
+            this.LOGGER.log('Checking redis HC, result: Positive!');
+          } else {
+            result.status = 'error';
+          }
+        } catch (error) {
+          this.LOGGER.error(`Connection error: ${error}`);
           result.status = 'error';
         }
-      } catch (error) {
-        this.LOGGER.error(`Connection error: ${error}`);
-        result.status = 'error';
-      }
 
-      // Check Kafka
-      if (this.kafkaProducer.isConnected()) {
-        result.details.kafka = true;
-        this.LOGGER.log('Checking kafka HC, result: Positive!');
-      } else {
-        result.status = 'error';
-        this.LOGGER.error('Connection error with Kafka');
-      }
+        // Check Kafka
+        if (this.kafkaProducer.isConnected()) {
+          result.details.kafka = true;
+          this.LOGGER.log('Checking kafka HC, result: Positive!');
+        } else {
+          result.status = 'error';
+          this.LOGGER.error('Connection error with Kafka');
+        }
 
-      // Cache the result
-      this.cache.set('health-check', result);
-      span.setAttribute('health-check.status', result.status);
-      span.setAttribute('health-check.redis', result.details.redis);
-      span.setAttribute('health-check.kafka', result.details.kafka);
+        // Cache the result
+        this.cache.set('health-check', result);
+        span.setAttribute('health-check.status', result.status);
+        span.setAttribute('health-check.redis', result.details.redis);
+        span.setAttribute('health-check.kafka', result.details.kafka);
 
-      return result;
-    });
+        return result;
+      },
+    );
   }
 }

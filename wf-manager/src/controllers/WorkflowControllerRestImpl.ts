@@ -60,7 +60,7 @@ class WorkflowControllerRestImpl {
     file: Express.Multer.File,
   ): Promise<CreateWorkflowResponseDto> {
     return this.tracerGateway.trace(
-      'create_workflow_controller',
+      'WorkflowControllerRestImpl.createWorkflow',
       async (span) => {
         this.LOGGER.debug(`Creating workflow`);
         const fileContent = file.buffer.toString('utf8');
@@ -84,7 +84,7 @@ class WorkflowControllerRestImpl {
     @Query('version') version?: string,
   ): Promise<ToggleWorkflowResponseDto> {
     return this.tracerGateway.trace(
-      'toggle_workflow_controller',
+      'WorkflowControllerRestImpl.toggleWorkflow',
       async (span) => {
         span.setAttribute('workflow.name', params.name);
         if (version) span.setAttribute('workflow.version', version);
@@ -111,7 +111,7 @@ class WorkflowControllerRestImpl {
     @Query('version') version?: string,
   ): Promise<ExecuteWorkflowResponseDto> {
     return this.tracerGateway.trace(
-      'execute_workflow_controller',
+      'WorkflowControllerRestImpl.executeWorkflow',
       async (span) => {
         const { name } = params;
         span.setAttribute('workflow.name', name);

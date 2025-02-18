@@ -17,7 +17,7 @@ class PingController {
 
   @Get()
   async healthCheck() {
-    return this.tracerGateway.trace('health_check_controller', async () => {
+    return this.tracerGateway.trace('PingController.healthCheck', async () => {
       const healthStatus = await this.healthCheckDomain.check();
       if (healthStatus.status === 'error') throw new NotAliveException();
       return healthStatus;
