@@ -35,7 +35,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
           });
           span.addEvent('Workflow execution saved');
 
-          const dirPath = join('/mnt/nfs', request.executionId);
+          const dirPath = join('/answers', request.executionId);
           await mkdir(dirPath, { recursive: true });
           span.addEvent('Workflow execution directory created');
         } catch (e) {

@@ -72,7 +72,7 @@ export class WorkflowExecutionStepDomainImpl
           const stepArguments: InputArguments = {};
           await nextStep.params.forEach(async (param) => {
             if ('from' in param) {
-              const filePath = join('/mnt/nfs', executionId, param.from);
+              const filePath = join('/answers', executionId, param.from);
 
               try {
                 const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
@@ -242,7 +242,7 @@ export class WorkflowExecutionStepDomainImpl
         if (stepToRun) {
           await stepToRun.params.forEach(async (param) => {
             if ('from' in param) {
-              const filePath = join('/mnt/nfs', executionId, param.from);
+              const filePath = join('/answers', executionId, param.from);
 
               try {
                 const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
@@ -324,7 +324,7 @@ export class WorkflowExecutionStepDomainImpl
         span.setAttribute('workflow.execution.step.name', step_name);
 
         if (rst !== null) {
-          const nfsPath = join('/mnt/nfs', executionId, step_name);
+          const nfsPath = join('/answers', executionId, step_name);
 
           try {
             await writeFile(nfsPath, rst, 'utf-8');
