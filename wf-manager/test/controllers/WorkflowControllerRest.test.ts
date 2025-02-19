@@ -118,9 +118,7 @@ describe('WorkflowControllerRestImpl', () => {
         plan: { steps: [{ name: 'asd', task: 'echo', params: [] }] },
         enabled: true,
       });
-      jest
-        .spyOn(mockWorkflowInputDomain, 'getInputArgs')
-        .mockReturnValue(Promise.resolve({}));
+      jest.spyOn(mockWorkflowInputDomain, 'getInputArgs').mockReturnValue({});
       jest
         .spyOn(mockWorkflowExecutionGateway, 'queueWorkflow')
         .mockResolvedValue('execution-id');
