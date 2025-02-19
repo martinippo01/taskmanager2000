@@ -24,6 +24,9 @@ class SchedulerDomainImpl implements SchedulerDomain {
     return this.tracerGateway.trace(
       'SchedulerDomainImpl.scheduleStepExecution',
       async (span) => {
+        this.LOGGER.debug(
+          `Trying to schedule step ${stepScheduleRequest.name}...`,
+        );
         span.setAttribute('step.name', stepScheduleRequest.name);
         span.setAttribute(
           'workflow.execution.id',
@@ -34,12 +37,15 @@ class SchedulerDomainImpl implements SchedulerDomain {
           stepScheduleRequest.task,
         );
         span.setAttribute('task.exists', !!taskServResult);
+
         if (!taskServResult) {
           return { error: StepScheduleException.TASK_NOT_EXISTS };
         }
 
         const inputArgFromTask = stepScheduleRequest.inputArgs;
         const optionals = taskServResult.optionalParams;
+        this.LOGGER.debug(`Input args from task: ${inputArgFromTask}`);
+        this.LOGGER.debug(`Optional params: ${optionals}`);
 
         if (
           !Object.entries(taskServResult.params).every(([key, value]) =>

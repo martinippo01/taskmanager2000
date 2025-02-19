@@ -26,6 +26,7 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
       'TaskServiceGatewayImpl.getTaskInfo',
       async (span) => {
         span.setAttribute('task.name', taskName);
+        this.LOGGER.debug('Retrieving task info for name: ' + taskName);
 
         try {
           const response: AxiosResponse<TaskData> | undefined =
