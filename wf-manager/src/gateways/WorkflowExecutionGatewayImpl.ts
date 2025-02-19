@@ -58,12 +58,16 @@ class WorkflowExecutionGatewayImpl
 
         try {
           this.LOGGER.debug(`Sending workflow ${name} to execution`);
+          this.LOGGER.debug(`Workflow: ${JSON.stringify(workflow)}`);
+          this.LOGGER.debug(
+            `Input arguments: ${JSON.stringify(inputArguments)}`,
+          );
           const executionId = await this.producer.send(name, {
             name,
             description,
             inputParams,
-            inputArguments,
             plan,
+            inputArguments,
           });
           span.setAttribute('workflow.execution.queued', true);
           span.setAttribute('workflow.execution.id', executionId);

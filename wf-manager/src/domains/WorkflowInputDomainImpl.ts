@@ -54,8 +54,11 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
 
         // Check if all input parameters are set
         this.LOGGER.debug('Validating all input parameters are set');
-        this.LOGGER.debug(`Set input parameters: ${setInputParams}`);
+        this.LOGGER.debug(
+          `Set input parameters: json ${JSON.stringify(setInputParams)}`,
+        );
         this.LOGGER.debug(`All input parameters: ${allInputParams}`);
+        // Creo que esto no tiene sentido
         if (setInputParams.size !== allInputParams.length) {
           const missingInputParams = allInputParams.filter(
             (param) => !setInputParams.has(param),
@@ -63,6 +66,10 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
           throw new InputParamUnsetException(missingInputParams);
         }
         span.setAttribute('workflow.inputArguments.validated', true);
+        span.setAttribute(
+          'workflow.inputArguments.validated.arguments',
+          JSON.stringify(inputArguments),
+        );
 
         return inputArguments;
       },

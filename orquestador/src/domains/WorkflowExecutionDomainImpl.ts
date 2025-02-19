@@ -105,11 +105,20 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
           } else {
             if (!!param.constant || param.constant === false) {
               filteredArgs[param.name] = request.inputArguments[param.value];
+              this.LOGGER.debug(
+                `In filteredArgs, ${param.name} is ${filteredArgs[param.name]}`,
+              );
             } else {
               filteredArgs[param.name] = param.value;
             }
           }
         });
+
+        this.LOGGER.debug(
+          `Filtered input arguments for first step of execution ${request.executionId}: ${JSON.stringify(
+            filteredArgs,
+          )}`,
+        );
 
         const stepScheduleRequest = {
           workflowExecutionId: request.executionId,
