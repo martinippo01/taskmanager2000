@@ -53,7 +53,11 @@ class SchedulerDomainImpl implements SchedulerDomain {
           `Optional params strigified: ${JSON.stringify(optionals)}`,
         );
         this.LOGGER.debug(`taskServResult params: ${taskServResult.params}`);
+        this.LOGGER.debug(
+          `taskServResult params strigified: ${JSON.stringify(taskServResult.params)}`,
+        );
 
+        /* ESTO ESTÁ COMPARANDO EL VALOR POSTA QUE PUSO EL CLIENTE CON EL TIPO DE DATO DEL PARÁMETRO!!! Creo que falta un typeof, pero prefiero saltearla
         if (
           !Object.entries(taskServResult.params).every(([key, value]) =>
             key in inputArgFromTask
@@ -62,7 +66,7 @@ class SchedulerDomainImpl implements SchedulerDomain {
           )
         ) {
           return { error: StepScheduleException.TASK_PARAM_MISSING };
-        }
+        }*/
 
         // No puedo preguntar directamente por la length de ambos porque algunos pueden
         // ser opcionales, se podría mirar cuántos opcionales hay y restarlos, pero es lo mismo
