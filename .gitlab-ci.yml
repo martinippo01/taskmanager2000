@@ -98,22 +98,15 @@ deploy-k8s:
     - chmod 400 ~/.ssh/id_ed25519
     - scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o IdentitiesOnly=yes -o User=ubuntu ubuntu@$CLUSTER_IP:~/.kube/config /helm/.kube/config
     - cat /helm/.kube/config
-    # - cp $KUBE_CONFIG_FILE /helm/.kube/config # TODO: Change this
     - cd ~
     - git clone https://oauth2:$CI_ACCESS_TOKEN_2@gitlab.com/itba-73-40-microservicios/alumnos/grupo-a/taskmanager2000-cluster-config.git
     - cd taskmanager2000-cluster-config/helm
     - ls
     - echo "Install dependencies"
     - echo "$CLUSTER_IP"
-    # - helmfile init --interactive=false
-    # - kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
-    # - kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
     - echo "Deploy to AWS"
-    # - helmfile apply
     - echo "Modifying the kubeconfig file to use the master node's IP address..."
-    # delete line 4
     - sed -i '4d' ~/.kube/config
-    # replace the server address with the master node's IP address and disable tls verification
     - |
       sed -i "s/server: https:\/\/.*:6443/server: https:\/\/$CLUSTER_IP:6443\n    insecure-skip-tls-verify: true/g" ~/.kube/config
     - cat ~/.kube/config
@@ -121,11 +114,6 @@ deploy-k8s:
     - cd ../terraform
     - export NFS_SERVER=$NFS_SERVER_IP
     - cd ../helm
-    # - helm plugin install https://github.com/databus23/helm-diff
-    # - helm repo add traefik https://traefik.github.io/charts
-    # - helm install traefik traefik/traefik --set installCRDs=true
-    # - helm repo add signoz https://charts.signoz.io
-    # - helm install signoz signoz/signoz --set installCRDs=true --values charts/values-signoz.yaml
     - helmfile apply
 
   rules:
