@@ -21,6 +21,9 @@ export interface WorkflowExecutionQueryDomain {
     workflowName: string,
   ): Promise<string[] | null>;
   listExecutionIds(): Promise<string[]>;
+  getAnswerByWorkflowExecutionId(
+    id: string,
+  ): Promise<Record<string, string> | null>;
 }
 export const WorkflowExecutionQueryDomain = Symbol(
   'WorkflowExecutionQueryDomain',

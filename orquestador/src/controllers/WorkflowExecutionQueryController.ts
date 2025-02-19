@@ -44,6 +44,23 @@ export class WorkflowExecutionQueryController implements OnModuleInit {
     );
   }
 
+  @Get('/answer/:id')
+  async getAnswerByWorkflowExecutionId(@Param('id') id: string) {
+    return this.tracerGateway.trace(
+      'WorkflowExecutionQueryController.getAnswerByWorkflowExecutionId',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', id);
+
+        const response =
+          await this.workflowExecutionQueryDomain.getAnswerByWorkflowExecutionId(
+            id,
+          );
+        if (response === null) throw new WorkflowExecutionNotFoundException(id);
+        return response;
+      },
+    );
+  }
+
   @Get('/:id/steps/:stepNum')
   async getStepData(
     @Param('id') id: string,
