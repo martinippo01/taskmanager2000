@@ -30,7 +30,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
         span.setAttribute('workflow.name', request.name);
 
         try {
-          this.workflowExecutionRepository.saveWorkflowExecution({
+          await this.workflowExecutionRepository.saveWorkflowExecution({
             ...request,
           });
           span.addEvent('Workflow execution saved');
@@ -100,7 +100,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
               );
             } else {
               if (!!param.constant || param.constant === false) {
-                filteredArgs[param.name] = request.inputArgs[param.value];
+                filteredArgs[param.name] = request.inputArguments[param.value];
               } else {
                 filteredArgs[param.name] = param.value;
               }

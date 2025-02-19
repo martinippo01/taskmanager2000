@@ -125,11 +125,11 @@ class WorkflowControllerRestImpl {
         if (!workflow.enabled) {
           throw new DisabledWorkflowException(name);
         }
-        // 2 - Validate request input args
+        // 2 - Validate request input arguments
         this.LOGGER.debug(`Validating input arguments`);
         const inputArgs = this.workflowInputDomain.getInputArgs(
           workflow,
-          request.inputArgs || {},
+          request.inputArguments || {},
         );
         // 3 - Call gateway with id and wait for response
         this.LOGGER.debug(`Queueing workflow ${name} for execution`);

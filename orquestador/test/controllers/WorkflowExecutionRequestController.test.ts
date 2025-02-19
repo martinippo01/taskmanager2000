@@ -17,7 +17,7 @@ describe('WorkflowExecutionRequestController', () => {
   const executionRequestExample: WorkflowExecutionRequest = {
     executionId: '123',
     description: 'Description',
-    inputArgs: {},
+    inputArguments: {},
     inputParams: {},
     name: 'Name',
     plan: { steps: [] },

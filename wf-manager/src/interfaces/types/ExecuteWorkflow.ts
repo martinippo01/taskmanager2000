@@ -4,10 +4,10 @@ import {
   ValidationOptions,
 } from 'class-validator';
 
-function IsInputArgs(validationOptions?: ValidationOptions) {
+function IsInputArguments(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
     registerDecorator({
-      name: 'IsInputArgs',
+      name: 'IsInputArguments',
       target: object.constructor,
       propertyName: propertyName,
       constraints: [],
@@ -30,10 +30,10 @@ function IsInputArgs(validationOptions?: ValidationOptions) {
 
 export class ExecuteWorkflowRequestDto {
   @IsOptional()
-  @IsInputArgs({
+  @IsInputArguments({
     message: 'Input arguments must be a record of strings or string arrays',
   })
-  inputArgs?: Record<string, string | string[]>;
+  inputArguments?: Record<string, string | string[]>;
 }
 
 export type ExecuteWorkflowResponseDto = {

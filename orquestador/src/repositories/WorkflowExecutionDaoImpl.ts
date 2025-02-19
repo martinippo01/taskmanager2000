@@ -51,8 +51,9 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
           throw new RepeatedIdException(data.executionId || '');
         }
 
-        const workflowExecution = this.workflowExecutionRepository.create(data);
-        return this.workflowExecutionRepository.save(workflowExecution);
+        const workflowExecution =
+          await this.workflowExecutionRepository.create(data);
+        return await this.workflowExecutionRepository.save(workflowExecution);
       },
     );
   }

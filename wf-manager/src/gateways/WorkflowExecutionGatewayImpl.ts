@@ -48,7 +48,7 @@ class WorkflowExecutionGatewayImpl
 
   async queueWorkflow(
     workflow: Workflow,
-    inputArgs: InputArguments,
+    inputArguments: InputArguments,
   ): Promise<string> {
     return this.tracerGateway.trace(
       'WorkflowExecutionGatewayImpl.queueWorkflow',
@@ -62,7 +62,7 @@ class WorkflowExecutionGatewayImpl
             name,
             description,
             inputParams,
-            inputArgs,
+            inputArguments,
             plan,
           });
           span.setAttribute('workflow.execution.queued', true);
