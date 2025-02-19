@@ -5,7 +5,7 @@ export interface WorkflowInputDomain {
   getInputArgs(
     workflow: Workflow,
     inputArgs: Record<string, string | string[]>,
-  ): InputArguments;
+  ): Promise<InputArguments>;
 }
 
 export const WorkflowInputDomain = Symbol('WorkflowInputDomain');

@@ -18,10 +18,10 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
     @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
-  getInputArgs(
+  async getInputArgs(
     workflow: Workflow,
     inputArgs: Record<string, string | string[]>,
-  ): InputArguments {
+  ): Promise<InputArguments> {
     return this.tracerGateway.trace(
       'WorkflowInputDomainImpl.getInputArgs',
       (span) => {

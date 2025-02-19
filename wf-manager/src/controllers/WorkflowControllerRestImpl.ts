@@ -127,7 +127,7 @@ class WorkflowControllerRestImpl {
         }
         // 2 - Validate request input arguments
         this.LOGGER.debug(`Validating input arguments`);
-        const inputArgs = this.workflowInputDomain.getInputArgs(
+        const inputArgs = await this.workflowInputDomain.getInputArgs(
           workflow,
           request.inputArguments || {},
         );
