@@ -18,7 +18,7 @@ class TaskServiceDomainImpl implements TaskServiceDomain {
       'TaskServiceDomainImpl.getTaskData',
       async (span) => {
         span.setAttribute('task.name', taskName);
-        this.LOGGER.debug(`Getting task data for task ${taskName}`);
+        this.LOGGER.debug(`Getting task data for task from dao ${taskName}`);
         return this.taskAgentDao.getTaskData(taskName);
       },
     );

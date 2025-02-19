@@ -4,7 +4,6 @@ import {
   TaskAgentRegisterRequestDto,
   TaskAgentRegisterResponseDto,
 } from '@interfaces/types/TaskAgentRegister';
-import { TaskDataGetterResponseDto } from '@interfaces/types/TaskDataGetter';
 import {
   Body,
   Controller,
@@ -29,9 +28,7 @@ class TaskAgentController {
   ) {}
 
   @Get(':taskName')
-  async getTaskData(
-    @Param('taskName') taskName: string,
-  ): Promise<TaskDataGetterResponseDto> {
+  async getTaskData(@Param('taskName') taskName: string): Promise<TaskData> {
     return this.tracerGateway.trace(
       'TaskAgentController.getTaskData',
       async (span) => {
@@ -42,8 +39,9 @@ class TaskAgentController {
         if (!taskData) {
           throw new TaskAgentNotFoundException(taskName);
         }
+        this.LOGGER.debug(`Task data: ${JSON.stringify(taskData)}`);
         this.LOGGER.debug(`Task data for task ${taskName} found`);
-        return { taskData };
+        return taskData;
       },
     );
   }
@@ -63,6 +61,7 @@ class TaskAgentController {
           optionalParams: request.optionalParams || [],
           params: request.params,
         };
+        this.LOGGER.debug(`Task data to register: ${JSON.stringify(taskData)}`);
         const { registered, updated } =
           await this.taskServiceDomain.registerTask(taskName, taskData);
         span.setAttribute('task.registered', registered);

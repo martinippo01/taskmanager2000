@@ -50,7 +50,7 @@ describe('TaskAgentController', () => {
 
       const result = await controller.getTaskData('taskName');
 
-      expect(result).toEqual({ taskData: taskDataExample });
+      expect(result).toEqual(taskDataExample);
     });
 
     it('should throw an error if task data is not found', async () => {

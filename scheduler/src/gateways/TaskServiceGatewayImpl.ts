@@ -38,6 +38,10 @@ export class TaskServiceGatewayImpl implements TaskServiceGateway {
           span.setAttribute('task.exists', !!response);
           if (!response) throw new Error('Failed to retrieve task info');
 
+          this.LOGGER.debug(
+            `Respuesta de task service: ${JSON.stringify(response)}`,
+          );
+
           return response.data;
         } catch (error) {
           this.LOGGER.error(
