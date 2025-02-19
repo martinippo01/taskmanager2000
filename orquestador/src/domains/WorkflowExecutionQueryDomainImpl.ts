@@ -8,6 +8,7 @@ import {
   WorkflowExecutionDao,
 } from '@interfaces/repository/WorkflowExecutionDao';
 import { TracerGateway } from '@shared/TracerGateway';
+import { readFile } from 'fs/promises';
 
 @Injectable()
 export class WorkflowExecutionQueryDomainImpl
@@ -85,6 +86,40 @@ export class WorkflowExecutionQueryDomainImpl
         span.addEvent('Listing all workflow executions');
 
         return this.workflowExecutionRepository.getAllExecutionIds();
+      },
+    );
+  }
+
+  async getAnswerByWorkflowExecutionId(
+    id: string,
+  ): Promise<Record<string, string> | null> {
+    return this.tracerGateway.trace(
+      'WorkflowExecutionQueryDomainImpl.getAnswerByWorkflowExecutionId',
+      async (span) => {
+        span.setAttribute('workflow.execution.id', id);
+
+        const workflowExecution =
+          await this.workflowExecutionRepository.getWorkflowExecutionById(id);
+        if (!workflowExecution || !workflowExecution.outputs) {
+          span.addEvent('Workflow execution not found');
+          return null;
+        }
+
+        const answers: Record<string, string> = {};
+        for (const [stepName, path] of Object.entries(
+          workflowExecution.outputs,
+        )) {
+          if (path) {
+            try {
+              const answer = (await readFile(path, 'utf8')).trim();
+              answers[stepName] = answer;
+            } catch (error) {
+              span.addEvent('Workflow execution answer not found');
+              return null;
+            }
+          }
+        }
+        return answers;
       },
     );
   }
