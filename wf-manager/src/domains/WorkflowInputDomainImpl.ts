@@ -54,6 +54,8 @@ class WorkflowInputDomainImpl implements WorkflowInputDomain {
 
         // Check if all input parameters are set
         this.LOGGER.debug('Validating all input parameters are set');
+        this.LOGGER.debug(`Set input parameters: ${setInputParams}`);
+        this.LOGGER.debug(`All input parameters: ${allInputParams}`);
         if (setInputParams.size !== allInputParams.length) {
           const missingInputParams = allInputParams.filter(
             (param) => !setInputParams.has(param),

@@ -88,28 +88,26 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
         const firstStep = stepsInfo.steps[0];
 
         this.LOGGER.debug(
-          `First step of execution ${request.executionId}: ${firstStep}`,
+          `First step of execution ${request.executionId}: ${JSON.stringify(
+            firstStep,
+          )}`,
         );
 
         // ANTES ESTABA EL val.name ACÁ en lugar de val.value
+        this.LOGGER.debug(
+          `Input arguments for first step of execution ${request.executionId}: ${JSON.stringify(
+            request.inputArguments,
+          )}`,
+        );
         firstStep.params.forEach((param) => {
-          if (param.name in stepsInfo.inputArguments)
-            if ('from' in param) {
-              this.LOGGER.error(
-                `Hay un parámetro con from en el primer paso!!!`,
-              );
+          if ('from' in param) {
+            this.LOGGER.error(`Hay un parámetro con from en el primer paso!!!`);
+          } else {
+            if (!!param.constant || param.constant === false) {
+              filteredArgs[param.name] = request.inputArguments[param.value];
             } else {
-              if (!!param.constant || param.constant === false) {
-                filteredArgs[param.name] = request.inputArguments[param.value];
-              } else {
-                filteredArgs[param.name] = param.value;
-              }
+              filteredArgs[param.name] = param.value;
             }
-          else {
-            this.LOGGER.error(
-              `Un parámetro necesario para el primer paso (${param.name}) no está en lo que se guardó en la BD`,
-            );
-            return { queued: false, error: 'Esto no debería pasar nunca 3!' };
           }
         });
 

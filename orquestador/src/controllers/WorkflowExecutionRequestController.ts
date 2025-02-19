@@ -55,26 +55,6 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     return this.tracerGateway.trace(
       'WorkflowExecutionRequestController.handleExecutionRequest',
       async (span) => {
-        try {
-          this.LOGGER.debug(
-            `Committing offset for request with id: ${request.executionId}`,
-          );
-          const { offset } = context.getMessage();
-          const partition = context.getPartition();
-          const topic = context.getTopic();
-          const consumer = context.getConsumer();
-          await consumer.commitOffsets([{ topic, partition, offset }]);
-          this.LOGGER.debug(
-            `Offset committed for request with id: ${request.executionId}`,
-          );
-        } catch (error) {
-          span.addEvent('Failed to commit offset');
-          this.LOGGER.error(
-            `Failed to commit offset for request with id: ${request.executionId}`,
-          );
-          throw error;
-        }
-
         span.setAttribute('workflow.execution.id', request.executionId);
         span.setAttribute('workflow.name', request.name);
         this.LOGGER.debug(
@@ -95,6 +75,26 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
           this.LOGGER.log(
             `Workflow execution request with id: ${request.executionId} was successfully processed`,
           );
+        }
+
+        try {
+          this.LOGGER.debug(
+            `Committing offset for request with id: ${request.executionId}`,
+          );
+          const { offset } = context.getMessage();
+          const partition = context.getPartition();
+          const topic = context.getTopic();
+          const consumer = context.getConsumer();
+          await consumer.commitOffsets([{ topic, partition, offset }]);
+          this.LOGGER.debug(
+            `Offset committed for request with id: ${request.executionId}`,
+          );
+        } catch (error) {
+          span.addEvent('Failed to commit offset');
+          this.LOGGER.error(
+            `Failed to commit offset for request with id: ${request.executionId}`,
+          );
+          throw error;
         }
       },
     );
