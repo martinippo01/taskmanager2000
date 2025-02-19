@@ -106,7 +106,6 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
             this.LOGGER.error(`Hay un parámetro con from en el primer paso!!!`);
           } else {
             if (!('constant' in param) || param.constant === false) {
-              // No está entrando acá
               filteredArgs[param.name] = request.inputArguments[param.value];
               this.LOGGER.debug(
                 `In filteredArgs, ${param.name} is ${filteredArgs[param.name]}`,

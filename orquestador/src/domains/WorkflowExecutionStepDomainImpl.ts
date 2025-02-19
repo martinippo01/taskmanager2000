@@ -82,7 +82,7 @@ export class WorkflowExecutionStepDomainImpl
                 stepArguments[param.name] = ''; // Default to empty string if reading fails
               }
             } else {
-              if (!!param.constant || param.constant === false) {
+              if (!('constant' in param) || param.constant === false) {
                 stepArguments[param.name] = wf_exec.inputArguments[param.value];
               } else {
                 stepArguments[param.name] = param.value;
@@ -252,7 +252,7 @@ export class WorkflowExecutionStepDomainImpl
                 stepArguments[param.name] = ''; // Default to empty string if reading fails
               }
             } else {
-              if (!!param.constant || param.constant === false) {
+              if (!('constant' in param) || param.constant === false) {
                 newStepArguments[param.name] =
                   wf_exec.inputArguments[param.value];
               } else {
