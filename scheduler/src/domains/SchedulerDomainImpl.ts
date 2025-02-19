@@ -45,7 +45,14 @@ class SchedulerDomainImpl implements SchedulerDomain {
         const inputArgFromTask = stepScheduleRequest.inputArgs;
         const optionals = taskServResult.optionalParams;
         this.LOGGER.debug(`Input args from task: ${inputArgFromTask}`);
+        this.LOGGER.debug(
+          `Input args from task strigified: ${JSON.stringify(inputArgFromTask)}`,
+        );
         this.LOGGER.debug(`Optional params: ${optionals}`);
+        this.LOGGER.debug(
+          `Optional params strigified: ${JSON.stringify(optionals)}`,
+        );
+        this.LOGGER.debug(`taskServResult params: ${taskServResult.params}`);
 
         if (
           !Object.entries(taskServResult.params).every(([key, value]) =>
