@@ -84,7 +84,7 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
           }
 
           this.LOGGER.log(
-            'El workflow ${executionId} ha sido tomado por esta instancia',
+            `El workflow ${executionId} ha sido tomado por esta instancia`,
           );
 
           workflowExecution.status = newStatus;

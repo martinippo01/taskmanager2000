@@ -39,7 +39,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
           await mkdir(dirPath, { recursive: true });
           span.addEvent('Workflow execution directory created');
         } catch (e) {
-          this.LOGGER.log(e.messages);
+          this.LOGGER.log(e.message);
           return { alreadyRun: true, couldRun: false };
         }
 
@@ -75,13 +75,13 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
           this.LOGGER.error(
             `No existe stepsInfo para executionId: ${request.executionId}`,
           );
-          return { queued: false, error: 'Esto no debería pasar nunca!' };
+          return { queued: false, error: 'Esto no debería pasar nunca 1!' };
         }
-        if (!stepsInfo.lastRun) {
+        if (stepsInfo.lastRun) {
           this.LOGGER.error(
             `No parecería ser el primer step, ${request.executionId} has lastRun: ${stepsInfo.lastRun}`,
           );
-          return { queued: false, error: 'Esto no debería pasar nunca!' };
+          return { queued: false, error: 'Esto no debería pasar nunca 2!' };
         }
 
         const filteredArgs = {};
@@ -109,7 +109,7 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
             this.LOGGER.error(
               `Un parámetro necesario para el primer paso (${param.name}) no está en lo que se guardó en la BD`,
             );
-            return { queued: false, error: 'Esto no debería pasar nunca!' };
+            return { queued: false, error: 'Esto no debería pasar nunca 3!' };
           }
         });
 
