@@ -8,6 +8,8 @@ import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions } from '@nestjs/microservices';
 import { getKafkaWorkflowExecutionRequestConfig } from '@configs/KafkaWorkflowExecutionRequestConfig';
 import { getKafkaStepScheduleRequestConfig } from '@configs/KafkaStepScheduleRequestConfig';
+import { getKafkaStepExecutionResponseConfig } from '@configs/KafkaStepExecutionResponseConfig';
+import { getKafkaStepExecutionErrorConfig } from '@configs/KafkaStepExecutionErrorConfig';
 
 async function bootstrap() {
   // Start the OpenTelemetry SDK
@@ -51,6 +53,28 @@ async function bootstrap() {
       clientId: process.env.KAFKA_CLIENT_ID_SSR,
       username: process.env.KAFKA_USERNAME_SSR,
       password: process.env.KAFKA_PASSWORD_SSR,
+    }),
+    { inheritAppConfig: true },
+  );
+
+  const consumerStep = process.env.KAFKA_BROKERS_SER?.split(',');
+  app.connectMicroservice<MicroserviceOptions>(
+    getKafkaStepExecutionResponseConfig({
+      brokers: consumerStep,
+      clientId: process.env.KAFKA_CLIENT_ID_SER,
+      username: process.env.KAFKA_USERNAME_SER,
+      password: process.env.KAFKA_PASSWORD_SER,
+    }),
+    { inheritAppConfig: true },
+  );
+
+  const consumerError = process.env.KAFKA_BROKERS_SEE?.split(',');
+  app.connectMicroservice<MicroserviceOptions>(
+    getKafkaStepExecutionErrorConfig({
+      brokers: consumerError,
+      clientId: process.env.KAFKA_CLIENT_ID_SEE,
+      username: process.env.KAFKA_USERNAME_SEE,
+      password: process.env.KAFKA_PASSWORD_SEE,
     }),
     { inheritAppConfig: true },
   );
