@@ -55,6 +55,7 @@ class WorkflowExecutionGatewayImpl
       async (span) => {
         const { name, description, inputParams, plan } = workflow;
         span.setAttribute('workflow.name', name);
+        span.setAttribute('workflow.arguments', JSON.stringify(inputArguments));
 
         try {
           this.LOGGER.debug(`Sending workflow ${name} to execution`);
@@ -62,6 +63,7 @@ class WorkflowExecutionGatewayImpl
           this.LOGGER.debug(
             `Input arguments: ${JSON.stringify(inputArguments)}`,
           );
+
           const executionId = await this.producer.send(name, {
             name,
             description,

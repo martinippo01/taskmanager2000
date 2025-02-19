@@ -97,13 +97,16 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
         this.LOGGER.debug(
           `Input arguments for first step of execution ${request.executionId}: ${JSON.stringify(
             request.inputArguments,
-          )}`,
+          )}. Length: ${Object.keys(request.inputArguments).length}`,
         );
+
         firstStep.params.forEach((param) => {
+          this.LOGGER.debug(`Param: ${JSON.stringify(param)}`);
           if ('from' in param) {
             this.LOGGER.error(`Hay un parámetro con from en el primer paso!!!`);
           } else {
-            if (!!param.constant || param.constant === false) {
+            if (!('constant' in param) || param.constant === false) {
+              // No está entrando acá
               filteredArgs[param.name] = request.inputArguments[param.value];
               this.LOGGER.debug(
                 `In filteredArgs, ${param.name} is ${filteredArgs[param.name]}`,
