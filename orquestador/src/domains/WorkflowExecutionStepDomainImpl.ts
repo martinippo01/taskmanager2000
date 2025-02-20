@@ -70,7 +70,7 @@ export class WorkflowExecutionStepDomainImpl
           return;
         } else {
           const stepArguments: InputArguments = {};
-          await nextStep.params.forEach(async (param) => {
+          for (const param of nextStep.params) {
             if ('from' in param) {
               const filePath = join('/answers', executionId, param.from);
               this.LOGGER.debug(`Reading from ${filePath}`);
@@ -78,7 +78,7 @@ export class WorkflowExecutionStepDomainImpl
               try {
                 const value = (await readFile(filePath, 'utf8')).trim();
                 this.LOGGER.debug(`Read value: ${value}`);
-                stepArguments[param.name] = value; // Trim to remove any extra newlines
+                stepArguments[param.name] = value;
               } catch (error) {
                 console.error(`Failed to read value from NFS: ${error}`);
                 stepArguments[param.name] = ''; // Default to empty string if reading fails
@@ -91,7 +91,7 @@ export class WorkflowExecutionStepDomainImpl
               }
             }
             // segun el tipo determinado, hacer un parseo para validar que el valor que se asigne sea el indicado.
-          });
+          }
 
           if (
             this.checkInternal(
