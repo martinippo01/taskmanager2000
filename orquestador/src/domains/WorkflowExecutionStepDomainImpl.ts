@@ -73,11 +73,12 @@ export class WorkflowExecutionStepDomainImpl
           await nextStep.params.forEach(async (param) => {
             if ('from' in param) {
               const filePath = join('/answers', executionId, param.from);
-              Logger.debug(`Reading from ${filePath}`);
+              this.LOGGER.debug(`Reading from ${filePath}`);
 
               try {
-                const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
-                stepArguments[param.name] = value.trim(); // Trim to remove any extra newlines
+                const value = (await readFile(filePath, 'utf8')).trim();
+                this.LOGGER.debug(`Read value: ${value}`);
+                stepArguments[param.name] = value; // Trim to remove any extra newlines
               } catch (error) {
                 console.error(`Failed to read value from NFS: ${error}`);
                 stepArguments[param.name] = ''; // Default to empty string if reading fails
