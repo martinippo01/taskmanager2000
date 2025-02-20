@@ -171,10 +171,18 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
           throw new WorkflowExecutionNotFoundException(executionId);
         }
 
+        if (
+          name in workflowExecution.outputs &&
+          workflowExecution.outputs[name]
+        ) {
+          return workflowExecution;
+        }
+
         workflowExecution.outputs = {
           ...workflowExecution.outputs,
           [name]: wantedOutput,
         };
+        workflowExecution.lastStepRun = name;
 
         return this.workflowExecutionRepository.save(workflowExecution);
       },
