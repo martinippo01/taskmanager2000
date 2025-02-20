@@ -139,17 +139,39 @@ export class WorkflowExecutionStepDomainImpl
           this.LOGGER.error(`No steps found for workflow ${executionId}`);
           return; // check if to throw an error
         }
+        // Entonces es el primero
+        let lastRun: string | undefined = undefined;
         if (!steps.lastRun) {
-          span.addEvent('Last step not found');
-          this.LOGGER.error(
-            `No last step run found for workflow ${executionId}`,
+          span.addEvent(
+            'Last step not found. This is probably the first step!',
           );
-          return; // check if to throw an error
+          this.LOGGER.debug(
+            `No last step run found for workflow ${executionId}. This is probably the first step!`,
+          );
+          lastRun = steps.steps[0].name;
+        } else {
+          this.LOGGER.debug(
+            `steps.lastRun = ${steps.lastRun}, looking for the one that was JUST run`,
+          );
+          for (let index = 0; index < steps.steps.length; index++) {
+            const step = steps.steps[index];
+            if (step.name === steps.lastRun && index + 1 < steps.steps.length) {
+              lastRun = steps.steps[index + 1].name;
+              break;
+            }
+          }
+        }
+
+        if (lastRun === undefined) {
+          this.LOGGER.error(
+            `Acá no debería entrar nunca! Significa que el lastRun que había ya era el último step!`,
+          );
+          return;
         }
 
         await this.workflowExecutionRepository.updateStep(
           executionId,
-          steps.lastRun,
+          lastRun,
           answerPath,
         );
         span.setAttribute('workflow.execution.step.answer.saved', true);

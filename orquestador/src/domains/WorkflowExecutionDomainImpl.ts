@@ -93,7 +93,6 @@ export class WorkflowExecutionDomainImpl implements WorkflowExecutionDomain {
           )}`,
         );
 
-        // ANTES ESTABA EL val.name ACÁ en lugar de val.value
         this.LOGGER.debug(
           `Input arguments for first step of execution ${request.executionId}: ${JSON.stringify(
             request.inputArguments,

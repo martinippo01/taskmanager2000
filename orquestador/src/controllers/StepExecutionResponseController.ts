@@ -58,7 +58,10 @@ export class StepExecutionResponseController implements OnModuleInit {
         span.setAttribute('workflow.execution.id', request.executionId);
         span.setAttribute('workflow.execution.answer', request.answer);
 
-        this.LOGGER.debug('Task completed');
+        this.LOGGER.debug(
+          `Task completed, executionId: ${request.executionId}`,
+        );
+        this.LOGGER.debug(`Answer: ${request.answer}`);
         await this.workflowExecutionStepDomain.saveAnswer(
           request.executionId,
           request.answer,
