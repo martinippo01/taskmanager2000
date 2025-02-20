@@ -102,6 +102,7 @@ export class WorkflowExecutionStepDomainImpl
               wf_exec,
             )
           ) {
+            await this.runNextStep(executionId);
             return;
           }
 
@@ -271,7 +272,7 @@ export class WorkflowExecutionStepDomainImpl
 
         const newStepArguments: InputArguments = {};
         if (stepToRun) {
-          await stepToRun.params.forEach(async (param) => {
+          for (const param of stepToRun.params) {
             if ('from' in param) {
               const filePath = join('/answers', executionId, param.from);
 
@@ -290,7 +291,7 @@ export class WorkflowExecutionStepDomainImpl
                 newStepArguments[param.name] = param.value;
               }
             }
-          });
+          }
         } else {
           span.addEvent('Step not found');
           this.LOGGER.error(
