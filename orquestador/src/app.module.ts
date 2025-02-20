@@ -1,3 +1,7 @@
+import {
+  KafkaWorkflowExecutionRequestClient,
+  kafkaWorkflowExecutionRequestClientFactoryProvider,
+} from '@configs/KafkaWorkflowExecutionRequestConfig';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
@@ -45,12 +49,12 @@ import TracingMiddleware from '@shared/TracingMiddleware';
       },
     }),
     ClientsModule.registerAsync([
-      //{
-      //  imports: [ConfigModule],
-      //  inject: [ConfigService],
-      //  name: KafkaWorkflowExecutionRequestClient,
-      //  useFactory: kafkaWorkflowExecutionRequestClientFactoryProvider,
-      //},
+      {
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        name: KafkaWorkflowExecutionRequestClient,
+        useFactory: kafkaWorkflowExecutionRequestClientFactoryProvider,
+      },
       {
         imports: [ConfigModule],
         inject: [ConfigService],
