@@ -94,7 +94,7 @@ export class WorkflowExecutionStepDomainImpl
           }
 
           if (
-            this.checkInternal(
+            await this.checkInternal(
               executionId,
               nextStep,
               stepArguments,
@@ -301,7 +301,7 @@ export class WorkflowExecutionStepDomainImpl
         }
 
         if (
-          this.checkInternal(
+          await this.checkInternal(
             executionId,
             stepToRun,
             newStepArguments,
@@ -378,18 +378,18 @@ export class WorkflowExecutionStepDomainImpl
     );
   }
 
-  checkInternal(
+  async checkInternal(
     executionId,
     nextStep: Step,
     stepArguments,
     steps,
     wf_exec,
-  ): boolean {
+  ): Promise<boolean> {
     this.LOGGER.debug(
       `Checking if it is internal: ${nextStep.task} of execId ${executionId}`,
     );
     if (nextStep.task === 'decision') {
-      this.runDecision(executionId, stepArguments, steps, wf_exec);
+      await this.runDecision(executionId, stepArguments, steps, wf_exec);
     } else if (nextStep.task === 'upper') {
       this.runUpper(executionId, stepArguments, nextStep.name);
     } else if (nextStep.task === 'lower') {
