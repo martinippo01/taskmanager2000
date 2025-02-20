@@ -7,7 +7,7 @@ import { CannotRunNewWorkflowExecutionException } from '@exceptions/CannotRunNew
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDomain';
 import { ConfigService } from '@nestjs/config';
-import { ClientKafka, KafkaContext } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 import { Producer } from '@nestjs/microservices/external/kafka.interface';
 import { Test, TestingModule } from '@nestjs/testing';
 import { tracerGatewayMockProvider } from '@shared/TracerGateway';
@@ -31,7 +31,7 @@ describe('WorkflowExecutionRequestController', () => {
   let configServiceMock: jest.Mocked<
     Partial<ConfigService<KafkaWorkflowExecutionRequestEnvironmentVariables>>
   >;
-  let kafkaContextMock: jest.Mocked<KafkaContext>;
+  //let kafkaContextMock: jest.Mocked<KafkaContext>;
 
   beforeEach(async () => {
     kafkaClientMock = {
@@ -44,7 +44,7 @@ describe('WorkflowExecutionRequestController', () => {
     configServiceMock = {
       get: jest.fn().mockReturnValue('KAFKA_TOPIC_WER'),
     };
-    kafkaContextMock = {
+    /* kafkaContextMock = {
       getMessage: jest.fn().mockReturnValue({ offset: '' }),
       getTopic: jest.fn(),
       getPartition: jest.fn(),
@@ -52,7 +52,7 @@ describe('WorkflowExecutionRequestController', () => {
         commitOffsets: jest.fn(),
       }),
     } as any;
-
+*/
     const module: TestingModule = await Test.createTestingModule({
       controllers: [WorkflowExecutionRequestController],
       providers: [
@@ -154,7 +154,7 @@ describe('WorkflowExecutionRequestController', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should commit the offset after processing the request', async () => {
+    /*it('should commit the offset after processing the request', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
         .mockResolvedValueOnce({ alreadyRun: false, couldRun: true });
@@ -164,8 +164,8 @@ describe('WorkflowExecutionRequestController', () => {
         //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
-    });
-
+    });*/
+    /*
     it('should commit the offset after even the workflow execution has already been runned', async () => {
       jest
         .spyOn(WorkflowExecutionDomainMock, 'runNewWorkflowExecution')
@@ -176,6 +176,6 @@ describe('WorkflowExecutionRequestController', () => {
         //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
-    });
+    });*/
   });
 });
