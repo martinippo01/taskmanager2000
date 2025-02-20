@@ -34,7 +34,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
   async onModuleInit() {
     const kafkaTopic =
       this.configService.get('KAFKA_TOPIC_WER', { infer: true }) || '';
-    this.kafkaClient.subscribeToResponseOf(kafkaTopic);
+    // this.kafkaClient.subscribeToResponseOf(kafkaTopic);
     try {
       await this.kafkaClient.connect();
       this.LOGGER.log(`Connection to '${kafkaTopic}' topic established`);

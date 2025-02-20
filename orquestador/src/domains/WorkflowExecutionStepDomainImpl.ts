@@ -194,6 +194,7 @@ export class WorkflowExecutionStepDomainImpl
           executionId,
           WfExecutionStatus.EXECUTION_FINISHED,
         );
+        this.LOGGER.log(`Workflow with ID ${executionId} finished!`);
         span.setAttribute('workflow.execution.status.updated', true);
       },
     );
