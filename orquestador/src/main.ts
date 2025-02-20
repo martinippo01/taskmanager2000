@@ -62,6 +62,7 @@ async function bootstrap() {
     getKafkaStepExecutionResponseConfig({
       brokers: consumerStep,
       clientId: process.env.KAFKA_CLIENT_ID_SER,
+      groupId: process.env.KAFKA_GROUP_ID_SER,
       username: process.env.KAFKA_USERNAME_SER,
       password: process.env.KAFKA_PASSWORD_SER,
     }),
@@ -73,6 +74,7 @@ async function bootstrap() {
     getKafkaStepExecutionErrorConfig({
       brokers: consumerError,
       clientId: process.env.KAFKA_CLIENT_ID_SEE,
+      groupId: process.env.KAFKA_GROUP_ID_SEE,
       username: process.env.KAFKA_USERNAME_SEE,
       password: process.env.KAFKA_PASSWORD_SEE,
     }),
