@@ -46,7 +46,7 @@ export const getKafkaWorkflowExecutionRequestConfig = ({
       groupId,
     },
     run: {
-      autoCommit: false,
+      autoCommit: true,
     },
     subscribe: {
       fromBeginning: false,

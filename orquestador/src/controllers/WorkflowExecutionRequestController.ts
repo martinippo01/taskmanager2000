@@ -6,13 +6,7 @@ import {
 } from '@configs/KafkaWorkflowExecutionRequestConfig';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ClientKafka,
-  Ctx,
-  EventPattern,
-  KafkaContext,
-  Payload,
-} from '@nestjs/microservices';
+import { ClientKafka, EventPattern, Payload } from '@nestjs/microservices';
 import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
 import { TracerGateway } from '@shared/TracerGateway';
@@ -50,7 +44,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
   @EventPattern(process.env.KAFKA_TOPIC_WER)
   async handleExecutionRequest(
     @Payload() request: WorkflowExecutionRequest,
-    @Ctx() context: KafkaContext,
+    //@Ctx() context: KafkaContext,
   ) {
     return this.tracerGateway.trace(
       'WorkflowExecutionRequestController.handleExecutionRequest',
@@ -77,6 +71,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
           );
         }
 
+        /*
         try {
           this.LOGGER.debug(
             `Committing offset for request with id: ${request.executionId}`,
@@ -95,7 +90,7 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
             `Failed to commit offset for request with id: ${request.executionId}`,
           );
           throw error;
-        }
+        }*/
       },
     );
   }
