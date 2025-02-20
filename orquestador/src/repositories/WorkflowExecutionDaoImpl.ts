@@ -150,16 +150,12 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
     );
   }
 
-  async updateStep(
-    executionId: string,
-    lastStepRun: string,
-    wantedOutput: string,
-  ) {
+  async updateStep(executionId: string, wantedOutput: string, name: string) {
     return this.tracerGateway.trace(
       'WorkflowExecutionDaoImpl.updateStep',
       async (span) => {
         span.setAttribute('workflow.execution.id', executionId);
-        span.setAttribute('workflow.execution.lastStepRun.name', lastStepRun);
+        span.setAttribute('workflow.execution.lastStepRun.name', name);
         span.setAttribute(
           'workflow.execution.lastStepRun.output.path',
           wantedOutput,
@@ -177,9 +173,8 @@ export class WorkflowExecutionDaoImpl implements WorkflowExecutionDao {
 
         workflowExecution.outputs = {
           ...workflowExecution.outputs,
-          [lastStepRun]: wantedOutput,
+          [name]: wantedOutput,
         };
-        workflowExecution.lastStepRun = lastStepRun;
 
         return this.workflowExecutionRepository.save(workflowExecution);
       },

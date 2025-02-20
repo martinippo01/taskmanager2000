@@ -123,12 +123,17 @@ export class WorkflowExecutionStepDomainImpl
     );
   }
 
-  async saveAnswer(executionId: string, answerPath: string) {
+  async saveAnswer(
+    executionId: string,
+    answerPath: string,
+    name: string,
+  ): Promise<void> {
     return this.tracerGateway.trace(
       'WorkflowExecutionStepDomainImpl.saveAnswer',
       async (span) => {
         span.setAttribute('workflow.execution.id', executionId);
         span.setAttribute('workflow.execution.answer', answerPath);
+        span.setAttribute('workflow.execution.step.name', name);
         // Check the persistence for steps and the lasr run step
         const steps: stepsInfo | null =
           await this.workflowExecutionRepository.getStepsFromExecution(
@@ -139,6 +144,7 @@ export class WorkflowExecutionStepDomainImpl
           this.LOGGER.error(`No steps found for workflow ${executionId}`);
           return; // check if to throw an error
         }
+        /*
         // Entonces es el primero
         let lastRun: string | undefined = undefined;
         if (!steps.lastRun) {
@@ -167,12 +173,12 @@ export class WorkflowExecutionStepDomainImpl
             `Acá no debería entrar nunca! Significa que el lastRun que había ya era el último step!`,
           );
           return;
-        }
+        }*/
 
         await this.workflowExecutionRepository.updateStep(
           executionId,
-          lastRun,
           answerPath,
+          name,
         );
         span.setAttribute('workflow.execution.step.answer.saved', true);
 
@@ -359,7 +365,11 @@ export class WorkflowExecutionStepDomainImpl
           }
         }
 
-        await this.saveAnswer(executionId, `${executionId}/${step_name}`);
+        await this.saveAnswer(
+          executionId,
+          `answers/${executionId}/${step_name}`,
+          step_name,
+        );
         span.setAttribute('workflow.execution.step.answer.saved', true);
       },
     );

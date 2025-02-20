@@ -143,12 +143,12 @@ describe('WorkflowExecutionStepDomainImpl', () => {
           inputArguments: {},
         });
 
-      await service.saveAnswer('executionId', 'answerPath');
+      await service.saveAnswer('executionId', 'answerPath', 'name');
 
       expect(workflowExecutionRepository.updateStep).toHaveBeenCalledWith(
         'executionId',
-        'step1',
         'answerPath',
+        'name',
       );
       expect(workflowExecutionRepository.updateStatus).toHaveBeenCalledWith(
         'executionId',

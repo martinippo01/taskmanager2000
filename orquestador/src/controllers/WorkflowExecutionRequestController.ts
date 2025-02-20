@@ -2,10 +2,10 @@ import { CannotRunNewWorkflowExecutionException } from '@exceptions/CannotRunNew
 import { WorkflowExecutionDomain } from '@interfaces/domains/WorkflowExecutionDomain';
 import {
   KafkaWorkflowExecutionRequestClient,
-  //KafkaWorkflowExecutionRequestEnvironmentVariables,
+  KafkaWorkflowExecutionRequestEnvironmentVariables,
 } from '@configs/KafkaWorkflowExecutionRequestConfig';
 import { Controller, Inject, Logger, OnModuleInit } from '@nestjs/common';
-//import { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { ClientKafka, EventPattern, Payload } from '@nestjs/microservices';
 import { WorkflowExecutionRequest } from '@shared/WorkflowExecutionRequest';
 import KafkaConnectionException from '@exceptions/KakfaConnectionException';
@@ -20,18 +20,18 @@ export class WorkflowExecutionRequestController implements OnModuleInit {
     private readonly kafkaClient: ClientKafka,
     @Inject(WorkflowExecutionDomain)
     private readonly workflowExecutionDomain: WorkflowExecutionDomain,
-    //@Inject(ConfigService)
-    //private readonly configService: ConfigService<KafkaWorkflowExecutionRequestEnvironmentVariables>,
+    @Inject(ConfigService)
+    private readonly configService: ConfigService<KafkaWorkflowExecutionRequestEnvironmentVariables>,
     @Inject(TracerGateway) private readonly tracerGateway: TracerGateway,
   ) {}
 
   async onModuleInit() {
-    //const kafkaTopic =
-    // this.configService.get('KAFKA_TOPIC_WER', { infer: true }) || '';
+    const kafkaTopic =
+      this.configService.get('KAFKA_TOPIC_WER', { infer: true }) || '';
     // this.kafkaClient.subscribeToResponseOf(kafkaTopic);
     try {
       await this.kafkaClient.connect();
-      //this.LOGGER.log(`Connection to '${kafkaTopic}' topic established`);
+      this.LOGGER.log(`Connection to '${kafkaTopic}' topic established`);
     } catch (error) {
       this.LOGGER.error(`Kafka connection error: ${error}`);
       throw new KafkaConnectionException(

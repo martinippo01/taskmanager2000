@@ -19,6 +19,7 @@ import { TracerGateway } from '@shared/TracerGateway';
 @Controller()
 export class StepExecutionResponseController implements OnModuleInit {
   private readonly LOGGER = new Logger(StepExecutionResponseController.name);
+  private hashSet: Set<string>;
 
   constructor(
     @Inject(KafkaStepExecutionResponseClient)
@@ -57,6 +58,7 @@ export class StepExecutionResponseController implements OnModuleInit {
       async (span) => {
         span.setAttribute('workflow.execution.id', request.executionId);
         span.setAttribute('workflow.execution.answer', request.answer);
+        span.setAttribute('workflow.execution.name', request.name);
 
         this.LOGGER.debug(
           `Task completed, executionId: ${request.executionId}`,
@@ -65,6 +67,7 @@ export class StepExecutionResponseController implements OnModuleInit {
         await this.workflowExecutionStepDomain.saveAnswer(
           request.executionId,
           request.answer,
+          request.name,
         );
         span.setAttribute('workflow.execution.answer.saved', true);
         await this.workflowExecutionStepDomain.runNextStep(request.executionId);

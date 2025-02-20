@@ -1,9 +1,10 @@
-import { Kafka, logLevel, Producer } from "kafkajs";
-import { randomBytes } from "crypto";
+import { Kafka, logLevel, Producer } from 'kafkajs';
+import { randomBytes } from 'crypto';
 
 export type WorkflowExecutionStepRequest = {
   executionId: string;
   answer: string;
+  name: string;
 };
 
 export class WorkflowExecutionRequestProducer {
@@ -12,18 +13,18 @@ export class WorkflowExecutionRequestProducer {
   private _isConnected: boolean = false;
 
   constructor(
-    private readonly username: string = process.env.KAFKA_USERNAME || "",
-    private readonly password: string = process.env.KAFKA_PASSWORD || "",
-    private readonly topic: string = process.env.KAFKA_TOPIC || "",
-    private readonly brokers: string = process.env.KAFKA_BROKERS || "",
-    private readonly clientId: string = process.env.KAFKA_CLIENT_ID || ""
+    private readonly username: string = process.env.KAFKA_USERNAME || '',
+    private readonly password: string = process.env.KAFKA_PASSWORD || '',
+    private readonly topic: string = process.env.KAFKA_TOPIC || '',
+    private readonly brokers: string = process.env.KAFKA_BROKERS || '',
+    private readonly clientId: string = process.env.KAFKA_CLIENT_ID || '',
   ) {
     this.kafka = new Kafka({
       clientId,
-      brokers: brokers.split(","),
+      brokers: brokers.split(','),
       ssl: false,
       sasl: {
-        mechanism: "plain",
+        mechanism: 'plain',
         username,
         password,
       },
@@ -49,12 +50,12 @@ export class WorkflowExecutionRequestProducer {
 
   async send(
     key: string,
-    request: Omit<WorkflowExecutionStepRequest, "executionId">
+    request: Omit<WorkflowExecutionStepRequest, 'executionId'>,
   ): Promise<string> {
     if (!this.isConnected) {
-      throw new Error("Producer is not connected");
+      throw new Error('Producer is not connected');
     }
-    const executionId = randomBytes(20).toString("hex");
+    const executionId = randomBytes(20).toString('hex');
     const value = { ...request, executionId };
     await this.producer.send({
       topic: this.topic,
