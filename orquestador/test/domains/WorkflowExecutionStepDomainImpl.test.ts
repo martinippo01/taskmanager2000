@@ -139,7 +139,7 @@ describe('WorkflowExecutionStepDomainImpl', () => {
         .spyOn(workflowExecutionRepository, 'getStepsFromExecution')
         .mockResolvedValue({
           steps: [{ name: 'step1', task: 'task1', params: [] }],
-          lastRun: 'step1',
+          lastRun: null,
           inputArguments: {},
         });
 
