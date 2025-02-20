@@ -101,7 +101,7 @@ describe('WorkflowExecutionRequestController', () => {
       await expect(
         controller.handleExecutionRequest(
           executionRequestExample,
-          kafkaContextMock,
+          //kafkaContextMock,
         ),
       ).resolves.not.toThrow();
     });
@@ -113,7 +113,7 @@ describe('WorkflowExecutionRequestController', () => {
       await expect(
         controller.handleExecutionRequest(
           executionRequestExample,
-          kafkaContextMock,
+          //kafkaContextMock,
         ),
       ).rejects.toThrow(CannotRunNewWorkflowExecutionException);
     });
@@ -125,7 +125,7 @@ describe('WorkflowExecutionRequestController', () => {
       const spy = jest.spyOn(controller['LOGGER'], 'warn');
       await controller.handleExecutionRequest(
         executionRequestExample,
-        kafkaContextMock,
+        //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
     });
@@ -137,7 +137,7 @@ describe('WorkflowExecutionRequestController', () => {
       const spy = jest.spyOn(controller['LOGGER'], 'warn');
       await controller.handleExecutionRequest(
         executionRequestExample,
-        kafkaContextMock,
+        //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe('WorkflowExecutionRequestController', () => {
       const spy = jest.spyOn(controller['LOGGER'], 'log');
       await controller.handleExecutionRequest(
         executionRequestExample,
-        kafkaContextMock,
+        //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
     });
@@ -161,7 +161,7 @@ describe('WorkflowExecutionRequestController', () => {
       const spy = jest.spyOn(kafkaContextMock.getConsumer(), 'commitOffsets');
       await controller.handleExecutionRequest(
         executionRequestExample,
-        kafkaContextMock,
+        //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
     });
@@ -173,7 +173,7 @@ describe('WorkflowExecutionRequestController', () => {
       const spy = jest.spyOn(kafkaContextMock.getConsumer(), 'commitOffsets');
       await controller.handleExecutionRequest(
         executionRequestExample,
-        kafkaContextMock,
+        //kafkaContextMock,
       );
       expect(spy).toHaveBeenCalled();
     });
