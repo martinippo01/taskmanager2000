@@ -31,6 +31,7 @@ export class StepScheduleRequestGatewayImpl
   async onModuleInit() {
     try {
       await this.kafkaClient.connect();
+      this.LOGGER.log(`Connection to Kafka topic ${this.topic} established`);
     } catch (error) {
       this.LOGGER.error(`Kafka connection error: ${error}`);
       throw new KafkaConnectionException('StepScheduleRequestQueue', error);

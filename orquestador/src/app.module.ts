@@ -38,11 +38,6 @@ import { WorkflowExecutionQueryDomain } from '@interfaces/domains/WorklowExecuti
 import { WorkflowExecutionQueryDomainImpl } from '@domains/WorkflowExecutionQueryDomainImpl';
 import { tracerGatewayProvider } from '@shared/TracerGateway';
 import TracingMiddleware from '@shared/TracingMiddleware';
-import { StepExecutionErrorController } from '@controllers/StepExecutionErrorController';
-import {
-  KafkaStepExecutionErrorClient,
-  KafkaStepExecutionErrorClientFactoryProvider,
-} from '@configs/KafkaStepExecutionErrorConfig';
 
 @Module({
   imports: [
@@ -72,12 +67,12 @@ import {
         name: KafkaStepExecutionResponseClient,
         useFactory: KafkaStepExecutionResponseClientFactoryProvider,
       },
-      {
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        name: KafkaStepExecutionErrorClient,
-        useFactory: KafkaStepExecutionErrorClientFactoryProvider,
-      },
+      //      {
+      //        imports: [ConfigModule],
+      //        inject: [ConfigService],
+      //        name: KafkaStepExecutionErrorClient,
+      //        useFactory: KafkaStepExecutionErrorClientFactoryProvider,
+      //      },
     ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -95,7 +90,7 @@ import {
     WorkflowExecutionRequestController,
     StepExecutionResponseController,
     WorkflowExecutionQueryController,
-    StepExecutionErrorController,
+    //StepExecutionErrorController,
     PingController,
   ],
   providers: [
