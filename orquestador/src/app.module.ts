@@ -5,7 +5,6 @@ import {
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
-import { WorkflowExecutionRequestController } from '@controllers/WorkflowExecutionRequestController';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkflowExecutionDaoImpl } from '@repositories/WorkflowExecutionDaoImpl';
 import { WorkflowExecutionDao } from '@interfaces/repository/WorkflowExecutionDao';
@@ -87,7 +86,7 @@ import TracingMiddleware from '@shared/TracingMiddleware';
     TypeOrmModule.forFeature([WorkflowExecution]),
   ],
   controllers: [
-    WorkflowExecutionRequestController,
+    //WorkflowExecutionRequestController,
     StepExecutionResponseController,
     WorkflowExecutionQueryController,
     //StepExecutionErrorController,
