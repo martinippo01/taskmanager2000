@@ -37,6 +37,7 @@ import { WorkflowExecutionQueryDomain } from '@interfaces/domains/WorklowExecuti
 import { WorkflowExecutionQueryDomainImpl } from '@domains/WorkflowExecutionQueryDomainImpl';
 import { tracerGatewayProvider } from '@shared/TracerGateway';
 import TracingMiddleware from '@shared/TracingMiddleware';
+import { WorkflowExecutionRequestController } from '@controllers/WorkflowExecutionRequestController';
 
 @Module({
   imports: [
@@ -86,7 +87,7 @@ import TracingMiddleware from '@shared/TracingMiddleware';
     TypeOrmModule.forFeature([WorkflowExecution]),
   ],
   controllers: [
-    //WorkflowExecutionRequestController,
+    WorkflowExecutionRequestController,
     StepExecutionResponseController,
     WorkflowExecutionQueryController,
     //StepExecutionErrorController,
