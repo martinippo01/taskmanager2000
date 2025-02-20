@@ -369,7 +369,7 @@ export class WorkflowExecutionStepDomainImpl
 
         await this.saveAnswer(
           executionId,
-          `answers/${executionId}/${step_name}`,
+          `/answers/${executionId}/${step_name}`,
           step_name,
         );
         span.setAttribute('workflow.execution.step.answer.saved', true);
