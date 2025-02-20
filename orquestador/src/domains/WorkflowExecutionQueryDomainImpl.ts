@@ -114,7 +114,9 @@ export class WorkflowExecutionQueryDomainImpl
               const answer = (await readFile(path, 'utf8')).trim();
               answers[stepName] = answer;
             } catch (error) {
-              span.addEvent('Workflow execution answer not found');
+              span.addEvent(
+                `Workflow execution answer not found. Error: ${error}`,
+              );
               return null;
             }
           }

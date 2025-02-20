@@ -73,6 +73,7 @@ export class WorkflowExecutionStepDomainImpl
           await nextStep.params.forEach(async (param) => {
             if ('from' in param) {
               const filePath = join('/answers', executionId, param.from);
+              Logger.debug(`Reading from ${filePath}`);
 
               try {
                 const value = await readFile(filePath, 'utf-8'); // Read the file content as a string
